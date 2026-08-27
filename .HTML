@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mystical Wellness — Small-Batch Chia Pudding</title>
+<meta name="description" content="Small-batch chia pudding made fresh in El Cajon, CA. Order by text, pick up or get local delivery." />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+          display: ["Fraunces", "Georgia", "serif"]
+        },
+        colors: {
+          ink: "#121210",
+          panel: "#1b1a16",
+          panel2: "#232019",
+          olive: "#7a8450",
+          oliveDeep: "#5c6640",
+          clay: "#a9825b",
+          cream: "#eee7d8"
+        }
+      }
+    }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-feature-settings: "cv02","cv03","cv04","cv11"; }
+  .texture { background-image: radial-gradient(circle at 20% 20%, rgba(122,132,80,.10), transparent 45%), radial-gradient(circle at 85% 0%, rgba(169,130,91,.10), transparent 40%); }
+  .fade-in { animation: fadeIn .35s ease both; }
+  .slide-up { animation: slideUp .3s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+  .flavor-card { transition: transform .25s ease, box-shadow .25s ease; }
+  .flavor-card:hover { transform: translateY(-4px); }
+  .stepper-btn { transition: background-color .15s ease; }
+  input[type="radio"]:checked + label { border-color: #7a8450; background-color: rgba(122,132,80,.12); }
+  ::selection { background: #7a8450; color: #121210; }
+  .scrollbar-thin::-webkit-scrollbar { height: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #5c6640; border-radius: 999px; }
+  .spinner { border: 2px solid rgba(238,231,216,.25); border-top-color: #7a8450; border-radius: 50%; width: 14px; height: 14px; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body class="min-h-screen bg-ink text-cream antialiased">
+
+<!--
+  ============================================================================
+  OWNER CONFIG — edit these values whenever your flavors, prices, schedule,
+  or contact info change, then commit + push to GitHub to update the live site.
+
+  BACKEND_URL connects this page to the free Google Apps Script backend
+  (see mystical-wellness-backend.gs for setup steps). If it's left blank or
+  the request fails for any reason, the site automatically falls back to the
+  static numbers below — nothing on the page ever breaks because of this.
+  ============================================================================
+-->
+<script>
+  const BACKEND_URL = ""; // TODO: paste your Apps Script Web App URL here, e.g. "https://script.google.com/macros/s/XXXXX/exec"
+
+  const CONFIG = {
+    brandName: "Mystical Wellness",
+    tagline: "Nourish Your Ritual",
+    subtagline: "Small-batch chia pudding, made fresh every week in El Cajon.",
+    city: "El Cajon, CA",
+    instagramHandle: "@mysticalwellness", // TODO: replace with the real handle once created
+    instagramUrl: "https://instagram.com/",
+    ownerPhone: "+16198383928",
+    jarSizeOz: 8,
+    jarPrice: 6,
+    fourPackPrice: 22, // placeholder bundle price — she hadn't decided yet, edit freely
+    proteinBoostPrice: 1,
+    weeklyCapacity: 20,
+    claimedThisWeek: 0, // fallback only — overwritten live by the backend when BACKEND_URL works
+    prepDay: "Sunday",
+    pickupDays: "Monday & Tuesday",
+    pickupLocationNote: "Pickup address is shared by text once your order is confirmed.",
+    noticeHours: 24,
+    deliveryRadiusMiles: 5,
+    deliveryMinJars: 2,
+    deliveryFeeNote: "Delivery fee is based on distance and confirmed by text — the closer you are, the less it costs.",
+    shelfLifeDays: "5–6", // verify exact safe shelf life before publishing final number
+    paymentNote: "Pay by cash, Venmo, or Zelle at pickup or delivery.",
+    toppingsNote: "Every jar comes topped with granola, coconut flakes, and a drizzle of nut butter — no need to choose.",
+    aboutText: "I started making this chia pudding because I could never find a breakfast that was actually healthy, filling, and high in protein without tasting like a chore to eat. Every jar is made by hand in small batches, with real fruit and ingredients you can actually pronounce. This is a one-person, home-kitchen operation — not a factory — so some weeks sell out fast.",
+    flavors: [
+      { id: "mango", name: "Mango", core: true, soldOut: false, desc: "Sweet mango over a creamy coconut chia base.", calories: 210, protein: 9, dairyFreeAvailable: true },
+      { id: "strawberry", name: "Strawberry", core: true, soldOut: false, desc: "Fresh strawberry swirl over vanilla chia.", calories: 190, protein: 10, dairyFreeAvailable: true },
+      { id: "apple", name: "Apple Cinnamon", core: true, soldOut: false, desc: "Warm cinnamon apple with oat topping.", calories: 200, protein: 9, dairyFreeAvailable: true },
+      { id: "blueberry", name: "Blueberry Lemon", core: false, soldOut: false, desc: "This week's rotating special — wild blueberry & lemon zest.", calories: 195, protein: 10, dairyFreeAvailable: true }
+    ],
+    ingredients: "Chia seeds, yogurt, coconut, rolled oats, maple syrup, almond extract, fresh fruit.",
+    allergens: "Contains dairy, tree nuts, and coconut. Ask about the dairy-free version made with non-dairy milk and dairy-free yogurt."
+  };
+</script>
+
+<div class="texture pointer-events-none fixed inset-0 -z-10"></div>
+
+<header class="sticky top-0 z-40 border-b border-white/10 bg-ink/90 backdrop-blur-xl">
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+    <div class="flex items-center gap-3">
+      <div class="grid h-10 w-10 place-items-center rounded-full border border-olive/60 bg-panel font-display text-lg text-olive">M</div>
+      <div>
+        <p id="brand-name" class="font-display text-lg font-semibold leading-none tracking-tight">Mystical Wellness</p>
+        <p class="mt-0.5 text-[11px] uppercase tracking-[0.16em] text-cream/50">Small-batch chia pudding</p>
+      </div>
+    </div>
+    <nav class="hidden items-center gap-6 text-sm text-cream/70 sm:flex">
+      <a href="#flavors" class="hover:text-cream">Flavors</a>
+      <a href="#order" class="hover:text-cream">Order</a>
+      <a href="#details" class="hover:text-cream">Pickup &amp; Delivery</a>
+      <a href="#about" class="hover:text-cream">About</a>
+      <a href="#faq" class="hover:text-cream">FAQ</a>
+    </nav>
+    <a href="#order" class="rounded-full bg-olive px-4 py-2 text-sm font-semibold text-ink transition hover:bg-oliveDeep hover:text-cream">Order now</a>
+  </div>
+</header>
+
+<main>
+  <section class="relative overflow-hidden border-b border-white/10">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+      <p class="text-xs font-semibold uppercase tracking-[0.22em] text-olive">Made fresh weekly · <span id="hero-city">El Cajon, CA</span></p>
+      <h1 id="hero-tagline" class="mt-4 max-w-2xl font-display text-4xl font-semibold leading-tight text-cream sm:text-6xl">Nourish Your Ritual</h1>
+      <p id="hero-sub" class="mt-5 max-w-xl text-base text-cream/70 sm:text-lg">Small-batch chia pudding, made fresh every week in El Cajon.</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="#flavors" class="rounded-full bg-olive px-6 py-3 text-sm font-semibold text-ink transition hover:bg-oliveDeep hover:text-cream">See this week's flavors</a>
+        <a href="#order" class="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-cream/90 transition hover:border-olive hover:text-olive">Build my order</a>
+      </div>
+      <div id="capacity-banner" class="mt-10 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-panel px-4 py-3 text-sm text-cream/80"></div>
+    </div>
+  </section>
+
+  <section class="border-b border-white/10 bg-panel/40">
+    <div class="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <h2 class="font-display text-2xl font-semibold text-cream sm:text-3xl">How it works</h2>
+      <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-4">
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="font-display text-2xl text-olive">1</p>
+          <p class="mt-2 font-semibold text-cream">Pick your flavors</p>
+          <p class="mt-1 text-sm text-cream/60">Build your order below — jars, add-ons, and pickup or delivery.</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="font-display text-2xl text-olive">2</p>
+          <p class="mt-2 font-semibold text-cream">Send your order</p>
+          <p class="mt-1 text-sm text-cream/60">Text it in one tap, or submit it online — both reach us instantly.</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="font-display text-2xl text-olive">3</p>
+          <p class="mt-2 font-semibold text-cream">We prep fresh</p>
+          <p id="prep-day-copy" class="mt-1 text-sm text-cream/60">Every batch is made fresh on Sunday mornings.</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="font-display text-2xl text-olive">4</p>
+          <p class="mt-2 font-semibold text-cream">Pickup or delivery</p>
+          <p id="pickup-days-copy" class="mt-1 text-sm text-cream/60">Available Monday &amp; Tuesday. Pay when you receive it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="flavors" class="border-b border-white/10">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-olive">This week</p>
+          <h2 class="mt-2 font-display text-3xl font-semibold text-cream">Current flavors</h2>
+        </div>
+        <p id="toppings-note" class="max-w-sm text-sm text-cream/60"></p>
+      </div>
+      <div id="flavor-grid" class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"></div>
+    </div>
+  </section>
+
+  <section id="order" class="border-b border-white/10 bg-panel/40">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <h2 class="font-display text-3xl font-semibold text-cream">Build your order</h2>
+      <p class="mt-2 max-w-2xl text-sm text-cream/60">Pick your jars below, choose pickup or delivery, then either text your order or submit it online — both work. Nothing is charged online; you pay when you get your order.</p>
+
+      <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div class="lg:col-span-2 space-y-4">
+          <div id="order-flavor-list" class="space-y-3"></div>
+
+          <div class="rounded-2xl border border-white/10 bg-panel p-5">
+            <p class="font-semibold text-cream">Add-ons</p>
+            <label class="mt-3 flex items-center gap-3 text-sm text-cream/80">
+              <input id="opt-dairy-free" type="checkbox" class="h-4 w-4 rounded border-white/30 bg-transparent accent-olive" />
+              Make my whole order dairy-free (non-dairy milk + yogurt)
+            </label>
+            <label class="mt-3 flex items-center gap-3 text-sm text-cream/80">
+              <input id="opt-protein" type="checkbox" class="h-4 w-4 rounded border-white/30 bg-transparent accent-olive" />
+              <span>Add protein boost to every jar <span id="protein-price-copy" class="text-cream/50"></span></span>
+            </label>
+          </div>
+
+          <div class="rounded-2xl border border-white/10 bg-panel p-5">
+            <p class="font-semibold text-cream">Pickup or delivery?</p>
+            <div class="mt-3 grid grid-cols-2 gap-3">
+              <input type="radio" name="mode" id="mode-pickup" value="pickup" checked class="peer hidden" />
+              <label for="mode-pickup" class="cursor-pointer rounded-xl border border-white/15 px-4 py-3 text-center text-sm font-medium text-cream/80">Pickup</label>
+              <input type="radio" name="mode" id="mode-delivery" value="delivery" class="peer hidden" />
+              <label for="mode-delivery" class="cursor-pointer rounded-xl border border-white/15 px-4 py-3 text-center text-sm font-medium text-cream/80">Delivery</label>
+            </div>
+            <p id="delivery-note" class="mt-3 hidden text-xs text-cream/50"></p>
+          </div>
+
+          <div class="rounded-2xl border border-white/10 bg-panel p-5">
+            <label class="block text-sm font-medium text-cream/80">Anything else? (address for delivery, allergy notes, preferred day)
+              <textarea id="order-notes" rows="3" maxlength="300" class="mt-2 w-full rounded-xl border border-white/15 bg-ink px-3 py-2 text-sm text-cream outline-none focus:border-olive" placeholder="e.g. 123 Oak St, El Cajon — Tuesday afternoon works best"></textarea>
+            </label>
+          </div>
+
+          <label class="block text-sm font-medium text-cream/80">Your name and phone (only needed if you submit online)
+            <input id="order-contact" type="text" maxlength="120" class="mt-2 w-full rounded-xl border border-white/15 bg-ink px-3 py-2 text-sm text-cream outline-none focus:border-olive" placeholder="Jamie — (619) 555-0123" />
+          </label>
+        </div>
+
+        <div class="space-y-4">
+          <div class="rounded-2xl border border-olive/40 bg-panel2 p-5">
+            <p class="font-display text-lg font-semibold text-cream">Order summary</p>
+            <div id="order-summary-lines" class="mt-4 space-y-2 text-sm text-cream/70"></div>
+            <div class="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+              <span class="text-sm text-cream/60">Subtotal</span>
+              <span id="order-subtotal" class="font-display text-xl font-semibold text-cream">$0.00</span>
+            </div>
+            <p id="order-warning" class="mt-2 hidden text-xs font-medium text-amber-400"></p>
+
+            <a id="btn-text-order" href="#" class="mt-5 flex h-12 items-center justify-center rounded-xl bg-olive text-sm font-semibold text-ink transition hover:bg-oliveDeep hover:text-cream">Text this order</a>
+
+            <button id="btn-submit-online" type="button" class="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-olive/60 text-sm font-semibold text-olive transition hover:bg-olive/10">
+              <span id="submit-online-spinner" class="spinner hidden"></span>
+              <span id="submit-online-label">Submit order online instead</span>
+            </button>
+
+            <button id="btn-copy-order" type="button" class="mt-2 flex h-11 w-full items-center justify-center rounded-xl border border-white/15 text-sm font-medium text-cream/80 hover:border-olive hover:text-olive">Copy order text</button>
+
+            <p class="mt-3 text-[11px] text-cream/40">Texting opens your phone's messages app. "Submit online" sends it directly without needing to text — either way works.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="details" class="border-b border-white/10">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <h2 class="font-display text-3xl font-semibold text-cream">Pickup &amp; delivery details</h2>
+      <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="text-xs font-semibold uppercase tracking-wide text-olive">Pickup</p>
+          <p id="detail-pickup-days" class="mt-2 text-cream">Monday &amp; Tuesday</p>
+          <p id="detail-pickup-note" class="mt-1 text-sm text-cream/60"></p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="text-xs font-semibold uppercase tracking-wide text-olive">Delivery</p>
+          <p id="detail-delivery-radius" class="mt-2 text-cream">Within 5 miles</p>
+          <p id="detail-delivery-fee" class="mt-1 text-sm text-cream/60"></p>
+          <p id="detail-delivery-min" class="mt-1 text-sm text-cream/60"></p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="text-xs font-semibold uppercase tracking-wide text-olive">Ordering &amp; payment</p>
+          <p id="detail-notice" class="mt-2 text-cream">24 hours advance notice</p>
+          <p id="detail-payment" class="mt-1 text-sm text-cream/60"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="about" class="border-b border-white/10 bg-panel/40">
+    <div class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-olive">The story</p>
+      <h2 class="mt-2 font-display text-3xl font-semibold text-cream">Why this exists</h2>
+      <p id="about-text" class="mt-5 text-base leading-relaxed text-cream/75"></p>
+      <div class="mt-6 rounded-2xl border border-white/10 bg-panel p-5">
+        <p class="text-xs font-semibold uppercase tracking-wide text-olive">Ingredients</p>
+        <p id="detail-ingredients" class="mt-1 text-sm text-cream/70"></p>
+        <p class="mt-3 text-xs font-semibold uppercase tracking-wide text-olive">Allergens</p>
+        <p id="detail-allergens" class="mt-1 text-sm text-cream/70"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="border-b border-white/10">
+    <div class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <h2 class="font-display text-3xl font-semibold text-cream">Good to know</h2>
+      <div id="faq-list" class="mt-8 space-y-3"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="bg-ink">
+  <div class="mx-auto max-w-6xl px-4 py-10 text-center sm:px-6">
+    <p id="footer-brand" class="font-display text-lg font-semibold text-cream">Mystical Wellness</p>
+    <p class="mt-1 text-sm text-cream/50">Made with care in <span id="footer-city">El Cajon, CA</span></p>
+    <a id="footer-instagram" href="#" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-sm text-olive hover:text-cream">Follow on Instagram</a>
+  </div>
+</footer>
+
+<div id="toast-root" class="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[min(92vw,22rem)] flex-col gap-2"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const money = (n) => `$${(Math.round(n * 100) / 100).toFixed(2)}`;
+const escapeHtml = (s) => String(s ?? "")
+  .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+  .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+
+const cart = {}; // { flavorId: qty }
+let liveCapacity = { capacity: CONFIG.weeklyCapacity, claimed: CONFIG.claimedThisWeek };
+
+function toast(message) {
+  const el = document.createElement("div");
+  el.className = "fade-in pointer-events-auto rounded-xl border border-olive/40 bg-panel2 px-3 py-2 text-sm text-cream shadow-lg";
+  el.textContent = message;
+  $("toast-root").appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+function renderCapacityBanner() {
+  const remaining = Math.max(0, liveCapacity.capacity - liveCapacity.claimed);
+  const pct = liveCapacity.capacity > 0 ? Math.round((liveCapacity.claimed / liveCapacity.capacity) * 100) : 0;
+  $("capacity-banner").innerHTML = remaining > 0
+    ? `<span class="h-2 w-2 rounded-full bg-olive"></span> ${remaining} of ${liveCapacity.capacity} jars left this week (${pct}% claimed) — order before ${CONFIG.prepDay}`
+    : `<span class="h-2 w-2 rounded-full bg-amber-400"></span> Sold out for this week — check back after ${CONFIG.prepDay}'s batch`;
+}
+
+async function refreshLiveCapacity() {
+  if (!BACKEND_URL) return; // no backend configured yet — stick with static CONFIG values
+  try {
+    const res = await fetch(`${BACKEND_URL}?action=status`, { method: "GET" });
+    if (!res.ok) throw new Error("Bad response");
+    const data = await res.json();
+    if (data && typeof data.capacity === "number" && typeof data.claimed === "number") {
+      liveCapacity = { capacity: data.capacity, claimed: data.claimed };
+      renderCapacityBanner();
+    }
+  } catch (err) {
+    // Silently keep the static fallback numbers — the page must never break because of this.
+  }
+}
+
+function applyStaticCopy() {
+  document.title = `${CONFIG.brandName} — Small-Batch Chia Pudding`;
+  $("brand-name").textContent = CONFIG.brandName;
+  $("footer-brand").textContent = CONFIG.brandName;
+  $("hero-tagline").textContent = CONFIG.tagline;
+  $("hero-sub").textContent = CONFIG.subtagline;
+  $("hero-city").textContent = CONFIG.city;
+  $("footer-city").textContent = CONFIG.city;
+  $("footer-instagram").textContent = `Follow ${CONFIG.instagramHandle} on Instagram`;
+  $("footer-instagram").href = CONFIG.instagramUrl;
+  $("prep-day-copy").textContent = `Every batch is made fresh on ${CONFIG.prepDay} mornings.`;
+  $("pickup-days-copy").textContent = `Available ${CONFIG.pickupDays}. Pay when you receive it.`;
+  $("toppings-note").textContent = CONFIG.toppingsNote;
+  $("protein-price-copy").textContent = `(+${money(CONFIG.proteinBoostPrice)} per jar)`;
+  $("delivery-note").textContent = `Delivery available within ${CONFIG.deliveryRadiusMiles} miles. Minimum ${CONFIG.deliveryMinJars} jars. ${CONFIG.deliveryFeeNote}`;
+  $("detail-pickup-days").textContent = CONFIG.pickupDays;
+  $("detail-pickup-note").textContent = CONFIG.pickupLocationNote;
+  $("detail-delivery-radius").textContent = `Within ${CONFIG.deliveryRadiusMiles} miles`;
+  $("detail-delivery-fee").textContent = CONFIG.deliveryFeeNote;
+  $("detail-delivery-min").textContent = `Minimum order for delivery: ${CONFIG.deliveryMinJars} jars.`;
+  $("detail-notice").textContent = `${CONFIG.noticeHours} hours advance notice`;
+  $("detail-payment").textContent = CONFIG.paymentNote;
+  $("about-text").textContent = CONFIG.aboutText;
+  $("detail-ingredients").textContent = CONFIG.ingredients;
+  $("detail-allergens").textContent = CONFIG.allergens;
+
+  renderCapacityBanner();
+
+  const faqs = [
+    { q: "How long does it stay fresh?", a: `Each jar stays fresh for about ${CONFIG.shelfLifeDays} days refrigerated. Keep it cold and eat within that window.` },
+    { q: "Do I need to return the jar?", a: "No — the jars are yours to keep and reuse at home. No need to return them." },
+    { q: "Is there a dairy-free option?", a: "Yes, check the 'make my whole order dairy-free' box when building your order and it'll be made with non-dairy milk and yogurt." },
+    { q: "What if I don't hear back after ordering?", a: `Orders need at least ${CONFIG.noticeHours} hours notice, so please allow some time for a reply — especially on the ${CONFIG.prepDay} prep day.` },
+    { q: "Can I request a flavor that's not listed?", a: "The current lineup is what's confirmed for this week — feel free to mention a request for next week's rotating special in your order notes." }
+  ];
+  $("faq-list").innerHTML = faqs.map((f) => `
+    <details class="group rounded-2xl border border-white/10 bg-panel p-4">
+      <summary class="cursor-pointer list-none font-medium text-cream">
+        <span class="mr-2 inline-block text-olive transition group-open:rotate-45">+</span>${escapeHtml(f.q)}
+      </summary>
+      <p class="mt-2 text-sm text-cream/65">${escapeHtml(f.a)}</p>
+    </details>`).join("");
+}
+
+function renderFlavorGrid() {
+  $("flavor-grid").innerHTML = CONFIG.flavors.map((f) => `
+    <article class="flavor-card rounded-2xl border ${f.soldOut ? "border-white/5 opacity-50" : "border-white/10"} bg-panel p-5">
+      <div class="flex items-center justify-between">
+        <p class="font-display text-lg font-semibold text-cream">${escapeHtml(f.name)}</p>
+        ${f.core ? "" : '<span class="rounded-full bg-olive/20 px-2 py-0.5 text-[11px] font-semibold text-olive">This week</span>'}
+      </div>
+      <p class="mt-2 text-sm text-cream/60">${escapeHtml(f.desc)}</p>
+      <div class="mt-4 flex items-center gap-3 text-xs text-cream/50">
+        <span>${f.calories} cal</span>
+        <span>&middot;</span>
+        <span>${f.protein}g protein</span>
+        ${f.dairyFreeAvailable ? '<span>&middot;</span><span>Dairy-free option</span>' : ""}
+      </div>
+      <div class="mt-4 flex items-center justify-between">
+        <span class="font-display text-xl font-semibold text-cream">${money(CONFIG.jarPrice)}</span>
+        <span class="text-xs text-cream/40">${CONFIG.jarSizeOz}oz jar</span>
+      </div>
+      ${f.soldOut ? '<p class="mt-3 text-xs font-semibold text-amber-400">Sold out this week</p>' : ""}
+    </article>`).join("");
+}
+
+function renderOrderBuilder() {
+  $("order-flavor-list").innerHTML = CONFIG.flavors.map((f) => `
+    <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-panel p-4 ${f.soldOut ? "opacity-50" : ""}">
+      <div>
+        <p class="font-medium text-cream">${escapeHtml(f.name)}</p>
+        <p class="text-xs text-cream/50">${money(CONFIG.jarPrice)} · ${f.calories} cal · ${f.protein}g protein</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button data-qty-btn="${escapeHtml(f.id)}" data-delta="-1" class="stepper-btn grid h-9 w-9 place-items-center rounded-lg border border-white/15 text-cream hover:bg-white/5" ${f.soldOut ? "disabled" : ""}>−</button>
+        <span id="qty-${escapeHtml(f.id)}" class="w-6 text-center text-cream">0</span>
+        <button data-qty-btn="${escapeHtml(f.id)}" data-delta="1" class="stepper-btn grid h-9 w-9 place-items-center rounded-lg border border-white/15 text-cream hover:bg-white/5" ${f.soldOut ? "disabled" : ""}>+</button>
+      </div>
+    </div>`).join("");
+}
+
+function getMode() {
+  return $("mode-delivery").checked ? "delivery" : "pickup";
+}
+
+function buildOrderSummary() {
+  const lines = [];
+  let subtotal = 0;
+  let totalJars = 0;
+  CONFIG.flavors.forEach((f) => {
+    const qty = cart[f.id] || 0;
+    if (qty <= 0) return;
+    const lineTotal = CONFIG.jarPrice * qty;
+    subtotal += lineTotal;
+    totalJars += qty;
+    lines.push({ text: `${qty}x ${f.name}`, amount: lineTotal });
+  });
+  const dairyFree = $("opt-dairy-free").checked;
+  const proteinBoost = $("opt-protein").checked;
+  if (proteinBoost && totalJars > 0) subtotal += totalJars * CONFIG.proteinBoostPrice;
+  return {
+    lines, subtotal, totalJars, dairyFree, proteinBoost, mode: getMode(),
+    notes: $("order-notes").value.trim(),
+    contact: $("order-contact").value.trim()
+  };
+}
+
+function renderOrderSummary() {
+  const s = buildOrderSummary();
+  const box = $("order-summary-lines");
+  if (!s.lines.length) {
+    box.innerHTML = `<p class="text-cream/40">Add jars above to build your order.</p>`;
+  } else {
+    box.innerHTML = s.lines.map((l) => `<div class="flex justify-between"><span>${escapeHtml(l.text)}</span><span>${money(l.amount)}</span></div>`).join("")
+      + (s.proteinBoost ? `<div class="flex justify-between text-cream/50"><span>Protein boost (${s.totalJars}x)</span><span>${money(s.totalJars * CONFIG.proteinBoostPrice)}</span></div>` : "")
+      + (s.dairyFree ? `<div class="text-cream/50">Dairy-free base requested</div>` : "");
+  }
+  $("order-subtotal").textContent = money(s.subtotal);
+
+  const warning = $("order-warning");
+  if (s.mode === "delivery" && s.totalJars > 0 && s.totalJars < CONFIG.deliveryMinJars) {
+    warning.textContent = `Delivery needs a minimum of ${CONFIG.deliveryMinJars} jars — add ${CONFIG.deliveryMinJars - s.totalJars} more or switch to pickup.`;
+    warning.classList.remove("hidden");
+  } else {
+    warning.classList.add("hidden");
+  }
+
+  $("btn-text-order").href = buildSmsLink(s);
+  return s;
+}
+
+function orderItemsText(summary) {
+  return summary.lines.map((l) => `${l.text} (${money(l.amount)})`).join(", ") || "(no items selected)";
+}
+
+function buildSmsLink(summary) {
+  const bodyLines = [`Hi! I'd like to order from ${CONFIG.brandName}:`];
+  if (!summary.lines.length) bodyLines.push("(no jars selected yet)");
+  summary.lines.forEach((l) => bodyLines.push(`${l.text} (${money(l.amount)})`));
+  if (summary.dairyFree) bodyLines.push("Dairy-free base requested");
+  if (summary.proteinBoost) bodyLines.push("Protein boost requested");
+  bodyLines.push(`Subtotal: ${money(summary.subtotal)}`);
+  bodyLines.push(`Fulfillment: ${summary.mode === "delivery" ? "Delivery" : "Pickup"}`);
+  if (summary.contact) bodyLines.push(`From: ${summary.contact}`);
+  if (summary.notes) bodyLines.push(`Notes: ${summary.notes}`);
+  const body = encodeURIComponent(bodyLines.join("\n"));
+  const digits = CONFIG.ownerPhone.replace(/[^\d+]/g, "");
+  return `sms:${digits}?&body=${body}`;
+}
+
+async function submitOrderOnline() {
+  const s = buildOrderSummary();
+  if (s.totalJars <= 0) return toast("Add at least one jar before submitting.");
+  if (s.mode === "delivery" && s.totalJars < CONFIG.deliveryMinJars) {
+    return toast(`Delivery needs at least ${CONFIG.deliveryMinJars} jars.`);
+  }
+  if (!BACKEND_URL) {
+    return toast("Online submission isn't set up yet — please use 'Text this order' instead.");
+  }
+
+  const spinner = $("submit-online-spinner");
+  const label = $("submit-online-label");
+  spinner.classList.remove("hidden");
+  label.textContent = "Sending…";
+
+  const payload = {
+    itemsText: orderItemsText(s),
+    subtotal: s.subtotal,
+    mode: s.mode,
+    notes: [s.contact ? `From: ${s.contact}` : "", s.notes].filter(Boolean).join(" | "),
+    dairyFree: s.dairyFree,
+    proteinBoost: s.proteinBoost,
+    totalJars: s.totalJars
+  };
+
+  try {
+    // no-cors: we can't read the response, but this guarantees the write isn't blocked
+    // by cross-origin restrictions on Apps Script's response headers.
+    await fetch(BACKEND_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
+    toast("Order sent! We'll confirm by text within " + CONFIG.noticeHours + " hours.");
+    refreshLiveCapacity();
+  } catch (err) {
+    toast("Couldn't reach the server — please use 'Text this order' instead.");
+  } finally {
+    spinner.classList.add("hidden");
+    label.textContent = "Submit order online instead";
+  }
+}
+
+function bindOrderBuilder() {
+  $("order-flavor-list").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-qty-btn]");
+    if (!btn) return;
+    const id = btn.dataset.qtyBtn;
+    const delta = Number(btn.dataset.delta);
+    const next = Math.max(0, (cart[id] || 0) + delta);
+    cart[id] = next;
+    $(`qty-${id}`).textContent = String(next);
+    renderOrderSummary();
+  });
+  $("opt-dairy-free").addEventListener("change", renderOrderSummary);
+  $("opt-protein").addEventListener("change", renderOrderSummary);
+  $("order-notes").addEventListener("input", renderOrderSummary);
+  $("order-contact").addEventListener("input", renderOrderSummary);
+  document.querySelectorAll('input[name="mode"]').forEach((el) => el.addEventListener("change", renderOrderSummary));
+  $("btn-submit-online").addEventListener("click", submitOrderOnline);
+  $("btn-copy-order").addEventListener("click", () => {
+    const s = buildOrderSummary();
+    const link = buildSmsLink(s);
+    const text = decodeURIComponent(link.split("body=")[1]);
+    navigator.clipboard.writeText(text)
+      .then(() => toast("Order text copied — paste it into any messaging app."))
+      .catch(() => toast("Copy failed — please select and copy manually."));
+  });
+}
+
+applyStaticCopy();
+renderFlavorGrid();
+renderOrderBuilder();
+bindOrderBuilder();
+renderOrderSummary();
+refreshLiveCapacity();
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mystical Wellness — Small-Batch Chia Pudding</title>
+<meta name="description" content="Small-batch chia pudding made fresh in El Cajon, CA. Order by text, pick up or get local delivery." />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+          display: ["Fraunces", "Georgia", "serif"]
+        },
+        colors: {
+          ink: "#121210",
+          panel: "#1b1a16",
+          panel2: "#232019",
+          olive: "#7a8450",
+          oliveDeep: "#5c6640",
+          clay: "#a9825b",
+          cream: "#eee7d8"
+        }
+      }
+    }
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-feature-settings: "cv02","cv03","cv04","cv11"; }
+  .texture { background-image: radial-gradient(circle at 20% 20%, rgba(122,132,80,.10), transparent 45%), radial-gradient(circle at 85% 0%, rgba(169,130,91,.10), transparent 40%); }
+  .fade-in { animation: fadeIn .35s ease both; }
+  .slide-up { animation: slideUp .3s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+  .flavor-card { transition: transform .25s ease, box-shadow .25s ease; }
+  .flavor-card:hover { transform: translateY(-4px); }
+  .stepper-btn { transition: background-color .15s ease; }
+  input[type="radio"]:checked + label { border-color: #7a8450; background-color: rgba(122,132,80,.12); }
+  ::selection { background: #7a8450; color: #121210; }
+  .scrollbar-thin::-webkit-scrollbar { height: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #5c6640; border-radius: 999px; }
+  .spinner { border: 2px solid rgba(238,231,216,.25); border-top-color: #7a8450; border-radius: 50%; width: 14px; height: 14px; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body class="min-h-screen bg-ink text-cream antialiased">
+
+<!--
+  ============================================================================
+  OWNER CONFIG — edit these values whenever your flavors, prices, schedule,
+  or contact info change, then commit + push to GitHub to update the live site.
+
+  BACKEND_URL connects this page to the free Google Apps Script backend
+  (see mystical-wellness-backend.gs for setup steps). If it's left blank or
+  the request fails for any reason, the site automatically falls back to the
+  static numbers below — nothing on the page ever breaks because of this.
+  ============================================================================
+-->
+<script>
+  const BACKEND_URL = ""; // TODO: paste your Apps Script Web App URL here, e.g. "https://script.google.com/macros/s/XXXXX/exec"
+
+  const CONFIG = {
+    brandName: "Mystical Wellness",
+    tagline: "Nourish Your Ritual",
+    subtagline: "Small-batch chia pudding, made fresh every week in El Cajon.",
+    city: "El Cajon, CA",
+    instagramHandle: "@mysticalwellness", // TODO: replace with the real handle once created
+    instagramUrl: "https://instagram.com/",
+    ownerPhone: "+16198383928",
+    jarSizeOz: 8,
+    jarPrice: 6,
+    fourPackPrice: 22, // placeholder bundle price — she hadn't decided yet, edit freely
+    proteinBoostPrice: 1,
+    weeklyCapacity: 20,
+    claimedThisWeek: 0, // fallback only — overwritten live by the backend when BACKEND_URL works
+    prepDay: "Sunday",
+    pickupDays: "Monday & Tuesday",
+    pickupLocationNote: "Pickup address is shared by text once your order is confirmed.",
+    noticeHours: 24,
+    deliveryRadiusMiles: 5,
+    deliveryMinJars: 2,
+    deliveryFeeNote: "Delivery fee is based on distance and confirmed by text — the closer you are, the less it costs.",
+    shelfLifeDays: "5–6", // verify exact safe shelf life before publishing final number
+    paymentNote: "Pay by cash, Venmo, or Zelle at pickup or delivery.",
+    toppingsNote: "Every jar comes topped with granola, coconut flakes, and a drizzle of nut butter — no need to choose.",
+    aboutText: "I started making this chia pudding because I could never find a breakfast that was actually healthy, filling, and high in protein without tasting like a chore to eat. Every jar is made by hand in small batches, with real fruit and ingredients you can actually pronounce. This is a one-person, home-kitchen operation — not a factory — so some weeks sell out fast.",
+    flavors: [
+      { id: "mango", name: "Mango", core: true, soldOut: false, desc: "Sweet mango over a creamy coconut chia base.", calories: 210, protein: 9, dairyFreeAvailable: true },
+      { id: "strawberry", name: "Strawberry", core: true, soldOut: false, desc: "Fresh strawberry swirl over vanilla chia.", calories: 190, protein: 10, dairyFreeAvailable: true },
+      { id: "apple", name: "Apple Cinnamon", core: true, soldOut: false, desc: "Warm cinnamon apple with oat topping.", calories: 200, protein: 9, dairyFreeAvailable: true },
+      { id: "blueberry", name: "Blueberry Lemon", core: false, soldOut: false, desc: "This week's rotating special — wild blueberry & lemon zest.", calories: 195, protein: 10, dairyFreeAvailable: true }
+    ],
+    ingredients: "Chia seeds, yogurt, coconut, rolled oats, maple syrup, almond extract, fresh fruit.",
+    allergens: "Contains dairy, tree nuts, and coconut. Ask about the dairy-free version made with non-dairy milk and dairy-free yogurt."
+  };
+</script>
+
+<div class="texture pointer-events-none fixed inset-0 -z-10"></div>
+
+<header class="sticky top-0 z-40 border-b border-white/10 bg-ink/90 backdrop-blur-xl">
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+    <div class="flex items-center gap-3">
+      <div class="grid h-10 w-10 place-items-center rounded-full border border-olive/60 bg-panel font-display text-lg text-olive">M</div>
+      <div>
+        <p id="brand-name" class="font-display text-lg font-semibold leading-none tracking-tight">Mystical Wellness</p>
+        <p class="mt-0.5 text-[11px] uppercase tracking-[0.16em] text-cream/50">Small-batch chia pudding</p>
+      </div>
+    </div>
+    <nav class="hidden items-center gap-6 text-sm text-cream/70 sm:flex">
+      <a href="#flavors" class="hover:text-cream">Flavors</a>
+      <a href="#order" class="hover:text-cream">Order</a>
+      <a href="#details" class="hover:text-cream">Pickup &amp; Delivery</a>
+      <a href="#about" class="hover:text-cream">About</a>
+      <a href="#faq" class="hover:text-cream">FAQ</a>
+    </nav>
+    <a href="#order" class="rounded-full bg-olive px-4 py-2 text-sm font-semibold text-ink transition hover:bg-oliveDeep hover:text-cream">Order now</a>
+  </div>
+</header>
+
+<main>
+  <section class="relative overflow-hidden border-b border-white/10">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
+      <p class="text-xs font-semibold uppercase tracking-[0.22em] text-olive">Made fresh weekly · <span id="hero-city">El Cajon, CA</span></p>
+      <h1 id="hero-tagline" class="mt-4 max-w-2xl font-display text-4xl font-semibold leading-tight text-cream sm:text-6xl">Nourish Your Ritual</h1>
+      <p id="hero-sub" class="mt-5 max-w-xl text-base text-cream/70 sm:text-lg">Small-batch chia pudding, made fresh every week in El Cajon.</p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="#flavors" class="rounded-full bg-olive px-6 py-3 text-sm font-semibold text-ink transition hover:bg-oliveDeep hover:text-cream">See this week's flavors</a>
+        <a href="#order" class="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-cream/90 transition hover:border-olive hover:text-olive">Build my order</a>
+      </div>
+      <div id="capacity-banner" class="mt-10 inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-panel px-4 py-3 text-sm text-cream/80"></div>
+    </div>
+  </section>
+
+  <section class="border-b border-white/10 bg-panel/40">
+    <div class="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <h2 class="font-display text-2xl font-semibold text-cream sm:text-3xl">How it works</h2>
+      <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-4">
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="font-display text-2xl text-olive">1</p>
+          <p class="mt-2 font-semibold text-cream">Pick your flavors</p>
+          <p class="mt-1 text-sm text-cream/60">Build your order below — jars, add-ons, and pickup or delivery.</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="font-display text-2xl text-olive">2</p>
+          <p class="mt-2 font-semibold text-cream">Send your order</p>
+          <p class="mt-1 text-sm text-cream/60">Text it in one tap, or submit it online — both reach us instantly.</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="font-display text-2xl text-olive">3</p>
+          <p class="mt-2 font-semibold text-cream">We prep fresh</p>
+          <p id="prep-day-copy" class="mt-1 text-sm text-cream/60">Every batch is made fresh on Sunday mornings.</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="font-display text-2xl text-olive">4</p>
+          <p class="mt-2 font-semibold text-cream">Pickup or delivery</p>
+          <p id="pickup-days-copy" class="mt-1 text-sm text-cream/60">Available Monday &amp; Tuesday. Pay when you receive it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="flavors" class="border-b border-white/10">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-olive">This week</p>
+          <h2 class="mt-2 font-display text-3xl font-semibold text-cream">Current flavors</h2>
+        </div>
+        <p id="toppings-note" class="max-w-sm text-sm text-cream/60"></p>
+      </div>
+      <div id="flavor-grid" class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"></div>
+    </div>
+  </section>
+
+  <section id="order" class="border-b border-white/10 bg-panel/40">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <h2 class="font-display text-3xl font-semibold text-cream">Build your order</h2>
+      <p class="mt-2 max-w-2xl text-sm text-cream/60">Pick your jars below, choose pickup or delivery, then either text your order or submit it online — both work. Nothing is charged online; you pay when you get your order.</p>
+
+      <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div class="lg:col-span-2 space-y-4">
+          <div id="order-flavor-list" class="space-y-3"></div>
+
+          <div class="rounded-2xl border border-white/10 bg-panel p-5">
+            <p class="font-semibold text-cream">Add-ons</p>
+            <label class="mt-3 flex items-center gap-3 text-sm text-cream/80">
+              <input id="opt-dairy-free" type="checkbox" class="h-4 w-4 rounded border-white/30 bg-transparent accent-olive" />
+              Make my whole order dairy-free (non-dairy milk + yogurt)
+            </label>
+            <label class="mt-3 flex items-center gap-3 text-sm text-cream/80">
+              <input id="opt-protein" type="checkbox" class="h-4 w-4 rounded border-white/30 bg-transparent accent-olive" />
+              <span>Add protein boost to every jar <span id="protein-price-copy" class="text-cream/50"></span></span>
+            </label>
+          </div>
+
+          <div class="rounded-2xl border border-white/10 bg-panel p-5">
+            <p class="font-semibold text-cream">Pickup or delivery?</p>
+            <div class="mt-3 grid grid-cols-2 gap-3">
+              <input type="radio" name="mode" id="mode-pickup" value="pickup" checked class="peer hidden" />
+              <label for="mode-pickup" class="cursor-pointer rounded-xl border border-white/15 px-4 py-3 text-center text-sm font-medium text-cream/80">Pickup</label>
+              <input type="radio" name="mode" id="mode-delivery" value="delivery" class="peer hidden" />
+              <label for="mode-delivery" class="cursor-pointer rounded-xl border border-white/15 px-4 py-3 text-center text-sm font-medium text-cream/80">Delivery</label>
+            </div>
+            <p id="delivery-note" class="mt-3 hidden text-xs text-cream/50"></p>
+          </div>
+
+          <div class="rounded-2xl border border-white/10 bg-panel p-5">
+            <label class="block text-sm font-medium text-cream/80">Anything else? (address for delivery, allergy notes, preferred day)
+              <textarea id="order-notes" rows="3" maxlength="300" class="mt-2 w-full rounded-xl border border-white/15 bg-ink px-3 py-2 text-sm text-cream outline-none focus:border-olive" placeholder="e.g. 123 Oak St, El Cajon — Tuesday afternoon works best"></textarea>
+            </label>
+          </div>
+
+          <label class="block text-sm font-medium text-cream/80">Your name and phone (only needed if you submit online)
+            <input id="order-contact" type="text" maxlength="120" class="mt-2 w-full rounded-xl border border-white/15 bg-ink px-3 py-2 text-sm text-cream outline-none focus:border-olive" placeholder="Jamie — (619) 555-0123" />
+          </label>
+        </div>
+
+        <div class="space-y-4">
+          <div class="rounded-2xl border border-olive/40 bg-panel2 p-5">
+            <p class="font-display text-lg font-semibold text-cream">Order summary</p>
+            <div id="order-summary-lines" class="mt-4 space-y-2 text-sm text-cream/70"></div>
+            <div class="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+              <span class="text-sm text-cream/60">Subtotal</span>
+              <span id="order-subtotal" class="font-display text-xl font-semibold text-cream">$0.00</span>
+            </div>
+            <p id="order-warning" class="mt-2 hidden text-xs font-medium text-amber-400"></p>
+
+            <a id="btn-text-order" href="#" class="mt-5 flex h-12 items-center justify-center rounded-xl bg-olive text-sm font-semibold text-ink transition hover:bg-oliveDeep hover:text-cream">Text this order</a>
+
+            <button id="btn-submit-online" type="button" class="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-olive/60 text-sm font-semibold text-olive transition hover:bg-olive/10">
+              <span id="submit-online-spinner" class="spinner hidden"></span>
+              <span id="submit-online-label">Submit order online instead</span>
+            </button>
+
+            <button id="btn-copy-order" type="button" class="mt-2 flex h-11 w-full items-center justify-center rounded-xl border border-white/15 text-sm font-medium text-cream/80 hover:border-olive hover:text-olive">Copy order text</button>
+
+            <p class="mt-3 text-[11px] text-cream/40">Texting opens your phone's messages app. "Submit online" sends it directly without needing to text — either way works.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="details" class="border-b border-white/10">
+    <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <h2 class="font-display text-3xl font-semibold text-cream">Pickup &amp; delivery details</h2>
+      <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="text-xs font-semibold uppercase tracking-wide text-olive">Pickup</p>
+          <p id="detail-pickup-days" class="mt-2 text-cream">Monday &amp; Tuesday</p>
+          <p id="detail-pickup-note" class="mt-1 text-sm text-cream/60"></p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="text-xs font-semibold uppercase tracking-wide text-olive">Delivery</p>
+          <p id="detail-delivery-radius" class="mt-2 text-cream">Within 5 miles</p>
+          <p id="detail-delivery-fee" class="mt-1 text-sm text-cream/60"></p>
+          <p id="detail-delivery-min" class="mt-1 text-sm text-cream/60"></p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-panel p-5">
+          <p class="text-xs font-semibold uppercase tracking-wide text-olive">Ordering &amp; payment</p>
+          <p id="detail-notice" class="mt-2 text-cream">24 hours advance notice</p>
+          <p id="detail-payment" class="mt-1 text-sm text-cream/60"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="about" class="border-b border-white/10 bg-panel/40">
+    <div class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-olive">The story</p>
+      <h2 class="mt-2 font-display text-3xl font-semibold text-cream">Why this exists</h2>
+      <p id="about-text" class="mt-5 text-base leading-relaxed text-cream/75"></p>
+      <div class="mt-6 rounded-2xl border border-white/10 bg-panel p-5">
+        <p class="text-xs font-semibold uppercase tracking-wide text-olive">Ingredients</p>
+        <p id="detail-ingredients" class="mt-1 text-sm text-cream/70"></p>
+        <p class="mt-3 text-xs font-semibold uppercase tracking-wide text-olive">Allergens</p>
+        <p id="detail-allergens" class="mt-1 text-sm text-cream/70"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="border-b border-white/10">
+    <div class="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <h2 class="font-display text-3xl font-semibold text-cream">Good to know</h2>
+      <div id="faq-list" class="mt-8 space-y-3"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="bg-ink">
+  <div class="mx-auto max-w-6xl px-4 py-10 text-center sm:px-6">
+    <p id="footer-brand" class="font-display text-lg font-semibold text-cream">Mystical Wellness</p>
+    <p class="mt-1 text-sm text-cream/50">Made with care in <span id="footer-city">El Cajon, CA</span></p>
+    <a id="footer-instagram" href="#" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block text-sm text-olive hover:text-cream">Follow on Instagram</a>
+  </div>
+</footer>
+
+<div id="toast-root" class="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[min(92vw,22rem)] flex-col gap-2"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const money = (n) => `$${(Math.round(n * 100) / 100).toFixed(2)}`;
+const escapeHtml = (s) => String(s ?? "")
+  .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+  .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+
+const cart = {}; // { flavorId: qty }
+let liveCapacity = { capacity: CONFIG.weeklyCapacity, claimed: CONFIG.claimedThisWeek };
+
+function toast(message) {
+  const el = document.createElement("div");
+  el.className = "fade-in pointer-events-auto rounded-xl border border-olive/40 bg-panel2 px-3 py-2 text-sm text-cream shadow-lg";
+  el.textContent = message;
+  $("toast-root").appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+function renderCapacityBanner() {
+  const remaining = Math.max(0, liveCapacity.capacity - liveCapacity.claimed);
+  const pct = liveCapacity.capacity > 0 ? Math.round((liveCapacity.claimed / liveCapacity.capacity) * 100) : 0;
+  $("capacity-banner").innerHTML = remaining > 0
+    ? `<span class="h-2 w-2 rounded-full bg-olive"></span> ${remaining} of ${liveCapacity.capacity} jars left this week (${pct}% claimed) — order before ${CONFIG.prepDay}`
+    : `<span class="h-2 w-2 rounded-full bg-amber-400"></span> Sold out for this week — check back after ${CONFIG.prepDay}'s batch`;
+}
+
+async function refreshLiveCapacity() {
+  if (!BACKEND_URL) return; // no backend configured yet — stick with static CONFIG values
+  try {
+    const res = await fetch(`${BACKEND_URL}?action=status`, { method: "GET" });
+    if (!res.ok) throw new Error("Bad response");
+    const data = await res.json();
+    if (data && typeof data.capacity === "number" && typeof data.claimed === "number") {
+      liveCapacity = { capacity: data.capacity, claimed: data.claimed };
+      renderCapacityBanner();
+    }
+  } catch (err) {
+    // Silently keep the static fallback numbers — the page must never break because of this.
+  }
+}
+
+function applyStaticCopy() {
+  document.title = `${CONFIG.brandName} — Small-Batch Chia Pudding`;
+  $("brand-name").textContent = CONFIG.brandName;
+  $("footer-brand").textContent = CONFIG.brandName;
+  $("hero-tagline").textContent = CONFIG.tagline;
+  $("hero-sub").textContent = CONFIG.subtagline;
+  $("hero-city").textContent = CONFIG.city;
+  $("footer-city").textContent = CONFIG.city;
+  $("footer-instagram").textContent = `Follow ${CONFIG.instagramHandle} on Instagram`;
+  $("footer-instagram").href = CONFIG.instagramUrl;
+  $("prep-day-copy").textContent = `Every batch is made fresh on ${CONFIG.prepDay} mornings.`;
+  $("pickup-days-copy").textContent = `Available ${CONFIG.pickupDays}. Pay when you receive it.`;
+  $("toppings-note").textContent = CONFIG.toppingsNote;
+  $("protein-price-copy").textContent = `(+${money(CONFIG.proteinBoostPrice)} per jar)`;
+  $("delivery-note").textContent = `Delivery available within ${CONFIG.deliveryRadiusMiles} miles. Minimum ${CONFIG.deliveryMinJars} jars. ${CONFIG.deliveryFeeNote}`;
+  $("detail-pickup-days").textContent = CONFIG.pickupDays;
+  $("detail-pickup-note").textContent = CONFIG.pickupLocationNote;
+  $("detail-delivery-radius").textContent = `Within ${CONFIG.deliveryRadiusMiles} miles`;
+  $("detail-delivery-fee").textContent = CONFIG.deliveryFeeNote;
+  $("detail-delivery-min").textContent = `Minimum order for delivery: ${CONFIG.deliveryMinJars} jars.`;
+  $("detail-notice").textContent = `${CONFIG.noticeHours} hours advance notice`;
+  $("detail-payment").textContent = CONFIG.paymentNote;
+  $("about-text").textContent = CONFIG.aboutText;
+  $("detail-ingredients").textContent = CONFIG.ingredients;
+  $("detail-allergens").textContent = CONFIG.allergens;
+
+  renderCapacityBanner();
+
+  const faqs = [
+    { q: "How long does it stay fresh?", a: `Each jar stays fresh for about ${CONFIG.shelfLifeDays} days refrigerated. Keep it cold and eat within that window.` },
+    { q: "Do I need to return the jar?", a: "No — the jars are yours to keep and reuse at home. No need to return them." },
+    { q: "Is there a dairy-free option?", a: "Yes, check the 'make my whole order dairy-free' box when building your order and it'll be made with non-dairy milk and yogurt." },
+    { q: "What if I don't hear back after ordering?", a: `Orders need at least ${CONFIG.noticeHours} hours notice, so please allow some time for a reply — especially on the ${CONFIG.prepDay} prep day.` },
+    { q: "Can I request a flavor that's not listed?", a: "The current lineup is what's confirmed for this week — feel free to mention a request for next week's rotating special in your order notes." }
+  ];
+  $("faq-list").innerHTML = faqs.map((f) => `
+    <details class="group rounded-2xl border border-white/10 bg-panel p-4">
+      <summary class="cursor-pointer list-none font-medium text-cream">
+        <span class="mr-2 inline-block text-olive transition group-open:rotate-45">+</span>${escapeHtml(f.q)}
+      </summary>
+      <p class="mt-2 text-sm text-cream/65">${escapeHtml(f.a)}</p>
+    </details>`).join("");
+}
+
+function renderFlavorGrid() {
+  $("flavor-grid").innerHTML = CONFIG.flavors.map((f) => `
+    <article class="flavor-card rounded-2xl border ${f.soldOut ? "border-white/5 opacity-50" : "border-white/10"} bg-panel p-5">
+      <div class="flex items-center justify-between">
+        <p class="font-display text-lg font-semibold text-cream">${escapeHtml(f.name)}</p>
+        ${f.core ? "" : '<span class="rounded-full bg-olive/20 px-2 py-0.5 text-[11px] font-semibold text-olive">This week</span>'}
+      </div>
+      <p class="mt-2 text-sm text-cream/60">${escapeHtml(f.desc)}</p>
+      <div class="mt-4 flex items-center gap-3 text-xs text-cream/50">
+        <span>${f.calories} cal</span>
+        <span>&middot;</span>
+        <span>${f.protein}g protein</span>
+        ${f.dairyFreeAvailable ? '<span>&middot;</span><span>Dairy-free option</span>' : ""}
+      </div>
+      <div class="mt-4 flex items-center justify-between">
+        <span class="font-display text-xl font-semibold text-cream">${money(CONFIG.jarPrice)}</span>
+        <span class="text-xs text-cream/40">${CONFIG.jarSizeOz}oz jar</span>
+      </div>
+      ${f.soldOut ? '<p class="mt-3 text-xs font-semibold text-amber-400">Sold out this week</p>' : ""}
+    </article>`).join("");
+}
+
+function renderOrderBuilder() {
+  $("order-flavor-list").innerHTML = CONFIG.flavors.map((f) => `
+    <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-panel p-4 ${f.soldOut ? "opacity-50" : ""}">
+      <div>
+        <p class="font-medium text-cream">${escapeHtml(f.name)}</p>
+        <p class="text-xs text-cream/50">${money(CONFIG.jarPrice)} · ${f.calories} cal · ${f.protein}g protein</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button data-qty-btn="${escapeHtml(f.id)}" data-delta="-1" class="stepper-btn grid h-9 w-9 place-items-center rounded-lg border border-white/15 text-cream hover:bg-white/5" ${f.soldOut ? "disabled" : ""}>−</button>
+        <span id="qty-${escapeHtml(f.id)}" class="w-6 text-center text-cream">0</span>
+        <button data-qty-btn="${escapeHtml(f.id)}" data-delta="1" class="stepper-btn grid h-9 w-9 place-items-center rounded-lg border border-white/15 text-cream hover:bg-white/5" ${f.soldOut ? "disabled" : ""}>+</button>
+      </div>
+    </div>`).join("");
+}
+
+function getMode() {
+  return $("mode-delivery").checked ? "delivery" : "pickup";
+}
+
+function buildOrderSummary() {
+  const lines = [];
+  let subtotal = 0;
+  let totalJars = 0;
+  CONFIG.flavors.forEach((f) => {
+    const qty = cart[f.id] || 0;
+    if (qty <= 0) return;
+    const lineTotal = CONFIG.jarPrice * qty;
+    subtotal += lineTotal;
+    totalJars += qty;
+    lines.push({ text: `${qty}x ${f.name}`, amount: lineTotal });
+  });
+  const dairyFree = $("opt-dairy-free").checked;
+  const proteinBoost = $("opt-protein").checked;
+  if (proteinBoost && totalJars > 0) subtotal += totalJars * CONFIG.proteinBoostPrice;
+  return {
+    lines, subtotal, totalJars, dairyFree, proteinBoost, mode: getMode(),
+    notes: $("order-notes").value.trim(),
+    contact: $("order-contact").value.trim()
+  };
+}
+
+function renderOrderSummary() {
+  const s = buildOrderSummary();
+  const box = $("order-summary-lines");
+  if (!s.lines.length) {
+    box.innerHTML = `<p class="text-cream/40">Add jars above to build your order.</p>`;
+  } else {
+    box.innerHTML = s.lines.map((l) => `<div class="flex justify-between"><span>${escapeHtml(l.text)}</span><span>${money(l.amount)}</span></div>`).join("")
+      + (s.proteinBoost ? `<div class="flex justify-between text-cream/50"><span>Protein boost (${s.totalJars}x)</span><span>${money(s.totalJars * CONFIG.proteinBoostPrice)}</span></div>` : "")
+      + (s.dairyFree ? `<div class="text-cream/50">Dairy-free base requested</div>` : "");
+  }
+  $("order-subtotal").textContent = money(s.subtotal);
+
+  const warning = $("order-warning");
+  if (s.mode === "delivery" && s.totalJars > 0 && s.totalJars < CONFIG.deliveryMinJars) {
+    warning.textContent = `Delivery needs a minimum of ${CONFIG.deliveryMinJars} jars — add ${CONFIG.deliveryMinJars - s.totalJars} more or switch to pickup.`;
+    warning.classList.remove("hidden");
+  } else {
+    warning.classList.add("hidden");
+  }
+
+  $("btn-text-order").href = buildSmsLink(s);
+  return s;
+}
+
+function orderItemsText(summary) {
+  return summary.lines.map((l) => `${l.text} (${money(l.amount)})`).join(", ") || "(no items selected)";
+}
+
+function buildSmsLink(summary) {
+  const bodyLines = [`Hi! I'd like to order from ${CONFIG.brandName}:`];
+  if (!summary.lines.length) bodyLines.push("(no jars selected yet)");
+  summary.lines.forEach((l) => bodyLines.push(`${l.text} (${money(l.amount)})`));
+  if (summary.dairyFree) bodyLines.push("Dairy-free base requested");
+  if (summary.proteinBoost) bodyLines.push("Protein boost requested");
+  bodyLines.push(`Subtotal: ${money(summary.subtotal)}`);
+  bodyLines.push(`Fulfillment: ${summary.mode === "delivery" ? "Delivery" : "Pickup"}`);
+  if (summary.contact) bodyLines.push(`From: ${summary.contact}`);
+  if (summary.notes) bodyLines.push(`Notes: ${summary.notes}`);
+  const body = encodeURIComponent(bodyLines.join("\n"));
+  const digits = CONFIG.ownerPhone.replace(/[^\d+]/g, "");
+  return `sms:${digits}?&body=${body}`;
+}
+
+async function submitOrderOnline() {
+  const s = buildOrderSummary();
+  if (s.totalJars <= 0) return toast("Add at least one jar before submitting.");
+  if (s.mode === "delivery" && s.totalJars < CONFIG.deliveryMinJars) {
+    return toast(`Delivery needs at least ${CONFIG.deliveryMinJars} jars.`);
+  }
+  if (!BACKEND_URL) {
+    return toast("Online submission isn't set up yet — please use 'Text this order' instead.");
+  }
+
+  const spinner = $("submit-online-spinner");
+  const label = $("submit-online-label");
+  spinner.classList.remove("hidden");
+  label.textContent = "Sending…";
+
+  const payload = {
+    itemsText: orderItemsText(s),
+    subtotal: s.subtotal,
+    mode: s.mode,
+    notes: [s.contact ? `From: ${s.contact}` : "", s.notes].filter(Boolean).join(" | "),
+    dairyFree: s.dairyFree,
+    proteinBoost: s.proteinBoost,
+    totalJars: s.totalJars
+  };
+
+  try {
+    // no-cors: we can't read the response, but this guarantees the write isn't blocked
+    // by cross-origin restrictions on Apps Script's response headers.
+    await fetch(BACKEND_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) });
+    toast("Order sent! We'll confirm by text within " + CONFIG.noticeHours + " hours.");
+    refreshLiveCapacity();
+  } catch (err) {
+    toast("Couldn't reach the server — please use 'Text this order' instead.");
+  } finally {
+    spinner.classList.add("hidden");
+    label.textContent = "Submit order online instead";
+  }
+}
+
+function bindOrderBuilder() {
+  $("order-flavor-list").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-qty-btn]");
+    if (!btn) return;
+    const id = btn.dataset.qtyBtn;
+    const delta = Number(btn.dataset.delta);
+    const next = Math.max(0, (cart[id] || 0) + delta);
+    cart[id] = next;
+    $(`qty-${id}`).textContent = String(next);
+    renderOrderSummary();
+  });
+  $("opt-dairy-free").addEventListener("change", renderOrderSummary);
+  $("opt-protein").addEventListener("change", renderOrderSummary);
+  $("order-notes").addEventListener("input", renderOrderSummary);
+  $("order-contact").addEventListener("input", renderOrderSummary);
+  document.querySelectorAll('input[name="mode"]').forEach((el) => el.addEventListener("change", renderOrderSummary));
+  $("btn-submit-online").addEventListener("click", submitOrderOnline);
+  $("btn-copy-order").addEventListener("click", () => {
+    const s = buildOrderSummary();
+    const link = buildSmsLink(s);
+    const text = decodeURIComponent(link.split("body=")[1]);
+    navigator.clipboard.writeText(text)
+      .then(() => toast("Order text copied — paste it into any messaging app."))
+      .catch(() => toast("Copy failed — please select and copy manually."));
+  });
+}
+
+applyStaticCopy();
+renderFlavorGrid();
+renderOrderBuilder();
+bindOrderBuilder();
+renderOrderSummary();
+refreshLiveCapacity();
+</script>
+</body>
+</html>
