@@ -191,11 +191,11 @@
             <p class="font-semibold text-cream">Add-ons</p>
             <label class="mt-3 flex items-center gap-3 text-sm text-cream/80">
               <input id="opt-dairy-free" type="checkbox" class="h-4 w-4 rounded border-white/30 bg-transparent accent-olive" />
-              Make my whole order dairy-free (non-dairy milk + yogurt)
+              Dairy-free Only (non-dairy milk + yogurt)
             </label>
             <label class="mt-3 flex items-center gap-3 text-sm text-cream/80">
               <input id="opt-protein" type="checkbox" class="h-4 w-4 rounded border-white/30 bg-transparent accent-olive" />
-              <span>Add protein boost to every jar <span id="protein-price-copy" class="text-cream/50"></span></span>
+              <span>Add Protein Boost <span id="protein-price-copy" class="text-cream/50"></span></span>
             </label>
           </div>
 
@@ -945,7 +945,7 @@ function applyStaticCopy() {
   const faqs = [
     { q: "How long does it stay fresh?", a: `Each jar stays fresh for about ${CONFIG.shelfLifeDays} days refrigerated. Keep it cold and eat within that window.` },
     { q: "Do I need to return the jar?", a: "No — the jars are yours to keep and reuse at home. No need to return them." },
-    { q: "Is there a dairy-free option?", a: "Yes, check the 'make my whole order dairy-free' box when building your order and it'll be made with non-dairy milk and yogurt." },
+    { q: "Is there a dairy-free option?", a: "Yes, check the 'Dairy-free Only' box when building your order and it'll be made with non-dairy milk and yogurt." },
     { q: "What if I don't hear back after ordering?", a: `Orders need at least ${CONFIG.noticeHours} hours notice, so please allow some time for a reply — especially on the ${CONFIG.prepDay} prep day.` },
     { q: "Can I request a flavor that's not listed?", a: "The current lineup is what's confirmed for this week — feel free to mention a request for next week's rotating special in your order notes." }
   ];
