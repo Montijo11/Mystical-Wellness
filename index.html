@@ -33,56 +33,22 @@
   />
 
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
-
-    html, body {
-      overflow-x: hidden;
-      width: 100%;
-      max-width: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: Inter, sans-serif;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: hidden; width: 100%; max-width: 100%; margin: 0; padding: 0; }
+    body { font-family: Inter, sans-serif; }
     .grain {
       background:
         radial-gradient(circle at 12% 3%, #9ca86a20, transparent 30rem),
         radial-gradient(circle at 94% 16%, #86634220, transparent 24rem);
     }
-
-    .card {
-      transition: 0.2s;
-      min-width: 0;
-      width: 100%;
-    }
-
-    .card:hover {
-      transform: translateY(-3px);
-      border-color: #9ca86a;
-    }
-
+    .card { transition: 0.2s; min-width: 0; width: 100%; }
+    .card:hover { transform: translateY(-3px); border-color: #9ca86a; }
     .page-wrap {
-      width: 100%;
-      max-width: 64rem;
-      margin-left: auto;
-      margin-right: auto;
-      padding-left: 1.25rem;
-      padding-right: 1.25rem;
+      width: 100%; max-width: 64rem; margin-left: auto; margin-right: auto;
+      padding-left: 1.25rem; padding-right: 1.25rem;
     }
-
-    /* Mobile drawer slide-in */
-    #mobile-panel {
-      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-      transform: translateX(100%);
-    }
-    #mobile-panel.open {
-      transform: translateX(0);
-    }
+    #mobile-panel { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); transform: translateX(100%); }
+    #mobile-panel.open { transform: translateX(0); }
   </style>
 </head>
 
@@ -93,12 +59,11 @@
   <!-- Header -->
   <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
     <div class="page-wrap flex items-center justify-between py-4">
-      <a href="index.html" class="flex items-center gap-2">
-        <span class="grid h-9 w-9 place-items-center rounded-full border border-olive font-display text-lg font-semibold text-olive">M</span>
+      <a href="index.html" class="flex items-center gap-2.5">
+        <img src="logo.jpeg" alt="Mystical Wellness logo" class="h-10 w-10 rounded-full object-cover border border-line" />
         <span class="font-display text-xl text-stone">Mystical Wellness</span>
       </a>
 
-      <!-- Desktop Nav -->
       <nav class="hidden items-center gap-5 text-sm text-stone2 sm:flex">
         <a class="hover:text-olive transition" href="#menu-section">Menu</a>
         <a class="hover:text-olive transition" href="why.html">Why?</a>
@@ -106,7 +71,6 @@
         <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="#order">Order</a>
       </nav>
 
-      <!-- Mobile Hamburger Button -->
       <button
         id="mobile-open-btn"
         type="button"
@@ -120,14 +84,15 @@
     </div>
   </header>
 
-  <!-- Mobile Drawer Scrim (Dark Overlay) -->
   <div id="mobile-scrim" class="fixed inset-0 z-40 hidden bg-ink/80 backdrop-blur-sm sm:hidden"></div>
 
-  <!-- Mobile Slide-out Drawer Panel -->
   <aside id="mobile-panel" class="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] border-l border-line bg-surface p-6 sm:hidden flex flex-col justify-between">
     <div>
       <div class="flex items-center justify-between pb-4 border-b border-line">
-        <b class="font-display text-lg text-stone">Menu</b>
+        <div class="flex items-center gap-2">
+          <img src="logo.jpeg" alt="Mystical Wellness logo" class="h-8 w-8 rounded-full object-cover border border-line" />
+          <b class="font-display text-lg text-stone">Menu</b>
+        </div>
         <button
           id="mobile-close-btn"
           type="button"
@@ -155,11 +120,10 @@
 
   <main>
 
-    <!-- Hero -->
     <section class="border-b border-line">
       <div class="page-wrap py-16">
         <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">
-          Made fresh when ordered · El Cajon, CA
+          Made fresh weekly · El Cajon, CA
         </p>
         <h1 class="mt-3 font-display text-5xl leading-none sm:text-7xl">
           Made to,<br />
@@ -169,23 +133,17 @@
           Small-batch chia pudding made with oat milk, coconut milk, real fruit,
           and optional features.
         </p>
-        <a
-          class="mt-7 inline-block rounded-full bg-olive px-5 py-3 text-sm font-bold text-ink"
-          href="#order"
-        >
+        <a class="mt-7 inline-block rounded-full bg-olive px-5 py-3 text-sm font-bold text-ink" href="#order">
           Build an order
         </a>
       </div>
     </section>
 
-    <!-- Menu -->
     <section id="menu-section" class="border-b border-line">
       <div class="page-wrap py-14">
         <div class="flex flex-wrap items-end justify-between gap-2">
           <div>
-            <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">
-              This week's Nourishments
-            </p>
+            <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">This week's Nourishments</p>
             <h2 class="mt-3 font-display text-4xl sm:text-6xl">
               Browse your<br />
               <span class="text-olive">Nourishments.</span>
@@ -203,7 +161,6 @@
       </div>
     </section>
 
-    <!-- Order -->
     <section id="order" class="bg-surface/50">
       <div class="page-wrap py-14">
         <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Order now</p>
@@ -213,13 +170,11 @@
 
           <div class="space-y-4 min-w-0">
 
-            <!-- Step 1: choose jars -->
             <div class="rounded-2xl border border-line bg-surface p-5">
               <h3 class="font-display text-xl">1. Choose jars</h3>
               <div id="items" class="mt-4 space-y-2"></div>
             </div>
 
-            <!-- Step 2: customize -->
             <div class="rounded-2xl border border-line bg-surface p-5">
               <h3 class="font-display text-xl">2. Customize</h3>
               <p class="mt-1 text-xs text-stone2">
@@ -229,10 +184,7 @@
               <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label class="text-sm">
                   Protein boost
-                  <select
-                    id="protein"
-                    class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone"
-                  >
+                  <select id="protein" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
                     <option value="no">No protein boost</option>
                     <option value="yes">Yes — +$1 per jar</option>
                   </select>
@@ -242,10 +194,7 @@
               <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <label class="text-sm">
                   Almond flakes
-                  <select
-                    id="almond"
-                    class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone"
-                  >
+                  <select id="almond" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
                     <option>Add</option>
                     <option>No thanks</option>
                   </select>
@@ -253,10 +202,7 @@
 
                 <label class="text-sm">
                   Coconut flakes
-                  <select
-                    id="coconut"
-                    class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone"
-                  >
+                  <select id="coconut" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
                     <option>Add</option>
                     <option>No thanks</option>
                   </select>
@@ -264,10 +210,7 @@
 
                 <label class="text-sm">
                   Maple syrup
-                  <select
-                    id="maple"
-                    class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone"
-                  >
+                  <select id="maple" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
                     <option>Add</option>
                     <option>No thanks</option>
                   </select>
@@ -275,49 +218,31 @@
               </div>
             </div>
 
-            <!-- Step 3: fulfillment -->
             <div class="rounded-2xl border border-line bg-surface p-5">
               <h3 class="font-display text-xl">3. Pickup or delivery</h3>
               <div class="mt-3 flex flex-wrap gap-5 text-sm">
-                <label>
-                  <input checked name="mode" type="radio" value="Pickup" />
-                  Pickup
-                </label>
-                <label>
-                  <input name="mode" type="radio" value="Delivery" />
-                  Delivery
-                </label>
+                <label><input checked name="mode" type="radio" value="Pickup" /> Pickup</label>
+                <label><input name="mode" type="radio" value="Delivery" /> Delivery</label>
               </div>
               <p class="mt-3 text-xs text-stone2">
                 Monday & Tuesday pickup. Delivery within 5 miles; 2-jar minimum.
               </p>
             </div>
 
-            <!-- Step 4: contact -->
             <div class="rounded-2xl border border-line bg-surface p-5">
               <label class="text-sm">
                 Name & phone
-                <input
-                  id="contact"
-                  class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone"
-                  placeholder="Your name — (619) 555-0123"
-                />
+                <input id="contact" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone" placeholder="Your name — (619) 555-0123" />
               </label>
 
               <label class="mt-3 block text-sm">
                 Order notes <span class="text-stone2">(optional)</span>
-                <textarea
-                  id="notes"
-                  class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone"
-                  rows="3"
-                  placeholder="Pickup day, delivery address, allergies, or notes"
-                ></textarea>
+                <textarea id="notes" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone" rows="3" placeholder="Pickup day, delivery address, allergies, or notes"></textarea>
               </label>
             </div>
 
           </div>
 
-          <!-- Order summary -->
           <aside class="h-fit min-w-0 rounded-2xl border border-olive/60 bg-surface2 p-5">
             <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Your order</p>
             <h3 class="mt-1 font-display text-2xl">Order summary</h3>
@@ -363,35 +288,27 @@
     ];
 
     const quantities = {};
-
     const $ = (id) => document.getElementById(id);
     const formatMoney = (amount) => '$' + amount.toFixed(2);
 
-    // --- Mobile Drawer Controls ---
     function openMobileMenu() {
       $('mobile-panel').classList.add('open');
       $('mobile-scrim').classList.remove('hidden');
       document.body.style.overflow = 'hidden';
     }
-
     function closeMobileMenu() {
       $('mobile-panel').classList.remove('open');
       $('mobile-scrim').classList.add('hidden');
       document.body.style.overflow = '';
     }
-
     $('mobile-open-btn').addEventListener('click', openMobileMenu);
     $('mobile-close-btn').addEventListener('click', closeMobileMenu);
     $('mobile-scrim').addEventListener('click', closeMobileMenu);
-    document.querySelectorAll('.mobile-nav-link').forEach((link) => {
-      link.addEventListener('click', closeMobileMenu);
-    });
+    document.querySelectorAll('.mobile-nav-link').forEach((link) => link.addEventListener('click', closeMobileMenu));
 
-    // --- Render Functions ---
     function renderMenu() {
       const target = $('menu-grid');
       if (!target) return;
-
       target.innerHTML = FLAVORS.map((flavor) => {
         const [id, name, description, calories, protein] = flavor;
         return `
@@ -410,7 +327,6 @@
     function renderItems() {
       const target = $('items');
       if (!target) return;
-
       target.innerHTML = FLAVORS.map((flavor) => {
         const [id, name, description, calories] = flavor;
         return `
@@ -433,7 +349,6 @@
       let totalJars = 0;
       let subtotal = 0;
       const lines = [];
-
       FLAVORS.forEach((flavor) => {
         const [id, name] = flavor;
         const qty = quantities[id] || 0;
@@ -443,25 +358,14 @@
           lines.push(`${qty}× ${name}`);
         }
       });
-
       const proteinBoost = $('protein').value === 'yes';
-      if (proteinBoost) {
-        subtotal += totalJars;
-      }
-
+      if (proteinBoost) subtotal += totalJars;
       const addOns = ['almond', 'coconut', 'maple']
         .filter((key) => $(key).value === 'Add')
         .map((key) => (key === 'maple' ? 'maple syrup' : `${key} flakes`));
-
       const fulfillmentMode = document.querySelector('[name="mode"]:checked').value;
-
       return {
-        totalJars,
-        subtotal,
-        lines,
-        addOns,
-        proteinBoost,
-        fulfillmentMode,
+        totalJars, subtotal, lines, addOns, proteinBoost, fulfillmentMode,
         contact: $('contact').value.trim(),
         notes: $('notes').value.trim()
       };
@@ -483,7 +387,6 @@
 
     function renderSummary() {
       const order = buildOrder();
-
       if (order.lines.length === 0) {
         $('summary').innerHTML = 'Choose a flavor to begin.';
       } else {
@@ -492,65 +395,45 @@
         if (order.addOns.length) html += `<p>Add: ${order.addOns.join(', ')}</p>`;
         $('summary').innerHTML = html;
       }
-
       $('total').textContent = formatMoney(order.subtotal);
-
-      $('sms').href =
-        'sms:+16198383928?&body=' + encodeURIComponent(buildMessageText(order));
-
+      $('sms').href = 'sms:+16198383928?&body=' + encodeURIComponent(buildMessageText(order));
       return order;
     }
 
     function validateOrder(order) {
       if (!order.totalJars) return 'Add at least one jar.';
       if (!order.contact) return 'Enter your name and phone.';
-      if (order.fulfillmentMode === 'Delivery' && order.totalJars < 2) {
-        return 'Delivery requires at least 2 jars.';
-      }
+      if (order.fulfillmentMode === 'Delivery' && order.totalJars < 2) return 'Delivery requires at least 2 jars.';
       return '';
     }
 
     $('items').addEventListener('click', (event) => {
       const button = event.target.closest('[data-flavor]');
       if (!button) return;
-
       const flavorId = button.dataset.flavor;
       const delta = Number(button.dataset.delta);
       quantities[flavorId] = Math.max(0, (quantities[flavorId] || 0) + delta);
-
       $(`qty-${flavorId}`).textContent = quantities[flavorId];
       renderSummary();
     });
 
-    ['protein', 'almond', 'coconut', 'maple'].forEach((id) => {
-      $(id).addEventListener('change', renderSummary);
-    });
-
-    ['contact', 'notes'].forEach((id) => {
-      $(id).addEventListener('input', renderSummary);
-    });
-
-    document.querySelectorAll('[name="mode"]').forEach((radio) => {
-      radio.addEventListener('change', renderSummary);
-    });
+    ['protein', 'almond', 'coconut', 'maple'].forEach((id) => $(id).addEventListener('change', renderSummary));
+    ['contact', 'notes'].forEach((id) => $(id).addEventListener('input', renderSummary));
+    document.querySelectorAll('[name="mode"]').forEach((radio) => radio.addEventListener('change', renderSummary));
 
     $('submit').addEventListener('click', async () => {
       const order = renderSummary();
       const errorMessage = validateOrder(order);
-
       if (errorMessage) {
         $('error').textContent = errorMessage;
         $('error').classList.remove('hidden');
         return;
       }
-
       if (BACKEND_URL.includes('PASTE_')) {
-        $('error').textContent =
-          'Add your Apps Script /exec URL in index.html first, or text this order.';
+        $('error').textContent = 'Add your Apps Script /exec URL in index.html first, or text this order.';
         $('error').classList.remove('hidden');
         return;
       }
-
       await fetch(BACKEND_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -564,7 +447,6 @@
           addOns: order.addOns.join(', ')
         })
       });
-
       $('error').textContent = 'Order sent! We will confirm by text.';
       $('error').classList.remove('hidden');
     });
