@@ -33,6 +33,18 @@
   />
 
   <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: Inter, sans-serif;
     }
@@ -45,11 +57,22 @@
 
     .card {
       transition: 0.2s;
+      min-width: 0;
+      width: 100%;
     }
 
     .card:hover {
       transform: translateY(-3px);
       border-color: #9ca86a;
+    }
+
+    .page-wrap {
+      width: 100%;
+      max-width: 64rem;
+      margin-left: auto;
+      margin-right: auto;
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
     }
   </style>
 </head>
@@ -59,10 +82,10 @@
   <div class="grain fixed inset-0 -z-10"></div>
 
   <header class="border-b border-line bg-ink/95">
-    <div class="mx-auto flex max-w-5xl items-center justify-between px-5 py-4">
+    <div class="page-wrap flex items-center justify-between py-4">
       <a href="index.html" class="font-display text-xl">Mystical Wellness</a>
       <nav class="flex gap-4 text-sm text-stone2">
-        <a href="#menu">Menu</a>
+        <a href="#menu-section">Menu</a>
         <a href="why.html">Why?</a>
         <a href="nutrition.html">Nutrition</a>
         <a class="font-bold text-olive" href="#order">Order</a>
@@ -74,7 +97,7 @@
 
     <!-- Hero -->
     <section class="border-b border-line">
-      <div class="mx-auto max-w-5xl px-5 py-16">
+      <div class="page-wrap py-16">
         <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">
           Made fresh weekly · El Cajon, CA
         </p>
@@ -96,9 +119,9 @@
     </section>
 
     <!-- Menu -->
-    <section id="menu" class="border-b border-line">
-      <div class="mx-auto max-w-5xl px-5 py-14">
-        <div class="flex items-end justify-between">
+    <section id="menu-section" class="border-b border-line">
+      <div class="page-wrap py-14">
+        <div class="flex flex-wrap items-end justify-between gap-2">
           <div>
             <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">
               This week's Nourishments
@@ -116,21 +139,21 @@
           <a class="text-olive" href="nutrition.html">Nutrition details</a>
         </p>
 
-        <div id="menu" class="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"></div>
+        <div id="menu-grid" class="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"></div>
       </div>
     </section>
 
     <!-- Order -->
     <section id="order" class="bg-surface/50">
-      <div class="mx-auto max-w-5xl px-5 py-14">
+      <div class="page-wrap py-14">
         <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Order now</p>
         <h2 class="mt-2 font-display text-4xl">Build your order</h2>
 
         <div class="mt-7 grid gap-5 lg:grid-cols-[1.4fr_.85fr]">
 
-          <div class="space-y-4">
+          <div class="space-y-4 min-w-0">
 
-            <!-- Step 1: jars -->
+            <!-- Step 1: choose jars -->
             <div class="rounded-2xl border border-line bg-surface p-5">
               <h3 class="font-display text-xl">1. Choose jars</h3>
               <div id="items" class="mt-4 space-y-2"></div>
@@ -143,7 +166,7 @@
                 All jars use oat milk and coconut milk — naturally dairy-free.
               </p>
 
-              <div class="mt-4 grid gap-3 sm:grid-cols-2">
+              <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label class="text-sm">
                   Protein boost
                   <select
@@ -156,7 +179,7 @@
                 </label>
               </div>
 
-              <div class="mt-4 grid gap-3 sm:grid-cols-3">
+              <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <label class="text-sm">
                   Almond flakes
                   <select
@@ -195,7 +218,7 @@
             <!-- Step 3: fulfillment -->
             <div class="rounded-2xl border border-line bg-surface p-5">
               <h3 class="font-display text-xl">3. Pickup or delivery</h3>
-              <div class="mt-3 flex gap-5 text-sm">
+              <div class="mt-3 flex flex-wrap gap-5 text-sm">
                 <label>
                   <input checked name="mode" type="radio" value="Pickup" />
                   Pickup
@@ -235,11 +258,11 @@
           </div>
 
           <!-- Order summary -->
-          <aside class="h-fit rounded-2xl border border-olive/60 bg-surface2 p-5">
+          <aside class="h-fit min-w-0 rounded-2xl border border-olive/60 bg-surface2 p-5">
             <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Your order</p>
             <h3 class="mt-1 font-display text-2xl">Order summary</h3>
 
-            <div id="summary" class="mt-5 space-y-2 text-sm text-stone2">
+            <div id="summary" class="mt-5 space-y-2 break-words text-sm text-stone2">
               Choose a flavor to begin.
             </div>
 
@@ -270,13 +293,8 @@
   </footer>
 
   <script>
-    // ---------------------------------------------------------------
-    // CONFIGURATION
-    // Paste your deployed Google Apps Script "/exec" URL below.
-    // ---------------------------------------------------------------
     const BACKEND_URL = 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
 
-    // Flavor data: [id, name, description, baseCalories, baseProtein]
     const FLAVORS = [
       ['mango', 'Mango', 'Coconut chia + sweet mango', 135, 2.7],
       ['strawberry', 'Strawberry', 'Vanilla chia + fresh strawberry', 129, 2.6],
@@ -289,17 +307,17 @@
     const $ = (id) => document.getElementById(id);
     const formatMoney = (amount) => '$' + amount.toFixed(2);
 
-    // ---------------------------------------------------------------
-    // RENDER: Menu cards
-    // ---------------------------------------------------------------
     function renderMenu() {
-      $('menu').innerHTML = FLAVORS.map((flavor) => {
+      const target = $('menu-grid');
+      if (!target) return;
+
+      target.innerHTML = FLAVORS.map((flavor) => {
         const [id, name, description, calories, protein] = flavor;
         return `
           <article class="card rounded-2xl border border-line bg-surface p-4">
-            <h3 class="font-display text-xl">${name}</h3>
-            <p class="mt-2 text-sm text-stone2">${description}</p>
-            <div class="mt-4 flex justify-between text-xs text-stone2">
+            <h3 class="font-display text-xl text-stone">${name}</h3>
+            <p class="mt-2 break-words text-sm text-stone2">${description}</p>
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-stone2">
               <span>${calories} cal · ${protein}g protein base</span>
               <b class="text-stone">$6</b>
             </div>
@@ -308,31 +326,28 @@
       }).join('');
     }
 
-    // ---------------------------------------------------------------
-    // RENDER: Order item quantity selectors
-    // ---------------------------------------------------------------
     function renderItems() {
-      $('items').innerHTML = FLAVORS.map((flavor) => {
+      const target = $('items');
+      if (!target) return;
+
+      target.innerHTML = FLAVORS.map((flavor) => {
         const [id, name, description, calories] = flavor;
         return `
-          <div class="flex items-center justify-between rounded-xl border border-line bg-ink/30 p-3">
-            <span>
-              <b class="text-sm">${name}</b>
+          <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-ink/30 p-3">
+            <span class="min-w-0">
+              <b class="text-sm text-stone">${name}</b>
               <small class="block text-xs text-stone2">$6 · ${calories} cal base</small>
             </span>
             <span class="flex gap-3">
-              <button data-flavor="${id}" data-delta="-1">−</button>
-              <b id="qty-${id}">0</b>
-              <button data-flavor="${id}" data-delta="1">+</button>
+              <button data-flavor="${id}" data-delta="-1" class="px-2 py-1 text-lg text-stone">−</button>
+              <b id="qty-${id}" class="w-4 text-center text-stone">0</b>
+              <button data-flavor="${id}" data-delta="1" class="px-2 py-1 text-lg text-stone">+</button>
             </span>
           </div>
         `;
       }).join('');
     }
 
-    // ---------------------------------------------------------------
-    // BUILD: Read current order state from the form
-    // ---------------------------------------------------------------
     function buildOrder() {
       let totalJars = 0;
       let subtotal = 0;
@@ -371,9 +386,6 @@
       };
     }
 
-    // ---------------------------------------------------------------
-    // BUILD: Plain-text order message for SMS
-    // ---------------------------------------------------------------
     function buildMessageText(order) {
       const parts = [
         'Hi! I would like to order from Mystical Wellness:',
@@ -388,9 +400,6 @@
       return parts.filter(Boolean).join('\n');
     }
 
-    // ---------------------------------------------------------------
-    // RENDER: Order summary panel
-    // ---------------------------------------------------------------
     function renderSummary() {
       const order = buildOrder();
 
@@ -411,9 +420,6 @@
       return order;
     }
 
-    // ---------------------------------------------------------------
-    // VALIDATE: Return an error string, or empty string if valid
-    // ---------------------------------------------------------------
     function validateOrder(order) {
       if (!order.totalJars) return 'Add at least one jar.';
       if (!order.contact) return 'Enter your name and phone.';
@@ -423,9 +429,6 @@
       return '';
     }
 
-    // ---------------------------------------------------------------
-    // EVENTS
-    // ---------------------------------------------------------------
     $('items').addEventListener('click', (event) => {
       const button = event.target.closest('[data-flavor]');
       if (!button) return;
@@ -485,9 +488,6 @@
       $('error').classList.remove('hidden');
     });
 
-    // ---------------------------------------------------------------
-    // INITIALIZE
-    // ---------------------------------------------------------------
     renderMenu();
     renderItems();
     renderSummary();
