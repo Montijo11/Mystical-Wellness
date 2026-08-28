@@ -10,17 +10,10 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            display: ['Fraunces', 'Georgia', 'serif']
-          },
+          fontFamily: { display: ['Fraunces', 'Georgia', 'serif'] },
           colors: {
-            ink: '#151510',
-            surface: '#201f18',
-            surface2: '#29261e',
-            olive: '#9ca86a',
-            stone: '#b5aa96',
-            stone2: '#918878',
-            line: '#554f43'
+            ink: '#151510', surface: '#201f18', surface2: '#29261e',
+            olive: '#9ca86a', stone: '#b5aa96', stone2: '#918878', line: '#554f43'
           }
         }
       }
@@ -33,53 +26,27 @@
   />
 
   <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
-
-    html, body {
-      overflow-x: hidden;
-      width: 100%;
-      max-width: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: Inter, sans-serif;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: hidden; width: 100%; max-width: 100%; margin: 0; padding: 0; }
+    body { font-family: Inter, sans-serif; }
     .page-wrap {
-      width: 100%;
-      max-width: 64rem;
-      margin-left: auto;
-      margin-right: auto;
-      padding-left: 1.25rem;
-      padding-right: 1.25rem;
+      width: 100%; max-width: 64rem; margin-left: auto; margin-right: auto;
+      padding-left: 1.25rem; padding-right: 1.25rem;
     }
-
-    /* Mobile drawer slide-in */
-    #mobile-panel {
-      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-      transform: translateX(100%);
-    }
-    #mobile-panel.open {
-      transform: translateX(0);
-    }
+    #mobile-panel { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); transform: translateX(100%); }
+    #mobile-panel.open { transform: translateX(0); }
   </style>
 </head>
 
 <body class="min-h-screen bg-ink text-stone">
 
-  <!-- Header -->
   <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
     <div class="page-wrap flex items-center justify-between py-4">
       <a href="index.html" class="flex items-center gap-2">
-        <span class="grid h-9 w-9 place-items-center rounded-full border border-olive font-display text-lg font-semibold text-olive">M</span>
+        <img src="logo.png" alt="Mystical Wellness logo" class="h-10 w-10 object-contain" />
         <span class="font-display text-xl text-stone">Mystical Wellness</span>
       </a>
 
-      <!-- Desktop Nav -->
       <nav class="hidden items-center gap-5 text-sm text-stone2 sm:flex">
         <a class="hover:text-olive transition" href="index.html#menu-section">Menu</a>
         <a class="text-olive font-semibold" href="why.html">Why?</a>
@@ -87,7 +54,6 @@
         <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order</a>
       </nav>
 
-      <!-- Mobile Hamburger Button -->
       <button
         id="mobile-open-btn"
         type="button"
@@ -101,14 +67,15 @@
     </div>
   </header>
 
-  <!-- Mobile Drawer Scrim -->
   <div id="mobile-scrim" class="fixed inset-0 z-40 hidden bg-ink/80 backdrop-blur-sm sm:hidden"></div>
 
-  <!-- Mobile Slide-out Drawer Panel -->
   <aside id="mobile-panel" class="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] border-l border-line bg-surface p-6 sm:hidden flex flex-col justify-between">
     <div>
       <div class="flex items-center justify-between pb-4 border-b border-line">
-        <b class="font-display text-lg text-stone">Menu</b>
+        <div class="flex items-center gap-2">
+          <img src="logo.png" alt="Mystical Wellness logo" class="h-8 w-8 object-contain" />
+          <b class="font-display text-lg text-stone">Menu</b>
+        </div>
         <button
           id="mobile-close-btn"
           type="button"
@@ -136,7 +103,6 @@
 
   <main class="page-wrap py-16">
 
-    <!-- Intro -->
     <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Why chia pudding</p>
 
     <h1 class="mt-3 font-display text-5xl sm:text-7xl">
@@ -150,57 +116,36 @@
       for your body, not just how they taste.
     </p>
 
-    <!-- Photos: matching exact filenames Fruit.jpg, Chia-Seeds.jpg, Yogurt.jpg -->
     <div class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
       <figure class="min-w-0">
-        <img
-          src="Chia-Seeds.jpg"
-          alt="Close-up of raw chia seeds"
-          class="aspect-square w-full rounded-2xl border border-line object-cover bg-surface"
-          loading="lazy"
-        />
+        <img src="Chia-Seeds.png" alt="Close-up of raw chia seeds" class="aspect-square w-full rounded-2xl border border-line object-cover bg-surface" loading="lazy" />
         <figcaption class="mt-2 text-center text-xs text-stone2">Chia seeds</figcaption>
       </figure>
-
       <figure class="min-w-0">
-        <img
-          src="Fruit.jpg"
-          alt="Fresh mango, strawberries, and blueberries"
-          class="aspect-square w-full rounded-2xl border border-line object-cover bg-surface"
-          loading="lazy"
-        />
+        <img src="Fruit.png" alt="Fresh mango, strawberries, and blueberries" class="aspect-square w-full rounded-2xl border border-line object-cover bg-surface" loading="lazy" />
         <figcaption class="mt-2 text-center text-xs text-stone2">Real fruit</figcaption>
       </figure>
-
       <figure class="min-w-0">
-        <img
-          src="Yogurt.jpg"
-          alt="Creamy base in a bowl"
-          class="aspect-square w-full rounded-2xl border border-line object-cover bg-surface"
-          loading="lazy"
-        />
+        <img src="Yogurt.png" alt="Creamy base in a bowl" class="aspect-square w-full rounded-2xl border border-line object-cover bg-surface" loading="lazy" />
         <figcaption class="mt-2 text-center text-xs text-stone2">Creamy base</figcaption>
       </figure>
     </div>
 
-    <!-- Chia seeds -->
     <section class="mt-16">
       <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Ingredient 01</p>
       <h2 class="mt-2 font-display text-4xl">Chia seeds</h2>
       <p class="mt-3 max-w-2xl text-sm leading-relaxed text-stone2">
         A 1-ounce (about 2 tablespoons) serving of chia seeds provides roughly
         10 grams of fiber, 5 grams of protein, and 5 grams of omega-3
-        alpha-linolenic acid — more omega-3 than an equal amount of whole
-        flaxseed.
+        alpha-linolenic acid — more omega-3 than an equal amount of whole flaxseed.
       </p>
 
       <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div class="min-w-0 rounded-2xl border border-line bg-surface p-5">
           <h3 class="font-display text-xl text-stone">Fiber that works for you</h3>
           <p class="mt-2 text-sm leading-relaxed text-stone2">
-            Chia fiber can improve heart health, lower cholesterol, and
-            support intestinal health. It slows digestion, which helps you
-            feel full longer.
+            Chia fiber can improve heart health, lower cholesterol, and support
+            intestinal health. It slows digestion, which helps you feel full longer.
           </p>
         </div>
         <div class="min-w-0 rounded-2xl border border-line bg-surface p-5">
@@ -229,7 +174,6 @@
       </div>
     </section>
 
-    <!-- Fresh fruit -->
     <section class="mt-16">
       <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Ingredient 02</p>
       <h2 class="mt-2 font-display text-4xl">Real fruit</h2>
@@ -258,13 +202,12 @@
       </div>
     </section>
 
-    <!-- Creamy base -->
     <section class="mt-16">
       <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Ingredient 03</p>
       <h2 class="mt-2 font-display text-4xl">A creamy, dairy-free base</h2>
       <p class="mt-3 max-w-2xl text-sm leading-relaxed text-stone2">
-        Oat milk and coconut milk combine to create a rich, creamy
-        texture — naturally dairy-free.
+        Oat milk and coconut milk combine to create a rich, creamy texture —
+        naturally dairy-free.
       </p>
 
       <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -302,12 +245,9 @@
       </div>
     </section>
 
-    <!-- Why the whole jar matters -->
     <section class="mt-16 rounded-3xl border border-olive/50 bg-surface2 p-8">
       <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Put together</p>
-      <h2 class="mt-2 font-display text-3xl">
-        Why the combination matters
-      </h2>
+      <h2 class="mt-2 font-display text-3xl">Why the combination matters</h2>
       <p class="mt-3 max-w-2xl text-sm leading-relaxed text-stone2">
         No single ingredient makes a food "healthy" on its own. What matters
         is the combination: fiber from chia and oat milk working together,
@@ -325,10 +265,7 @@
       </p>
     </section>
 
-    <a
-      class="mt-10 inline-block rounded-full bg-olive px-5 py-3 text-sm font-bold text-ink"
-      href="index.html#order"
-    >
+    <a class="mt-10 inline-block rounded-full bg-olive px-5 py-3 text-sm font-bold text-ink" href="index.html#order">
       Build an order
     </a>
 
@@ -340,25 +277,20 @@
 
   <script>
     const $ = (id) => document.getElementById(id);
-
     function openMobileMenu() {
       $('mobile-panel').classList.add('open');
       $('mobile-scrim').classList.remove('hidden');
       document.body.style.overflow = 'hidden';
     }
-
     function closeMobileMenu() {
       $('mobile-panel').classList.remove('open');
       $('mobile-scrim').classList.add('hidden');
       document.body.style.overflow = '';
     }
-
     $('mobile-open-btn').addEventListener('click', openMobileMenu);
     $('mobile-close-btn').addEventListener('click', closeMobileMenu);
     $('mobile-scrim').addEventListener('click', closeMobileMenu);
-    document.querySelectorAll('.mobile-nav-link').forEach((link) => {
-      link.addEventListener('click', closeMobileMenu);
-    });
+    document.querySelectorAll('.mobile-nav-link').forEach((link) => link.addEventListener('click', closeMobileMenu));
   </script>
 
 </body>
