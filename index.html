@@ -256,13 +256,14 @@
               <b id="total" class="font-display text-3xl">$0.00</b>
             </div>
 
-            <p id="error" class="mt-3 hidden rounded-lg bg-red-950/40 p-2 text-xs text-red-200"></p>
+            <p id="status-msg" class="mt-3 hidden rounded-lg p-3 text-xs font-medium"></p>
 
-            <button id="submit" class="mt-5 w-full rounded-xl bg-olive p-3 text-sm font-bold text-ink">
-              Submit order online
+            <button id="submit" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-olive p-3 text-sm font-bold text-ink transition hover:bg-olive/90 disabled:opacity-50">
+              <span id="spinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-ink border-t-transparent"></span>
+              <span id="submit-text">Submit order online</span>
             </button>
 
-            <a id="sms" class="mt-2 block rounded-xl border border-line p-3 text-center text-sm font-bold">
+            <a id="sms" class="mt-2 block rounded-xl border border-line p-3 text-center text-sm font-bold text-stone transition hover:border-olive hover:text-olive">
               Text this order instead
             </a>
           </aside>
@@ -278,7 +279,10 @@
   </footer>
 
   <script>
-    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbyhJ9XFAB8dlyziBxKLi1gb4cfumb4D6BD2NxL0yp7fQ_y7PASSJOsAph4Mi_AHWBIa/exec';
+    // ===============================================================
+    // Replace the URL below with your deployed Apps Script /exec URL
+    // ===============================================================
+    const BACKEND_URL = 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
 
     const FLAVORS = [
       ['mango', 'Mango', 'Coconut chia + sweet mango', 135, 2.7],
@@ -290,6 +294,19 @@
     const quantities = {};
     const $ = (id) => document.getElementById(id);
     const formatMoney = (amount) => '$' + amount.toFixed(2);
+
+    function showStatus(message, isError = true) {
+      const el = $('status-msg');
+      el.textContent = message;
+      el.className = isError
+        ? 'mt-3 block rounded-lg bg-red-950/50 border border-red-800/60 p-3 text-xs text-red-200'
+        : 'mt-3 block rounded-lg bg-olive/20 border border-olive/50 p-3 text-xs text-olive font-semibold';
+      el.classList.remove('hidden');
+    }
+
+    function hideStatus() {
+      $('status-msg').classList.add('hidden');
+    }
 
     function openMobileMenu() {
       $('mobile-panel').classList.add('open');
@@ -336,9 +353,9 @@
               <small class="block text-xs text-stone2">$6 · ${calories} cal base</small>
             </span>
             <span class="flex gap-3">
-              <button data-flavor="${id}" data-delta="-1" class="px-2 py-1 text-lg text-stone">−</button>
+              <button data-flavor="${id}" data-delta="-1" class="px-2 py-1 text-lg text-stone hover:text-olive">−</button>
               <b id="qty-${id}" class="w-4 text-center text-stone">0</b>
-              <button data-flavor="${id}" data-delta="1" class="px-2 py-1 text-lg text-stone">+</button>
+              <button data-flavor="${id}" data-delta="1" class="px-2 py-1 text-lg text-stone hover:text-olive">+</button>
             </span>
           </div>
         `;
@@ -401,9 +418,9 @@
     }
 
     function validateOrder(order) {
-      if (!order.totalJars) return 'Add at least one jar.';
-      if (!order.contact) return 'Enter your name and phone.';
-      if (order.fulfillmentMode === 'Delivery' && order.totalJars < 2) return 'Delivery requires at least 2 jars.';
+      if (!order.totalJars) return 'Add at least one jar to begin.';
+      if (!order.contact) return 'Please enter your name and phone number.';
+      if (order.fulfillmentMode === 'Delivery' && order.totalJars < 2) return 'Delivery requires a 2-jar minimum.';
       return '';
     }
 
@@ -422,33 +439,58 @@
     document.querySelectorAll('[name="mode"]').forEach((radio) => radio.addEventListener('change', renderSummary));
 
     $('submit').addEventListener('click', async () => {
+      hideStatus();
       const order = renderSummary();
       const errorMessage = validateOrder(order);
+
       if (errorMessage) {
-        $('error').textContent = errorMessage;
-        $('error').classList.remove('hidden');
+        showStatus(errorMessage, true);
         return;
       }
+
       if (BACKEND_URL.includes('PASTE_')) {
-        $('error').textContent = 'Add your Apps Script /exec URL in index.html first, or text this order.';
-        $('error').classList.remove('hidden');
+        showStatus('Backend URL not configured yet. Please use "Text this order instead".', true);
         return;
       }
-      await fetch(BACKEND_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({
-          itemsText: order.lines.join(', '),
-          totalJars: order.totalJars,
-          subtotal: order.subtotal,
-          mode: order.fulfillmentMode,
-          notes: (order.contact ? `From: ${order.contact} | ` : '') + (order.notes || ''),
-          proteinBoost: order.proteinBoost,
-          addOns: order.addOns.join(', ')
-        })
-      });
-      $('error').textContent = 'Order sent! We will confirm by text.';
-      $('error').classList.remove('hidden');
+
+      const submitBtn = $('submit');
+      const submitText = $('submit-text');
+      const spinner = $('spinner');
+
+      submitBtn.disabled = true;
+      spinner.classList.remove('hidden');
+      submitText.textContent = 'Sending order...';
+
+      try {
+        await fetch(BACKEND_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            itemsText: order.lines.join(', '),
+            totalJars: order.totalJars,
+            subtotal: order.subtotal,
+            mode: order.fulfillmentMode,
+            notes: (order.contact ? `From: ${order.contact} | ` : '') + (order.notes || ''),
+            proteinBoost: order.proteinBoost,
+            addOns: order.addOns.join(', ')
+          })
+        });
+
+        showStatus('✓ Order received! We will text you shortly to confirm.', false);
+        submitText.textContent = 'Order Sent!';
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitText.textContent = 'Submit order online';
+          spinner.classList.add('hidden');
+        }, 5000);
+
+      } catch (err) {
+        showStatus('Could not reach backend. Please choose "Text this order instead".', true);
+        submitBtn.disabled = false;
+        submitText.textContent = 'Submit order online';
+        spinner.classList.add('hidden');
+      }
     });
 
     renderMenu();
