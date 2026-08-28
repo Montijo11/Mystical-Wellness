@@ -57,21 +57,82 @@
       padding-left: 1.25rem;
       padding-right: 1.25rem;
     }
+
+    /* Mobile drawer slide-in */
+    #mobile-panel {
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+      transform: translateX(100%);
+    }
+    #mobile-panel.open {
+      transform: translateX(0);
+    }
   </style>
 </head>
 
 <body class="min-h-screen bg-ink text-stone">
 
-  <header class="border-b border-line bg-ink/95">
-    <nav class="page-wrap flex items-center justify-between py-4">
-      <a class="font-display text-xl" href="index.html">Mystical Wellness</a>
-      <span class="flex gap-4 text-sm text-stone2">
-        <a href="index.html#menu-section">Menu</a>
-        <a class="text-olive" href="why.html">Why?</a>
-        <a href="nutrition.html">Nutrition</a>
-      </span>
-    </nav>
+  <!-- Header -->
+  <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
+    <div class="page-wrap flex items-center justify-between py-4">
+      <a href="index.html" class="flex items-center gap-2">
+        <span class="grid h-9 w-9 place-items-center rounded-full border border-olive font-display text-lg font-semibold text-olive">M</span>
+        <span class="font-display text-xl text-stone">Mystical Wellness</span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden items-center gap-5 text-sm text-stone2 sm:flex">
+        <a class="hover:text-olive transition" href="index.html#menu-section">Menu</a>
+        <a class="text-olive font-semibold" href="why.html">Why?</a>
+        <a class="hover:text-olive transition" href="nutrition.html">Nutrition</a>
+        <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order</a>
+      </nav>
+
+      <!-- Mobile Hamburger Button -->
+      <button
+        id="mobile-open-btn"
+        type="button"
+        aria-label="Open mobile menu"
+        class="grid h-10 w-10 place-items-center rounded-xl border border-line text-stone sm:hidden hover:border-olive transition"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+    </div>
   </header>
+
+  <!-- Mobile Drawer Scrim -->
+  <div id="mobile-scrim" class="fixed inset-0 z-40 hidden bg-ink/80 backdrop-blur-sm sm:hidden"></div>
+
+  <!-- Mobile Slide-out Drawer Panel -->
+  <aside id="mobile-panel" class="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] border-l border-line bg-surface p-6 sm:hidden flex flex-col justify-between">
+    <div>
+      <div class="flex items-center justify-between pb-4 border-b border-line">
+        <b class="font-display text-lg text-stone">Menu</b>
+        <button
+          id="mobile-close-btn"
+          type="button"
+          aria-label="Close mobile menu"
+          class="grid h-8 w-8 place-items-center rounded-lg border border-line text-stone hover:border-olive"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+
+      <nav class="mt-6 flex flex-col gap-2 text-base">
+        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="index.html#menu-section">Menu</a>
+        <a class="mobile-nav-link rounded-xl p-3 text-olive font-semibold hover:bg-surface2 transition" href="why.html">Why?</a>
+        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="nutrition.html">Nutrition</a>
+        <a class="mobile-nav-link mt-4 rounded-full bg-olive p-3 text-center font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order now</a>
+      </nav>
+    </div>
+
+    <div class="border-t border-line pt-4 text-xs text-stone2 text-center">
+      Made to Nourish · El Cajon, CA
+    </div>
+  </aside>
 
   <main class="page-wrap py-16">
 
@@ -89,7 +150,7 @@
       for your body, not just how they taste.
     </p>
 
-    <!-- Photos: using exact case-sensitive filenames Fruit.jpg, Chia-Seeds.jpg, Yogurt.jpg -->
+    <!-- Photos: matching exact filenames Fruit.jpg, Chia-Seeds.jpg, Yogurt.jpg -->
     <div class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
       <figure class="min-w-0">
         <img
@@ -276,6 +337,29 @@
   <footer class="border-t border-line py-8 text-center text-xs text-stone2">
     Mystical Wellness · Made to Nourish · El Cajon, CA
   </footer>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function openMobileMenu() {
+      $('mobile-panel').classList.add('open');
+      $('mobile-scrim').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileMenu() {
+      $('mobile-panel').classList.remove('open');
+      $('mobile-scrim').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    $('mobile-open-btn').addEventListener('click', openMobileMenu);
+    $('mobile-close-btn').addEventListener('click', closeMobileMenu);
+    $('mobile-scrim').addEventListener('click', closeMobileMenu);
+    document.querySelectorAll('.mobile-nav-link').forEach((link) => {
+      link.addEventListener('click', closeMobileMenu);
+    });
+  </script>
 
 </body>
 </html>
