@@ -3,24 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mystical Wellness — Made to Nourish</title>
-  <meta name="description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional features. Made fresh every order in El Cajon, CA." />
-
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Mystical Wellness" />
-  <meta property="og:title" content="Mystical Wellness — Made to Nourish" />
-  <meta property="og:description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional features. Made fresh every order in El Cajon, CA." />
-  <meta property="og:image" content="https://www.mysticalwellness.org/Facebook.png" />
-  <meta property="og:image:secure_url" content="https://www.mysticalwellness.org/Facebook.png" />
-  <meta property="og:image:width" content="1536" />
-  <meta property="og:image:height" content="1024" />
-  <meta property="og:image:type" content="image/png" />
-  <meta property="og:url" content="https://www.mysticalwellness.org/" />
-
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Mystical Wellness — Made to Nourish" />
-  <meta name="twitter:description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional features." />
-  <meta name="twitter:image" content="https://www.mysticalwellness.org/Facebook.png" />
+  <title>My Account — Mystical Wellness</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -36,59 +19,40 @@
       }
     };
   </script>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600;700&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    html, body { overflow-x: hidden; width: 100%; max-width: 100%; margin: 0; padding: 0; }
+    html, body { overflow-x: hidden; width: 100%; margin: 0; padding: 0; }
     body { font-family: Inter, sans-serif; }
-    .grain {
-      background:
-        radial-gradient(circle at 12% 3%, #9ca86a20, transparent 30rem),
-        radial-gradient(circle at 94% 16%, #86634220, transparent 24rem);
-    }
-    .card { transition: 0.2s; min-width: 0; width: 100%; }
-    .card:hover { transform: translateY(-3px); border-color: #9ca86a; }
-    .page-wrap {
-      width: 100%; max-width: 64rem; margin-left: auto; margin-right: auto;
-      padding-left: 1.25rem; padding-right: 1.25rem;
-    }
+    .page-wrap { width: 100%; max-width: 64rem; margin: 0 auto; padding: 1.25rem; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .tab-btn.active { background: #9ca86a; color: #151510; }
     #mobile-panel { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); transform: translateX(100%); }
     #mobile-panel.open { transform: translateX(0); }
-    .chevron { transition: transform 0.2s; }
-    .accordion-row.open .chevron { transform: rotate(180deg); }
   </style>
 </head>
 
 <body class="min-h-screen bg-ink text-stone">
 
-  <div class="grain fixed inset-0 -z-10"></div>
-
   <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
     <div class="page-wrap flex items-center justify-between py-4">
       <a href="index.html" class="flex items-center gap-2.5">
-        <img src="logo.JPG" alt="Mystical Wellness logo" class="h-11 w-11 rounded-full object-cover border border-line" />
+        <img src="logo.JPG" alt="Mystical Wellness logo" class="h-10 w-10 rounded-full object-cover border border-line" />
         <span class="font-display text-xl text-stone">Mystical Wellness</span>
       </a>
 
       <nav class="hidden items-center gap-5 text-sm text-stone2 sm:flex">
-        <a class="text-olive font-semibold" href="#menu-section">Menu</a>
+        <a class="hover:text-olive transition" href="index.html#menu-section">Menu</a>
         <a class="hover:text-olive transition" href="why.html">Why?</a>
         <a class="hover:text-olive transition" href="nutrition.html">Nutrition</a>
         <div id="nav-account-slot" class="relative"></div>
-        <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="#order">Order</a>
+        <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order</a>
       </nav>
 
-      <button
-        id="mobile-open-btn"
-        type="button"
-        aria-label="Open mobile menu"
-        class="grid h-10 w-10 place-items-center rounded-xl border border-line text-stone sm:hidden hover:border-olive transition"
-      >
+      <button id="mobile-open-btn" type="button" aria-label="Open mobile menu"
+        class="grid h-10 w-10 place-items-center rounded-xl border border-line text-stone sm:hidden hover:border-olive transition">
         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M4 7h16M4 12h16M4 17h16" />
         </svg>
@@ -102,266 +66,126 @@
     <div>
       <div class="flex items-center justify-between pb-4 border-b border-line">
         <div class="flex items-center gap-2">
-          <img src="logo.JPG" alt="Mystical Wellness logo" class="h-9 w-9 rounded-full object-cover border border-line" />
+          <img src="logo.JPG" alt="Mystical Wellness logo" class="h-8 w-8 rounded-full object-cover border border-line" />
           <b class="font-display text-lg text-stone">Menu</b>
         </div>
-        <button
-          id="mobile-close-btn"
-          type="button"
-          aria-label="Close mobile menu"
-          class="grid h-8 w-8 place-items-center rounded-lg border border-line text-stone hover:border-olive"
-        >
+        <button id="mobile-close-btn" type="button" aria-label="Close mobile menu"
+          class="grid h-8 w-8 place-items-center rounded-lg border border-line text-stone hover:border-olive">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
       </div>
-
       <div id="mobile-account-slot" class="mt-4"></div>
-
       <nav class="mt-4 flex flex-col gap-2 text-base">
-        <a class="mobile-nav-link rounded-xl p-3 text-olive font-semibold hover:bg-surface2 transition" href="#menu-section">Menu</a>
+        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="index.html#menu-section">Menu</a>
         <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="why.html">Why?</a>
         <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="nutrition.html">Nutrition</a>
-        <a class="mobile-nav-link mt-4 rounded-full bg-olive p-3 text-center font-bold text-ink hover:bg-olive/90 transition" href="#order">Order now</a>
+        <a class="mobile-nav-link mt-4 rounded-full bg-olive p-3 text-center font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order now</a>
       </nav>
     </div>
-
-    <div class="border-t border-line pt-4 text-xs text-stone2 text-center">
-      Made to Nourish · El Cajon, CA
-    </div>
+    <div class="border-t border-line pt-4 text-xs text-stone2 text-center">Made to Nourish</div>
   </aside>
 
-  <main>
+  <main class="page-wrap py-10">
 
-    <section class="border-b border-line">
-      <div class="page-wrap py-16">
-        <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">
-          Made fresh every order · El Cajon, CA
-        </p>
-        <h1 class="mt-3 font-display text-4xl leading-none sm:text-6xl">
-          Made to <span class="text-olive">Nourish.</span>
-        </h1>
-        <p class="mt-5 max-w-xl leading-relaxed text-stone2">
-          Nourishing chia pudding made with real protein yogurt, oat milk,
-          coconut milk, real fruit, and optional features.
-        </p>
-        <a class="mt-7 inline-block rounded-full bg-olive px-5 py-3 text-sm font-bold text-ink" href="#order">
-          Build an order
-        </a>
-      </div>
+    <!-- HOME VIEW -->
+    <section id="view-home" class="view active">
+      <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Welcome back</p>
+      <h1 id="greeting-text" class="mt-3 font-display text-4xl sm:text-6xl">Good day,<br /><span class="text-olive">friend.</span></h1>
+      <p class="mt-4 max-w-xl text-stone2">Check your order history, track your rewards points, or update your account details.</p>
+      <button id="go-dashboard" class="mt-7 inline-block rounded-full bg-olive px-6 py-3 text-sm font-bold text-ink hover:bg-olive/90 transition">
+        Go to My Dashboard →
+      </button>
     </section>
 
-    <section id="menu-section" class="border-b border-line">
-      <div class="page-wrap py-14">
-        <div class="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h2 class="font-display text-4xl sm:text-6xl">
-              Browse your<br />
-              <span class="text-olive">Nourishments.</span>
-            </h2>
-          </div>
-          <span class="text-sm text-stone2">$6 per 12oz Nourishment</span>
-        </div>
+    <!-- DASHBOARD VIEW -->
+    <section id="view-dashboard" class="view">
+      <button id="back-home" class="mb-4 text-sm text-stone2 hover:text-olive transition">← Back to home</button>
+      <h2 class="font-display text-3xl">Dashboard</h2>
 
-        <p class="mt-4 text-xs text-stone2">
-          Made with real protein yogurt, oat milk, and chia seeds. Base values exclude optional features.
-          <a class="text-olive" href="nutrition.html">Nutrition details</a>
-        </p>
-
-        <!-- Desktop/tablet card grid (hidden on mobile) -->
-        <div id="menu-grid" class="mt-7 hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-5"></div>
-
-        <!-- Mobile-only accordion dropdown -->
-        <div id="menu-accordion" class="mt-7 space-y-2 sm:hidden"></div>
+      <div class="mt-5 flex flex-wrap gap-2">
+        <button data-tab="orders" class="tab-btn active rounded-full border border-line px-4 py-2 text-sm font-bold transition">Order History</button>
+        <button data-tab="rewards" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Rewards</button>
+        <button data-tab="settings" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Account Settings</button>
       </div>
-    </section>
 
-    <section id="order" class="bg-surface/50">
-      <div class="page-wrap py-14">
-        <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Order now</p>
-        <h2 class="mt-2 font-display text-4xl">Build your order</h2>
-
-        <div class="mt-7 grid gap-5 lg:grid-cols-[1.4fr_.85fr]">
-
-          <div class="space-y-4 min-w-0">
-
-            <div class="rounded-2xl border border-line bg-surface p-5">
-              <h3 class="font-display text-xl">1. Choose Nourishments</h3>
-              <div id="items" class="mt-4 space-y-2"></div>
-            </div>
-
-            <div class="rounded-2xl border border-line bg-surface p-5">
-              <h3 class="font-display text-xl">2. Customize</h3>
-              <p class="mt-1 text-xs text-stone2">
-                Every Nourishment includes Chobani protein yogurt, oat milk, coconut milk, and chia seeds as its base.
-              </p>
-
-              <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label class="text-sm">
-                  Protein boost
-                  <select id="protein" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
-                    <option value="no">No protein boost</option>
-                    <option value="yes">Yes — +$1 per Nourishment</option>
-                  </select>
-                </label>
-              </div>
-
-              <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <label class="text-sm">
-                  Almond flakes
-                  <select id="almond" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
-                    <option>Add</option>
-                    <option>No thanks</option>
-                  </select>
-                </label>
-
-                <label class="text-sm">
-                  Coconut flakes
-                  <select id="coconut" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
-                    <option>Add</option>
-                    <option>No thanks</option>
-                  </select>
-                </label>
-
-                <label class="text-sm">
-                  Maple syrup
-                  <select id="maple" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
-                    <option>Add</option>
-                    <option>No thanks</option>
-                  </select>
-                </label>
-              </div>
-            </div>
-
-            <div class="rounded-2xl border border-line bg-surface p-5">
-              <h3 class="font-display text-xl">3. Pickup or delivery</h3>
-              <div class="mt-3 flex flex-wrap gap-5 text-sm">
-                <label><input checked name="mode" type="radio" value="Pickup" /> Pickup</label>
-                <label><input name="mode" type="radio" value="Delivery" /> Delivery</label>
-              </div>
-              <p class="mt-3 text-xs text-stone2">
-                Monday & Tuesday pickup. Delivery within 5 miles; 2-Nourishment minimum.
-              </p>
-            </div>
-
-            <div class="rounded-2xl border border-line bg-surface p-5">
-              <h3 class="font-display text-xl">4. Contact information</h3>
-              <p class="mt-1 text-xs text-stone2">
-                Required so we can confirm your order and reach you.
-              </p>
-
-              <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label class="text-sm">
-                  Full name <span class="text-red-400">*</span>
-                  <input
-                    id="customer-name"
-                    required
-                    autocomplete="name"
-                    class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none"
-                    placeholder="Jane Smith"
-                  />
-                </label>
-
-                <label class="text-sm">
-                  Phone number <span class="text-red-400">*</span>
-                  <input
-                    id="customer-phone"
-                    required
-                    type="tel"
-                    inputmode="tel"
-                    autocomplete="tel"
-                    class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none"
-                    placeholder="(619) 555-0123"
-                  />
-                </label>
-              </div>
-
-              <label class="mt-3 block text-sm">
-                Order notes <span class="text-stone2">(optional)</span>
-                <textarea id="notes" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" rows="3" placeholder="Pickup day, delivery address, allergies, or notes"></textarea>
-              </label>
-
-              <label class="mt-3 block text-sm">
-                Reward code <span class="text-stone2">(optional — from your account)</span>
-                <input id="reward-code" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" placeholder="MW-1234" />
-              </label>
-            </div>
-
-          </div>
-
-          <aside class="h-fit min-w-0 rounded-2xl border border-olive/60 bg-surface2 p-5 lg:sticky lg:top-24 lg:self-start">
-            <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Your order</p>
-            <h3 class="mt-1 font-display text-2xl">Order summary</h3>
-
-            <div id="summary" class="mt-5 space-y-2 break-words text-sm text-stone2">
-              Choose a flavor to begin.
-            </div>
-
-            <div id="reward-note" class="mt-3 hidden rounded-lg border border-olive/50 bg-olive/10 p-3 text-xs text-olive"></div>
-
-            <div class="mt-5 flex justify-between border-t border-line pt-4">
-              <span>Subtotal</span>
-              <b id="total" class="font-display text-3xl">$0.00</b>
-            </div>
-
-            <p id="status-msg" class="mt-3 hidden rounded-lg p-3 text-xs font-medium"></p>
-
-            <button id="submit" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-olive p-3 text-sm font-bold text-ink transition hover:bg-olive/90 disabled:opacity-50">
-              <span id="spinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-ink border-t-transparent"></span>
-              <span id="submit-text">Submit order online</span>
-            </button>
-
-            <a id="sms" class="mt-2 block rounded-xl border border-line p-3 text-center text-sm font-bold text-stone transition hover:border-olive hover:text-olive">
-              Text this order instead
-            </a>
-          </aside>
-
+      <div id="tab-orders" class="tab-panel mt-6">
+        <div class="flex flex-wrap gap-3">
+          <input id="filter-date" type="date" class="rounded-xl border border-line bg-surface p-2 text-sm text-stone" />
+          <input id="filter-flavor" type="text" placeholder="Filter by flavor..." class="rounded-xl border border-line bg-surface p-2 text-sm text-stone flex-1" />
+          <button id="clear-filters" class="rounded-xl border border-line px-3 py-2 text-sm text-stone2 hover:border-olive transition">Clear</button>
         </div>
+        <div id="orders-list" class="mt-4 space-y-3">
+          <p class="text-stone2 text-sm">Loading your orders...</p>
+        </div>
+      </div>
+
+      <div id="tab-rewards" class="tab-panel mt-6 hidden">
+        <div class="rounded-2xl border border-olive/60 bg-surface2 p-5">
+          <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Your points</p>
+          <p id="points-balance" class="mt-1 font-display text-5xl">0</p>
+        </div>
+
+        <div id="active-reward-box" class="mt-4 hidden rounded-2xl border border-olive bg-olive/10 p-5">
+          <p class="text-sm font-bold text-olive">Active reward</p>
+          <p id="active-reward-text" class="mt-1 text-stone"></p>
+          <p class="mt-2 text-xs text-stone2">Show this code at pickup. It's valid until redeemed — no expiration.</p>
+        </div>
+
+        <h3 class="mt-6 font-display text-xl">Reward tiers</h3>
+        <div id="tiers-list" class="mt-3 space-y-2"></div>
+      </div>
+
+      <div id="tab-settings" class="tab-panel mt-6 hidden">
+        <form id="settings-form" class="space-y-3 max-w-md">
+          <label class="text-sm block">
+            Full name
+            <input id="settings-name" class="mt-1 block w-full rounded-xl border border-line bg-surface p-3 text-stone focus:border-olive outline-none" />
+          </label>
+          <label class="text-sm block">
+            Phone number
+            <input id="settings-phone" class="mt-1 block w-full rounded-xl border border-line bg-surface p-3 text-stone focus:border-olive outline-none" />
+          </label>
+          <label class="text-sm block">
+            Email <span class="text-stone2">(locked)</span>
+            <input id="settings-email" disabled class="mt-1 block w-full rounded-xl border border-line bg-ink/40 p-3 text-stone2" />
+          </label>
+          <label class="text-sm block">
+            Delivery address
+            <input id="settings-address" placeholder="Street, city, ZIP" class="mt-1 block w-full rounded-xl border border-line bg-surface p-3 text-stone focus:border-olive outline-none" />
+          </label>
+          <button type="submit" class="rounded-xl bg-olive px-5 py-3 text-sm font-bold text-ink hover:bg-olive/90 transition">Save Changes</button>
+        </form>
+        <p id="settings-status" class="mt-3 hidden text-xs font-medium"></p>
       </div>
     </section>
 
   </main>
 
   <footer class="border-t border-line py-8 text-center text-xs text-stone2">
-    <a href="https://instagram.com/mystical.wellness.26" target="_blank" rel="noopener" class="inline-flex items-center gap-2 hover:text-olive transition">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.9.07 1.2.06 2.2.27 3 .58a6 6 0 0 1 2.2 1.4 6 6 0 0 1 1.4 2.2c.3.8.5 1.8.6 3 .1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 2.2-.6 3a6 6 0 0 1-1.4 2.2 6 6 0 0 1-2.2 1.4c-.8.3-1.8.5-3 .6-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-2.2-.3-3-.6a6 6 0 0 1-2.2-1.4 6 6 0 0 1-1.4-2.2c-.3-.8-.5-1.8-.6-3C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-2.2.6-3a6 6 0 0 1 1.4-2.2A6 6 0 0 1 6.5.5c.8-.3 1.8-.5 3-.6C10.8 2.2 11.2 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.1-1 .1-1.7.2-2.3.5a4.2 4.2 0 0 0-1.5 1 4.2 4.2 0 0 0-1 1.5c-.3.6-.4 1.3-.5 2.3-.1 1.2-.1 1.6-.1 4.7s0 3.5.1 4.7c.1 1 .2 1.7.5 2.3a4.2 4.2 0 0 0 1 1.5 4.2 4.2 0 0 0 1.5 1c.6.3 1.3.4 2.3.5 1.2.1 1.6.1 4.7.1s3.5 0 4.7-.1c1-.1 1.7-.2 2.3-.5a4.2 4.2 0 0 0 1.5-1 4.2 4.2 0 0 0 1-1.5c.3-.6.4-1.3.5-2.3.1-1.2.1-1.6.1-4.7s0-3.5-.1-4.7c-.1-1-.2-1.7-.5-2.3a4.2 4.2 0 0 0-1-1.5 4.2 4.2 0 0 0-1.5-1c-.6-.3-1.3-.4-2.3-.5-1.2-.1-1.6-.1-4.7-.1zm0 4.6a5.4 5.4 0 1 1 0 10.8 5.4 5.4 0 0 1 0-10.8zm0 1.8a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2zm5.6-3.2a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z"/></svg>
-      @mystical.wellness.26
-    </a>
-    <p class="mt-3">Mystical Wellness · Made to Nourish · El Cajon, CA</p>
+    Mystical Wellness · Made to Nourish
   </footer>
 
   <script type="module">
-    import { auth, watchAuth, saveOrderToFirestore, lookupRewardCode, isAdminEmail, logOut, getUserProfile } from './firebase-config.js';
+    import {
+      auth, watchAuth, logOut, enforceSessionTimeout, getUserProfile, updateUserProfile,
+      getOrdersForUser, getGreeting, REWARD_TIERS, redeemReward, isAdminEmail
+    } from './firebase-config.js';
 
-    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbyhJ9XFAB8dlyziBxKLi1gb4cfumb4D6BD2NxL0yp7fQ_y7PASSJOsAph4Mi_AHWBIa/exec';
-
-    // [id, name, description, calories, protein, badge, photo, fiber, carbs, fat]
-    const FLAVORS = [
-      ['apple', 'Apple Cinnamon', 'Cinnamon apple + oat topping', 118, 8, 'Core', 'Apple%20Cinnamon.jpeg', 4, 10, 4],
-      ['mango', 'Mango', 'Coconut chia + sweet mango', 122, 8, 'Core', 'Mango.jpeg', 4, 11, 4],
-      ['pina-colada', 'Piña Colada', 'Coconut chia + pineapple, tropical twist', 118, 8, 'New!', 'Pina%20Colada.jpg', 4, 10, 4],
-      ['strawberry', 'Strawberry', 'Vanilla chia + fresh strawberry', 115, 8, 'Core', 'Strawberry.jpeg', 4, 9, 4],
-      ['blueberry', 'Blueberry', 'Coconut chia + sweet blueberries', 119, 8, 'Core', null, 4, 10, 4]
-    ];
-
-    const quantities = {};
     const $ = (id) => document.getElementById(id);
-    const formatMoney = (amount) => '$' + amount.toFixed(2);
-    let loggedInUser = null;
-    let appliedReward = null;
+    let currentUser = null;
+    let currentProfile = null;
+    let allOrders = [];
 
-    function renderGuestNav() {
-      $('nav-account-slot').innerHTML = `<a href="login.html" class="hover:text-olive transition">Log In</a>`;
-      $('mobile-account-slot').innerHTML = `<a href="login.html" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Log In</a>`;
-    }
+    function openMobileMenu() { $('mobile-panel').classList.add('open'); $('mobile-scrim').classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+    function closeMobileMenu() { $('mobile-panel').classList.remove('open'); $('mobile-scrim').classList.add('hidden'); document.body.style.overflow = ''; }
+    $('mobile-open-btn').addEventListener('click', openMobileMenu);
+    $('mobile-close-btn').addEventListener('click', closeMobileMenu);
+    $('mobile-scrim').addEventListener('click', closeMobileMenu);
+    document.querySelectorAll('.mobile-nav-link').forEach((link) => link.addEventListener('click', closeMobileMenu));
 
-    function renderAdminNav() {
-      $('nav-account-slot').innerHTML = `<a href="admin.html" class="hover:text-olive transition">Admin Dashboard</a>`;
-      $('mobile-account-slot').innerHTML = `<a href="admin.html" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Admin Dashboard</a>`;
-    }
-
-    function renderCustomerNav(firstName) {
+    function renderNav(firstName) {
       $('nav-account-slot').innerHTML = `
         <div id="account-dropdown-wrap" class="relative">
           <button id="account-trigger" class="hover:text-olive transition">Hi, ${firstName}</button>
@@ -390,303 +214,161 @@
     }
 
     watchAuth(async (user) => {
-      loggedInUser = user;
-      if (!user) { renderGuestNav(); return; }
-      if (isAdminEmail(user.email)) { renderAdminNav(); return; }
-      const profile = await getUserProfile(user.uid);
-      const firstName = (profile?.name || 'there').split(' ')[0];
-      renderCustomerNav(firstName);
+      if (!user) { window.location.href = 'login.html'; return; }
+      if (isAdminEmail(user.email)) { window.location.href = 'admin.html'; return; }
+      if (!enforceSessionTimeout()) { window.location.href = 'login.html'; return; }
+
+      currentUser = user;
+      currentProfile = await getUserProfile(user.uid);
+      const firstName = (currentProfile?.name || 'friend').split(' ')[0];
+
+      renderNav(firstName);
+      $('greeting-text').innerHTML = `${getGreeting()},<br /><span class="text-olive">${firstName}.</span>`;
+      $('settings-name').value = currentProfile?.name || '';
+      $('settings-phone').value = currentProfile?.phone || '';
+      $('settings-email').value = currentProfile?.email || '';
+      $('settings-address').value = currentProfile?.address || '';
+
+      renderRewards();
+      await loadOrders();
+      applyHashRoute();
     });
 
-    function showStatus(message, isError = true) {
-      const el = $('status-msg');
-      el.textContent = message;
-      el.className = isError
-        ? 'mt-3 block rounded-lg bg-red-950/50 border border-red-800/60 p-3 text-xs text-red-200'
-        : 'mt-3 block rounded-lg bg-olive/20 border border-olive/50 p-3 text-xs text-olive font-semibold';
-      el.classList.remove('hidden');
-    }
-    function hideStatus() { $('status-msg').classList.add('hidden'); }
+    document.body.addEventListener('click', () => enforceSessionTimeout());
 
-    function openMobileMenu() {
-      $('mobile-panel').classList.add('open');
-      $('mobile-scrim').classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-    function closeMobileMenu() {
-      $('mobile-panel').classList.remove('open');
-      $('mobile-scrim').classList.add('hidden');
-      document.body.style.overflow = '';
-    }
-    $('mobile-open-btn').addEventListener('click', openMobileMenu);
-    $('mobile-close-btn').addEventListener('click', closeMobileMenu);
-    $('mobile-scrim').addEventListener('click', closeMobileMenu);
-    document.querySelectorAll('.mobile-nav-link').forEach((link) => link.addEventListener('click', closeMobileMenu));
+    $('go-dashboard').addEventListener('click', () => switchView('dashboard'));
+    $('back-home').addEventListener('click', () => switchView('home'));
 
-    function renderMenu() {
-      const target = $('menu-grid');
-      if (!target) return;
-      target.innerHTML = FLAVORS.map((flavor) => {
-        const [id, name, description, calories, protein, badge, photo] = flavor;
-        const photoHtml = photo
-          ? `<img src="${photo}" alt="${name} chia pudding" class="mb-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
-          : '';
+    function switchView(name) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      $(`view-${name}`).classList.add('active');
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.classList.add('text-stone2'); });
+      document.querySelector(`.tab-btn[data-tab="${tabName}"]`)?.classList.add('active');
+      document.querySelector(`.tab-btn[data-tab="${tabName}"]`)?.classList.remove('text-stone2');
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      $(`tab-${tabName}`)?.classList.remove('hidden');
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    function applyHashRoute() {
+      const hash = window.location.hash.replace('#', '');
+      if (!hash) return;
+      switchView('dashboard');
+      if (hash === 'profile') switchTab('settings');
+      else if (hash === 'orders') switchTab('orders');
+      else if (hash === 'rewards') switchTab('rewards');
+    }
+    window.addEventListener('hashchange', applyHashRoute);
+
+    async function loadOrders() {
+      allOrders = await getOrdersForUser(currentUser.uid);
+      renderOrders();
+    }
+
+    function renderOrders() {
+      const dateFilter = $('filter-date').value;
+      const flavorFilter = $('filter-flavor').value.trim().toLowerCase();
+
+      let filtered = allOrders;
+      if (dateFilter) {
+        filtered = filtered.filter(o => {
+          const created = o.createdAt?.toDate ? o.createdAt.toDate() : new Date();
+          return created.toISOString().slice(0, 10) === dateFilter;
+        });
+      }
+      if (flavorFilter) {
+        filtered = filtered.filter(o => (o.itemsText || '').toLowerCase().includes(flavorFilter));
+      }
+
+      if (filtered.length === 0) {
+        $('orders-list').innerHTML = '<p class="text-stone2 text-sm">No orders found.</p>';
+        return;
+      }
+
+      $('orders-list').innerHTML = filtered.map(o => {
+        const created = o.createdAt?.toDate ? o.createdAt.toDate() : new Date();
+        const statusColor = o.status === 'Completed' ? 'text-olive' : o.status === 'Cancelled' ? 'text-red-400' : 'text-stone2';
         return `
-          <article class="card rounded-2xl border border-line bg-surface p-4">
-            ${photoHtml}
-            <div class="flex items-start justify-between gap-2">
-              <h3 class="font-display text-xl text-stone">${name}</h3>
-              <span class="shrink-0 rounded-full bg-olive/15 px-2 py-1 text-[10px] font-bold uppercase text-olive">${badge}</span>
+          <div class="rounded-xl border border-line bg-surface p-4">
+            <div class="flex justify-between text-sm">
+              <b class="text-stone">${created.toLocaleDateString()}</b>
+              <span class="${statusColor} font-semibold">${o.status}</span>
             </div>
-            <p class="mt-2 break-words text-sm text-stone2">${description}</p>
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-stone2">
-              <span>${calories} cal · ${protein}g protein base</span>
-              <b class="text-stone">$6</b>
-            </div>
-          </article>
+            <p class="mt-1 text-sm text-stone2">${o.itemsText}</p>
+            <p class="mt-1 text-xs text-stone2">Subtotal: $${Number(o.subtotal || 0).toFixed(2)} · ${o.mode}</p>
+            ${o.rewardCodeApplied ? `<p class="mt-1 text-xs text-olive">Reward applied: ${o.rewardCodeApplied}</p>` : ''}
+          </div>
         `;
       }).join('');
     }
 
-    function renderMenuAccordion() {
-      const target = $('menu-accordion');
-      if (!target) return;
-      target.innerHTML = FLAVORS.map((flavor, index) => {
-        const [id, name, description, calories, protein, badge, photo, fiber, carbs, fat] = flavor;
-        const photoHtml = photo
-          ? `<img src="${photo}" alt="${name} chia pudding" class="mt-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
-          : '';
+    $('filter-date').addEventListener('change', renderOrders);
+    $('filter-flavor').addEventListener('input', renderOrders);
+    $('clear-filters').addEventListener('click', () => { $('filter-date').value = ''; $('filter-flavor').value = ''; renderOrders(); });
+
+    function renderRewards() {
+      const points = currentProfile?.points || 0;
+      $('points-balance').textContent = points;
+
+      if (currentProfile?.activeReward) {
+        $('active-reward-box').classList.remove('hidden');
+        $('active-reward-text').textContent = `${currentProfile.activeReward.reward} — Code: ${currentProfile.activeReward.code}`;
+      }
+
+      $('tiers-list').innerHTML = REWARD_TIERS.map((tier, i) => {
+        const unlocked = points >= tier.points;
+        const canRedeem = unlocked && !currentProfile?.activeReward;
         return `
-          <div class="accordion-row rounded-xl border border-line bg-surface overflow-hidden">
-            <button data-accordion="${index}" class="accordion-toggle flex w-full items-center justify-between p-4 text-left">
-              <span>
-                <b class="text-sm text-stone">${name}</b>
-                <span class="ml-2 text-xs text-stone2">$6 · ${calories} cal</span>
-              </span>
-              <svg class="chevron h-4 w-4 shrink-0 text-olive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-            <div class="accordion-panel hidden border-t border-line p-4">
-              <p class="text-sm text-stone2">${description}</p>
-              ${photoHtml}
-              <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-stone2 sm:grid-cols-5">
-                <div><b class="block text-stone">${calories}</b>Calories</div>
-                <div><b class="block text-stone">${protein}g</b>Protein</div>
-                <div><b class="block text-stone">${fiber}g</b>Fiber</div>
-                <div><b class="block text-stone">${carbs}g</b>Carbs</div>
-                <div><b class="block text-stone">${fat}g</b>Fat</div>
-              </div>
+          <div class="flex items-center justify-between rounded-xl border border-line bg-surface p-4">
+            <div>
+              <b class="text-stone">${tier.points} points</b>
+              <p class="text-sm text-stone2">${tier.reward}</p>
             </div>
+            ${canRedeem
+              ? `<button data-tier="${i}" class="redeem-btn rounded-full bg-olive px-4 py-2 text-xs font-bold text-ink hover:bg-olive/90 transition">Redeem</button>`
+              : unlocked ? `<span class="text-xs text-stone2">Redeem your active reward first</span>` : `<span class="text-xs text-stone2">${tier.points - points} to go</span>`
+            }
           </div>
         `;
       }).join('');
 
-      target.querySelectorAll('.accordion-toggle').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const row = btn.closest('.accordion-row');
-          const panel = row.querySelector('.accordion-panel');
-          const isOpen = row.classList.contains('open');
-          row.classList.toggle('open', !isOpen);
-          panel.classList.toggle('hidden', isOpen);
+      document.querySelectorAll('.redeem-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          try {
+            const code = await redeemReward(currentUser.uid, Number(btn.dataset.tier));
+            currentProfile = await getUserProfile(currentUser.uid);
+            renderRewards();
+            alert(`Reward redeemed! Your code is ${code}. Show this at pickup.`);
+          } catch (err) {
+            alert(err.message);
+          }
         });
       });
     }
 
-    function renderItems() {
-      const target = $('items');
-      if (!target) return;
-      target.innerHTML = FLAVORS.map((flavor) => {
-        const [id, name, description, calories] = flavor;
-        return `
-          <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-ink/30 p-3">
-            <span class="min-w-0">
-              <b class="text-sm text-stone">${name}</b>
-              <small class="block text-xs text-stone2">$6 · ${calories} cal base</small>
-            </span>
-            <span class="flex gap-3">
-              <button data-flavor="${id}" data-delta="-1" class="px-2 py-1 text-lg text-stone hover:text-olive">−</button>
-              <b id="qty-${id}" class="w-4 text-center text-stone">0</b>
-              <button data-flavor="${id}" data-delta="1" class="px-2 py-1 text-lg text-stone hover:text-olive">+</button>
-            </span>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function buildOrder() {
-      let totalNourishments = 0;
-      let subtotal = 0;
-      const lines = [];
-      FLAVORS.forEach((flavor) => {
-        const [id, name] = flavor;
-        const qty = quantities[id] || 0;
-        if (qty > 0) {
-          totalNourishments += qty;
-          subtotal += qty * 6;
-          lines.push(`${qty}× ${name}`);
-        }
-      });
-      const proteinBoost = $('protein').value === 'yes';
-      if (proteinBoost) subtotal += totalNourishments;
-      const addOns = ['almond', 'coconut', 'maple']
-        .filter((key) => $(key).value === 'Add')
-        .map((key) => (key === 'maple' ? 'maple syrup' : `${key} flakes`));
-      const fulfillmentMode = document.querySelector('[name="mode"]:checked').value;
-      return {
-        totalNourishments, subtotal, lines, addOns, proteinBoost, fulfillmentMode,
-        customerName: $('customer-name').value.trim(),
-        customerPhone: $('customer-phone').value.trim(),
-        notes: $('notes').value.trim()
-      };
-    }
-
-    function buildMessageText(order) {
-      const parts = [
-        'Hi! I would like to order from Mystical Wellness:',
-        ...order.lines,
-        order.proteinBoost ? 'Protein boost requested' : '',
-        order.addOns.length ? `Add: ${order.addOns.join(', ')}` : '',
-        `Subtotal: ${formatMoney(order.subtotal)}`,
-        `Fulfillment: ${order.fulfillmentMode}`,
-        order.customerName ? `Name: ${order.customerName}` : '',
-        order.customerPhone ? `Phone: ${order.customerPhone}` : '',
-        order.notes ? `Notes: ${order.notes}` : ''
-      ];
-      return parts.filter(Boolean).join('\n');
-    }
-
-    function renderSummary() {
-      const order = buildOrder();
-      if (order.lines.length === 0) {
-        $('summary').innerHTML = 'Choose a flavor to begin.';
-      } else {
-        let html = order.lines.map((line) => `<p>${line}</p>`).join('');
-        if (order.proteinBoost) html += '<p>Protein boost</p>';
-        if (order.addOns.length) html += `<p>Add: ${order.addOns.join(', ')}</p>`;
-        $('summary').innerHTML = html;
-      }
-      $('total').textContent = formatMoney(order.subtotal);
-      $('sms').href = 'sms:+16198383928?&body=' + encodeURIComponent(buildMessageText(order));
-      return order;
-    }
-
-    function validateOrder(order) {
-      if (!order.totalNourishments) return 'Add at least one Nourishment to begin.';
-      if (!order.customerName) return 'Please enter your full name.';
-      if (!order.customerPhone) return 'Please enter your phone number.';
-      const digitsOnly = order.customerPhone.replace(/\D/g, '');
-      if (digitsOnly.length < 10) return 'Please enter a valid 10-digit phone number.';
-      if (order.fulfillmentMode === 'Delivery' && order.totalNourishments < 2) return 'Delivery requires a 2-Nourishment minimum.';
-      return '';
-    }
-
-    $('items').addEventListener('click', (event) => {
-      const button = event.target.closest('[data-flavor]');
-      if (!button) return;
-      const flavorId = button.dataset.flavor;
-      const delta = Number(button.dataset.delta);
-      quantities[flavorId] = Math.max(0, (quantities[flavorId] || 0) + delta);
-      $(`qty-${flavorId}`).textContent = quantities[flavorId];
-      renderSummary();
-    });
-
-    ['protein', 'almond', 'coconut', 'maple'].forEach((id) => $(id).addEventListener('change', renderSummary));
-    ['customer-name', 'customer-phone', 'notes'].forEach((id) => $(id).addEventListener('input', renderSummary));
-    document.querySelectorAll('[name="mode"]').forEach((radio) => radio.addEventListener('change', renderSummary));
-
-    $('reward-code').addEventListener('blur', async () => {
-      const codeValue = $('reward-code').value.trim();
-      const noteEl = $('reward-note');
-      if (!codeValue) { noteEl.classList.add('hidden'); appliedReward = null; return; }
-
-      const rewardData = await lookupRewardCode(codeValue);
-      if (!rewardData) {
-        noteEl.textContent = 'Code not found or already used.';
-        noteEl.classList.remove('hidden');
-        appliedReward = null;
-        return;
-      }
-      appliedReward = rewardData;
-      renderSummary();
-      noteEl.textContent = `Reward applied: ${codeValue} (${rewardData.reward}). Subtotal shown does not reflect the discount — it will be honored at pickup.`;
-      noteEl.classList.remove('hidden');
-    });
-
-    $('submit').addEventListener('click', async () => {
-      hideStatus();
-      const order = renderSummary();
-      const errorMessage = validateOrder(order);
-
-      if (errorMessage) {
-        showStatus(errorMessage, true);
-        return;
-      }
-
-      const submitBtn = $('submit');
-      const submitText = $('submit-text');
-      const spinner = $('spinner');
-
-      submitBtn.disabled = true;
-      spinner.classList.remove('hidden');
-      submitText.textContent = 'Sending order...';
-
-      const rewardCodeApplied = appliedReward ? $('reward-code').value.trim().toUpperCase() : null;
-
+    $('settings-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
       try {
-        await saveOrderToFirestore({
-          itemsText: order.lines.join(', '),
-          totalNourishments: order.totalNourishments,
-          subtotal: order.subtotal,
-          mode: order.fulfillmentMode,
-          customerName: order.customerName,
-          customerPhone: order.customerPhone,
-          notes: order.notes || '',
-          proteinBoost: order.proteinBoost,
-          addOns: order.addOns.join(', '),
-          rewardCodeApplied
-        }, loggedInUser ? loggedInUser.uid : null);
-      } catch (firestoreErr) {
-        console.error('Firestore save failed:', firestoreErr);
+        await updateUserProfile(currentUser.uid, {
+          name: $('settings-name').value.trim(),
+          phone: $('settings-phone').value.trim(),
+          address: $('settings-address').value.trim()
+        });
+        const status = $('settings-status');
+        status.textContent = 'Saved!';
+        status.className = 'mt-3 block text-xs font-medium text-olive';
+      } catch (err) {
+        const status = $('settings-status');
+        status.textContent = 'Error: ' + err.message;
+        status.className = 'mt-3 block text-xs font-medium text-red-400';
       }
-
-      if (!BACKEND_URL.includes('PASTE_')) {
-        try {
-          await fetch(BACKEND_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              itemsText: order.lines.join(', '),
-              totalNourishments: order.totalNourishments,
-              subtotal: order.subtotal,
-              mode: order.fulfillmentMode,
-              customerName: order.customerName,
-              customerPhone: order.customerPhone,
-              notes: order.notes || '',
-              proteinBoost: order.proteinBoost,
-              addOns: order.addOns.join(', ')
-            })
-          });
-        } catch (err) {
-          console.error('Apps Script notify failed:', err);
-        }
-      }
-
-      showStatus('✓ Order received! We will text you shortly to confirm.', false);
-      submitText.textContent = 'Order Sent!';
-      setTimeout(() => {
-        submitBtn.disabled = false;
-        submitText.textContent = 'Submit order online';
-        spinner.classList.add('hidden');
-      }, 5000);
     });
-
-    renderMenu();
-    renderMenuAccordion();
-    renderItems();
-    renderSummary();
   </script>
-
 </body>
 </html>
