@@ -50,7 +50,7 @@ export const REWARD_TIERS = [
 export const POINTS_PER_DOLLAR = 1; // 1 point earned per $1 spent on completed orders
 
 // ---- APPS SCRIPT BACKEND (for email notifications) -----------------------
-export const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbyhJ9XFAB8dlyziBxKLi1gb4cfumb4D6BD2NxL0yp7fQ_y7PASSJOsAph4Mi_AHWBIa/exec';
+export const BACKEND_URL = 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
 
 // ---- AUTH HELPERS ----------------------------------------------------------
 export async function signUpCustomer({ name, phone, email, password }) {
