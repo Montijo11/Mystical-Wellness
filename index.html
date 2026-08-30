@@ -59,6 +59,8 @@
     }
     #mobile-panel { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); transform: translateX(100%); }
     #mobile-panel.open { transform: translateX(0); }
+    .chevron { transition: transform 0.2s; }
+    .accordion-row.open .chevron { transform: rotate(180deg); }
   </style>
 </head>
 
@@ -167,7 +169,11 @@
           <a class="text-olive" href="nutrition.html">Nutrition details</a>
         </p>
 
-        <div id="menu-grid" class="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"></div>
+        <!-- Desktop/tablet card grid (hidden on mobile) -->
+        <div id="menu-grid" class="mt-7 hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-5"></div>
+
+        <!-- Mobile-only accordion dropdown -->
+        <div id="menu-accordion" class="mt-7 space-y-2 sm:hidden"></div>
       </div>
     </section>
 
@@ -330,12 +336,13 @@
 
     const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbyhJ9XFAB8dlyziBxKLi1gb4cfumb4D6BD2NxL0yp7fQ_y7PASSJOsAph4Mi_AHWBIa/exec';
 
+    // [id, name, description, calories, protein, badge, photo, fiber, carbs, fat]
     const FLAVORS = [
-      ['apple', 'Apple Cinnamon', 'Cinnamon apple + oat topping', 118, 8, 'Core', 'Apple%20Cinnamon.jpeg'],
-      ['mango', 'Mango', 'Coconut chia + sweet mango', 122, 8, 'Core', 'Mango.jpeg'],
-      ['pina-colada', 'Piña Colada', 'Coconut chia + pineapple, tropical twist', 118, 8, 'New!', 'Pina%20Colada.jpg'],
-      ['strawberry', 'Strawberry', 'Vanilla chia + fresh strawberry', 115, 8, 'Core', 'Strawberry.jpeg'],
-      ['blueberry', 'Blueberry', 'Coconut chia + sweet blueberries', 119, 8, 'Core', null]
+      ['apple', 'Apple Cinnamon', 'Cinnamon apple + oat topping', 118, 8, 'Core', 'Apple%20Cinnamon.jpeg', 4, 10, 4],
+      ['mango', 'Mango', 'Coconut chia + sweet mango', 122, 8, 'Core', 'Mango.jpeg', 4, 11, 4],
+      ['pina-colada', 'Piña Colada', 'Coconut chia + pineapple, tropical twist', 118, 8, 'New!', 'Pina%20Colada.jpg', 4, 10, 4],
+      ['strawberry', 'Strawberry', 'Vanilla chia + fresh strawberry', 115, 8, 'Core', 'Strawberry.jpeg', 4, 9, 4],
+      ['blueberry', 'Blueberry', 'Coconut chia + sweet blueberries', 119, 8, 'Core', null, 4, 10, 4]
     ];
 
     const quantities = {};
@@ -439,6 +446,51 @@
           </article>
         `;
       }).join('');
+    }
+
+    function renderMenuAccordion() {
+      const target = $('menu-accordion');
+      if (!target) return;
+      target.innerHTML = FLAVORS.map((flavor, index) => {
+        const [id, name, description, calories, protein, badge, photo, fiber, carbs, fat] = flavor;
+        const photoHtml = photo
+          ? `<img src="${photo}" alt="${name} chia pudding" class="mt-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
+          : '';
+        return `
+          <div class="accordion-row rounded-xl border border-line bg-surface overflow-hidden">
+            <button data-accordion="${index}" class="accordion-toggle flex w-full items-center justify-between p-4 text-left">
+              <span>
+                <b class="text-sm text-stone">${name}</b>
+                <span class="ml-2 text-xs text-stone2">$6 · ${calories} cal</span>
+              </span>
+              <svg class="chevron h-4 w-4 shrink-0 text-olive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+            <div class="accordion-panel hidden border-t border-line p-4">
+              <p class="text-sm text-stone2">${description}</p>
+              ${photoHtml}
+              <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-stone2 sm:grid-cols-5">
+                <div><b class="block text-stone">${calories}</b>Calories</div>
+                <div><b class="block text-stone">${protein}g</b>Protein</div>
+                <div><b class="block text-stone">${fiber}g</b>Fiber</div>
+                <div><b class="block text-stone">${carbs}g</b>Carbs</div>
+                <div><b class="block text-stone">${fat}g</b>Fat</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      target.querySelectorAll('.accordion-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const row = btn.closest('.accordion-row');
+          const panel = row.querySelector('.accordion-panel');
+          const isOpen = row.classList.contains('open');
+          row.classList.toggle('open', !isOpen);
+          panel.classList.toggle('hidden', isOpen);
+        });
+      });
     }
 
     function renderItems() {
@@ -631,6 +683,7 @@
     });
 
     renderMenu();
+    renderMenuAccordion();
     renderItems();
     renderSummary();
   </script>
