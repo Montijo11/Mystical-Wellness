@@ -1,10 +1,8 @@
 // ============================================================
 // Mystical Wellness — Firebase Backend Configuration
 // ============================================================
-// This file is fully configured with your live Firebase project
-// keys and admin accounts. The only remaining step is pasting
-// your deployed Google Apps Script /exec URL into BACKEND_URL
-// below once you deploy Code.gs.
+// Only remaining step: paste your deployed Google Apps Script
+// /exec URL into BACKEND_URL below.
 // ============================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -35,9 +33,6 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// ------------------------------------------------------------
-// Firebase project configuration (live — mystical-wellness)
-// ------------------------------------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyDXfMK8nxFQ9-wbazPYqgPmF58QFS_Y1Vs",
   authDomain: "mystical-wellness.firebaseapp.com",
@@ -52,14 +47,8 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// ------------------------------------------------------------
-// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
-// ------------------------------------------------------------
-export const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyhJ9XFAB8dlyziBxKLi1gb4cfumb4D6BD2NxL0yp7fQ_y7PASSJOsAph4Mi_AHWBIa/exec";
+export const BACKEND_URL = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
-// ------------------------------------------------------------
-// Admin access
-// ------------------------------------------------------------
 const ADMIN_EMAILS = [
   "mysticalwellness26@gmail.com",
   "mysticalwellness26admin@gmail.com"
@@ -70,9 +59,6 @@ export function isAdminEmail(email) {
   return ADMIN_EMAILS.includes(email.toLowerCase());
 }
 
-// ------------------------------------------------------------
-// Reward tiers
-// ------------------------------------------------------------
 export const REWARD_TIERS = [
   { points: 50, reward: "Free topping on your next order" },
   { points: 100, reward: "$5 off your next order" },
@@ -80,29 +66,17 @@ export const REWARD_TIERS = [
   { points: 350, reward: "$15 off your next order" }
 ];
 
-// ------------------------------------------------------------
-// Auth state watcher
-// ------------------------------------------------------------
 export function watchAuth(callback) {
   return onAuthStateChanged(auth, (user) => {
     callback(user);
   });
 }
 
-/**
- * Logs in a user. rememberMe controls whether the session persists
- * across browser restarts (local) or clears when the tab closes (session).
- */
 export async function logIn(email, password, rememberMe = true) {
   await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
   return signInWithEmailAndPassword(auth, email, password);
 }
 
-/**
- * Creates a new customer account and their Firestore profile document.
- * Called from login.html's sign-up form as:
- * signUpCustomer({ name, phone, email, password })
- */
 export async function signUpCustomer({ name, phone, email, password }) {
   const credential = await createUserWithEmailAndPassword(auth, email, password);
 
@@ -123,9 +97,6 @@ export async function signUpCustomer({ name, phone, email, password }) {
   return credential;
 }
 
-/**
- * Sends a password reset email to the given address.
- */
 export async function resetPassword(email) {
   return sendPasswordResetEmail(auth, email);
 }
@@ -134,10 +105,7 @@ export async function logOut() {
   return signOut(auth);
 }
 
-// ------------------------------------------------------------
-// Session timeout — auto logs out after 30 minutes of inactivity
-// ------------------------------------------------------------
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
 export function enforceSessionTimeout() {
   const now = Date.now();
@@ -153,9 +121,6 @@ export function enforceSessionTimeout() {
   return true;
 }
 
-// ------------------------------------------------------------
-// User profile helpers
-// ------------------------------------------------------------
 export async function getUserProfile(uid) {
   if (!uid) return null;
   const snap = await getDoc(doc(db, "users", uid));
@@ -167,9 +132,11 @@ export async function updateUserProfile(uid, updates) {
   await updateDoc(doc(db, "users", uid), updates);
 }
 
-// ------------------------------------------------------------
-// Greeting helper — used on account.html welcome screen
-// ------------------------------------------------------------
+export async function getAllUsers() {
+  const snap = await getDocs(collection(db, "users"));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
 export function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -177,28 +144,14 @@ export function getGreeting() {
   return "Good evening";
 }
 
-// ------------------------------------------------------------
-// Orders — save + fetch
-// ------------------------------------------------------------
 export async function saveOrderToFirestore(orderData, uid) {
   const payload = {
     ...orderData,
     uid: uid || null,
-    status: "Pending",
+    status: "New",
     createdAt: serverTimestamp()
   };
   const docRef = await addDoc(collection(db, "orders"), payload);
-
-  if (uid && orderData.totalNourishments) {
-    const userRef = doc(db, "users", uid);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      const currentPoints = userSnap.data().points || 0;
-      const earned = orderData.totalNourishments * 10;
-      await updateDoc(userRef, { points: currentPoints + earned });
-    }
-  }
-
   return docRef.id;
 }
 
@@ -223,9 +176,31 @@ export async function updateOrderStatus(orderId, status) {
   await updateDoc(doc(db, "orders", orderId), { status });
 }
 
-// ------------------------------------------------------------
-// Rewards — lookup + redemption
-// ------------------------------------------------------------
+export async function markOrderCompletedAndAwardPoints(orderId) {
+  const orderRef = doc(db, "orders", orderId);
+  const orderSnap = await getDoc(orderRef);
+  if (!orderSnap.exists()) throw new Error("Order not found.");
+
+  const order = orderSnap.data();
+  if (order.status === "Completed") return;
+
+  await updateDoc(orderRef, { status: "Completed" });
+
+  if (order.uid && order.totalNourishments) {
+    const userRef = doc(db, "users", order.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const currentPoints = userSnap.data().points || 0;
+      const earned = order.totalNourishments * 10;
+      await updateDoc(userRef, { points: currentPoints + earned });
+    }
+  }
+}
+
+export async function markOrderCancelled(orderId) {
+  await updateDoc(doc(db, "orders", orderId), { status: "Cancelled" });
+}
+
 function generateRewardCode() {
   const random = Math.floor(1000 + Math.random() * 9000);
   return `MW-${random}`;
@@ -254,7 +229,7 @@ export async function redeemReward(uid, tierIndex) {
   await setDoc(doc(db, "rewardCodes", code), {
     uid,
     reward: tier.reward,
-    used: false,
+    status: "active",
     createdAt: serverTimestamp()
   });
 
@@ -268,16 +243,42 @@ export async function lookupRewardCode(code) {
   if (!snap.exists()) return null;
 
   const data = snap.data();
-  if (data.used) return null;
+  if (data.status !== "active") return null;
 
   return { code: cleanCode, reward: data.reward };
 }
 
-export async function markRewardCodeUsed(code, uid) {
+export async function markRewardCodeUsed(code) {
   const cleanCode = code.trim().toUpperCase();
-  await updateDoc(doc(db, "rewardCodes", cleanCode), { used: true });
+  const codeRef = doc(db, "rewardCodes", cleanCode);
+  const codeSnap = await getDoc(codeRef);
+  if (!codeSnap.exists()) throw new Error("Reward code not found.");
 
-  if (uid) {
-    await updateDoc(doc(db, "users", uid), { activeReward: null });
+  const data = codeSnap.data();
+  await updateDoc(codeRef, { status: "used" });
+
+  if (data.uid) {
+    await updateDoc(doc(db, "users", data.uid), { activeReward: null });
   }
+}
+
+export async function adjustUserPoints(uid, delta, reason, adminEmail) {
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) throw new Error("Customer not found.");
+
+  const currentPoints = userSnap.data().points || 0;
+  const newPoints = Math.max(0, currentPoints + Number(delta));
+
+  await updateDoc(userRef, { points: newPoints });
+
+  await addDoc(collection(db, "pointsAdjustments"), {
+    uid,
+    delta: Number(delta),
+    reason: reason || "",
+    adjustedBy: adminEmail || "unknown",
+    createdAt: serverTimestamp()
+  });
+
+  return newPoints;
 }
