@@ -84,7 +84,7 @@
         <a class="mobile-nav-link mt-4 rounded-full bg-olive p-3 text-center font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order now</a>
       </nav>
     </div>
-    <div class="border-t border-line pt-4 text-xs text-stone2 text-center">Made to Nourish · El Cajon, CA</div>
+    <div class="border-t border-line pt-4 text-xs text-stone2 text-center">Made to Nourish</div>
   </aside>
 
   <main class="page-wrap py-10">
@@ -164,13 +164,49 @@
   </main>
 
   <footer class="border-t border-line py-8 text-center text-xs text-stone2">
-    Mystical Wellness · Made to Nourish · El Cajon, CA
+    <p>Mystical Wellness · Made to Nourish</p>
+    <button id="review-btn" class="mt-3 inline-block rounded-full border border-line px-4 py-2 text-xs font-bold text-stone hover:border-olive hover:text-olive transition">
+      Leave a Review
+    </button>
   </footer>
+
+  <!-- Review Modal -->
+  <div id="review-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/80 p-4">
+    <div class="w-full max-w-md rounded-2xl border border-line bg-surface p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="font-display text-2xl">Leave a Review</h3>
+        <button id="review-close" class="text-stone2 hover:text-olive">✕</button>
+      </div>
+      <p class="mt-2 text-xs text-stone2">Your review is sent directly to us — thank you for the feedback!</p>
+      <form id="review-form" class="mt-4 space-y-3">
+        <label class="text-sm block">
+          Your name <span class="text-stone2">(optional)</span>
+          <input id="review-name" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
+        </label>
+        <label class="text-sm block">
+          Rating
+          <select id="review-rating" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
+            <option value="5">★★★★★ (5)</option>
+            <option value="4">★★★★☆ (4)</option>
+            <option value="3">★★★☆☆ (3)</option>
+            <option value="2">★★☆☆☆ (2)</option>
+            <option value="1">★☆☆☆☆ (1)</option>
+          </select>
+        </label>
+        <label class="text-sm block">
+          Your review <span class="text-red-400">*</span>
+          <textarea id="review-text" required rows="4" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none"></textarea>
+        </label>
+        <button type="submit" class="w-full rounded-xl bg-olive p-3 text-sm font-bold text-ink hover:bg-olive/90 transition">Send Review</button>
+      </form>
+      <p id="review-status" class="mt-3 hidden text-xs font-medium"></p>
+    </div>
+  </div>
 
   <script type="module">
     import {
       auth, watchAuth, logOut, enforceSessionTimeout, getUserProfile, updateUserProfile,
-      getOrdersForUser, getGreeting, REWARD_TIERS, redeemReward, isAdminEmail
+      getOrdersForUser, getGreeting, REWARD_TIERS, redeemReward, isAdminEmail, BACKEND_URL
     } from './firebase-config.js';
 
     const $ = (id) => document.getElementById(id);
@@ -184,6 +220,50 @@
     $('mobile-close-btn').addEventListener('click', closeMobileMenu);
     $('mobile-scrim').addEventListener('click', closeMobileMenu);
     document.querySelectorAll('.mobile-nav-link').forEach((link) => link.addEventListener('click', closeMobileMenu));
+
+    function openReviewModal() {
+      $('review-modal').classList.remove('hidden');
+      $('review-modal').classList.add('flex');
+    }
+    function closeReviewModal() {
+      $('review-modal').classList.add('hidden');
+      $('review-modal').classList.remove('flex');
+    }
+    $('review-btn').addEventListener('click', openReviewModal);
+    $('review-close').addEventListener('click', closeReviewModal);
+
+    $('review-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const statusEl = $('review-status');
+      statusEl.classList.remove('hidden');
+
+      if (BACKEND_URL.includes('PASTE_')) {
+        statusEl.textContent = 'Reviews are not yet connected — backend URL not configured.';
+        statusEl.className = 'mt-3 block text-xs font-medium text-red-400';
+        return;
+      }
+
+      try {
+        await fetch(BACKEND_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'sendReview',
+            reviewerName: $('review-name').value.trim() || 'Anonymous',
+            rating: $('review-rating').value,
+            reviewText: $('review-text').value.trim()
+          })
+        });
+        statusEl.textContent = 'Thank you! Your review has been sent.';
+        statusEl.className = 'mt-3 block text-xs font-medium text-olive';
+        $('review-form').reset();
+        setTimeout(closeReviewModal, 1500);
+      } catch (err) {
+        statusEl.textContent = 'Could not send review. Please try again later.';
+        statusEl.className = 'mt-3 block text-xs font-medium text-red-400';
+      }
+    });
 
     function renderNav(firstName) {
       $('nav-account-slot').innerHTML = `
@@ -236,7 +316,6 @@
 
     document.body.addEventListener('click', () => enforceSessionTimeout());
 
-    $('logout-btn')?.addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
     $('go-dashboard').addEventListener('click', () => switchView('dashboard'));
     $('back-home').addEventListener('click', () => switchView('home'));
 
@@ -257,7 +336,6 @@
       btn.addEventListener('click', () => switchTab(btn.dataset.tab));
     });
 
-    // Supports links like account.html#profile, #orders, #rewards
     function applyHashRoute() {
       const hash = window.location.hash.replace('#', '');
       if (!hash) return;
