@@ -4,12 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mystical Wellness — Made to Nourish</title>
-  <meta name="description" content="Small-batch chia pudding made with oat milk, coconut milk, real fruit, and optional features. Made fresh weekly in El Cajon, CA." />
+  <meta name="description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional features. Made fresh weekly in El Cajon, CA." />
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Mystical Wellness" />
   <meta property="og:title" content="Mystical Wellness — Made to Nourish" />
-  <meta property="og:description" content="Small-batch chia pudding made with oat milk, coconut milk, real fruit, and optional features. Made fresh weekly in El Cajon, CA." />
+  <meta property="og:description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional features. Made fresh weekly in El Cajon, CA." />
   <meta property="og:image" content="https://www.mysticalwellness.org/og-image.JPG?v=2" />
   <meta property="og:image:secure_url" content="https://www.mysticalwellness.org/og-image.JPG?v=2" />
   <meta property="og:image:width" content="1729" />
@@ -19,7 +19,7 @@
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Mystical Wellness — Made to Nourish" />
-  <meta name="twitter:description" content="Small-batch chia pudding made with oat milk, coconut milk, real fruit, and optional features." />
+  <meta name="twitter:description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional features." />
   <meta name="twitter:image" content="https://www.mysticalwellness.org/og-image.JPG?v=2" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -74,10 +74,10 @@
       </a>
 
       <nav class="hidden items-center gap-5 text-sm text-stone2 sm:flex">
-        <a class="hover:text-olive transition" href="#menu-section">Menu</a>
+        <a class="text-olive font-semibold" href="#menu-section">Menu</a>
         <a class="hover:text-olive transition" href="why.html">Why?</a>
         <a class="hover:text-olive transition" href="nutrition.html">Nutrition</a>
-        <a id="nav-account-link" class="hover:text-olive transition" href="login.html">My Account</a>
+        <div id="nav-account-slot" class="relative"></div>
         <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="#order">Order</a>
       </nav>
 
@@ -115,11 +115,12 @@
         </button>
       </div>
 
-      <nav class="mt-6 flex flex-col gap-2 text-base">
-        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="#menu-section">Menu</a>
+      <div id="mobile-account-slot" class="mt-4"></div>
+
+      <nav class="mt-4 flex flex-col gap-2 text-base">
+        <a class="mobile-nav-link rounded-xl p-3 text-olive font-semibold hover:bg-surface2 transition" href="#menu-section">Menu</a>
         <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="why.html">Why?</a>
         <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="nutrition.html">Nutrition</a>
-        <a id="nav-account-link-mobile" class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="login.html">My Account</a>
         <a class="mobile-nav-link mt-4 rounded-full bg-olive p-3 text-center font-bold text-ink hover:bg-olive/90 transition" href="#order">Order now</a>
       </nav>
     </div>
@@ -136,13 +137,12 @@
         <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">
           Made fresh weekly · El Cajon, CA
         </p>
-        <h1 class="mt-3 font-display text-5xl leading-none sm:text-7xl">
-          Made to,<br />
-          <span class="text-olive">Nourish.</span>
+        <h1 class="mt-3 font-display text-4xl leading-none sm:text-6xl">
+          Made to <span class="text-olive">Nourish.</span>
         </h1>
         <p class="mt-5 max-w-xl leading-relaxed text-stone2">
-          Small-batch chia pudding made with oat milk, coconut milk, real fruit,
-          and optional features.
+          Nourishing chia pudding made with real protein yogurt, oat milk,
+          coconut milk, real fruit, and optional features.
         </p>
         <a class="mt-7 inline-block rounded-full bg-olive px-5 py-3 text-sm font-bold text-ink" href="#order">
           Build an order
@@ -163,7 +163,7 @@
         </div>
 
         <p class="mt-4 text-xs text-stone2">
-          Naturally dairy-free: oat milk + coconut milk. Base values exclude optional features.
+          Made with real protein yogurt, oat milk, and chia seeds. Base values exclude optional features.
           <a class="text-olive" href="nutrition.html">Nutrition details</a>
         </p>
 
@@ -188,7 +188,7 @@
             <div class="rounded-2xl border border-line bg-surface p-5">
               <h3 class="font-display text-xl">2. Customize</h3>
               <p class="mt-1 text-xs text-stone2">
-                All Nourishments use oat milk and coconut milk — naturally dairy-free.
+                Every Nourishment includes Chobani protein yogurt, oat milk, coconut milk, and chia seeds as its base.
               </p>
 
               <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -322,16 +322,16 @@
   </footer>
 
   <script type="module">
-    import { auth, watchAuth, saveOrderToFirestore, lookupRewardCode, isAdminEmail } from './firebase-config.js';
+    import { auth, watchAuth, saveOrderToFirestore, lookupRewardCode, isAdminEmail, logOut, getUserProfile } from './firebase-config.js';
 
-    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbyhJ9XFAB8dlyziBxKLi1gb4cfumb4D6BD2NxL0yp7fQ_y7PASSJOsAph4Mi_AHWBIa/exec';
+    const BACKEND_URL = 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
 
     const FLAVORS = [
-      ['apple', 'Apple Cinnamon', 'Cinnamon apple + oat topping', 131, 2.5, 'Core', 'apple-cinnamon-pudding.jpg'],
-      ['mango', 'Mango', 'Coconut chia + sweet mango', 135, 2.7, 'Core', 'mango-pudding.jpg'],
-      ['pina-colada', 'Piña Colada', 'Coconut chia + pineapple, tropical twist', 132, 2.6, 'New!', 'pina-colada-pudding.jpg'],
-      ['strawberry', 'Strawberry', 'Vanilla chia + fresh strawberry', 129, 2.6, 'Core', null],
-      ['blueberry', 'Blueberry', 'Coconut chia + sweet blueberries', 133, 2.6, 'Core', null]
+      ['apple', 'Apple Cinnamon', 'Cinnamon apple + oat topping', 118, 8, 'Core', 'apple-cinnamon-pudding.jpg'],
+      ['mango', 'Mango', 'Coconut chia + sweet mango', 122, 8, 'Core', 'mango-pudding.jpg'],
+      ['pina-colada', 'Piña Colada', 'Coconut chia + pineapple, tropical twist', 118, 8, 'New!', 'pina-colada-pudding.jpg'],
+      ['strawberry', 'Strawberry', 'Vanilla chia + fresh strawberry', 115, 8, 'Core', null],
+      ['blueberry', 'Blueberry', 'Coconut chia + sweet blueberries', 119, 8, 'Core', null]
     ];
 
     const quantities = {};
@@ -340,15 +340,51 @@
     let loggedInUser = null;
     let appliedReward = null;
 
-    watchAuth((user) => {
+    function renderGuestNav() {
+      $('nav-account-slot').innerHTML = `<a href="login.html" class="hover:text-olive transition">Log In</a>`;
+      $('mobile-account-slot').innerHTML = `<a href="login.html" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Log In</a>`;
+    }
+
+    function renderAdminNav() {
+      $('nav-account-slot').innerHTML = `<a href="admin.html" class="hover:text-olive transition">Admin Dashboard</a>`;
+      $('mobile-account-slot').innerHTML = `<a href="admin.html" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Admin Dashboard</a>`;
+    }
+
+    function renderCustomerNav(firstName) {
+      $('nav-account-slot').innerHTML = `
+        <div id="account-dropdown-wrap" class="relative">
+          <button id="account-trigger" class="hover:text-olive transition">Hi, ${firstName}</button>
+          <div id="account-dropdown" class="hidden absolute right-0 top-full mt-2 w-52 rounded-xl border border-line bg-surface p-2 shadow-lg z-50">
+            <a href="account.html#profile" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">My Profile</a>
+            <a href="account.html#orders" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Past Orders</a>
+            <a href="account.html#rewards" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Points & Rewards</a>
+            <hr class="my-2 border-line" />
+            <button id="dropdown-logout" class="block w-full text-left rounded-lg p-2 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
+          </div>
+        </div>
+      `;
+      const wrap = $('account-dropdown-wrap');
+      wrap.addEventListener('mouseenter', () => $('account-dropdown').classList.remove('hidden'));
+      wrap.addEventListener('mouseleave', () => $('account-dropdown').classList.add('hidden'));
+      $('dropdown-logout').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
+
+      $('mobile-account-slot').innerHTML = `
+        <a href="account.html" class="block font-display text-lg text-stone mb-2">Hi, ${firstName}</a>
+        <a href="account.html#profile" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">My Profile</a>
+        <a href="account.html#orders" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Past Orders</a>
+        <a href="account.html#rewards" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Points & Rewards</a>
+        <button id="mobile-logout" class="block w-full text-left rounded-xl p-3 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
+      `;
+      $('mobile-logout').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
+    }
+
+    watchAuth(async (user) => {
       loggedInUser = user;
-      if (user) {
-        const dest = isAdminEmail(user.email) ? 'admin.html' : 'account.html';
-        $('nav-account-link').textContent = 'My Account';
-        $('nav-account-link').href = dest;
-        $('nav-account-link-mobile').textContent = 'My Account';
-        $('nav-account-link-mobile').href = dest;
-      }
+      if (!user) { renderGuestNav(); return; }
+      if (isAdminEmail(user.email)) { renderAdminNav(); return; }
+      const profile = await getUserProfile(user.uid);
+      const firstName = (profile?.name || 'there').split(' ')[0];
+      renderCustomerNav(firstName);
     });
 
     function showStatus(message, isError = true) {
