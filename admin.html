@@ -6,6 +6,7 @@
   <title>Admin Dashboard — Mystical Wellness</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -25,9 +26,11 @@
     *, *::before, *::after { box-sizing: border-box; }
     html, body { overflow-x: hidden; width: 100%; margin: 0; padding: 0; }
     body { font-family: Inter, sans-serif; }
-    .page-wrap { width: 100%; max-width: 72rem; margin: 0 auto; padding: 1.25rem; }
+    .page-wrap { width: 100%; max-width: 80rem; margin: 0 auto; padding: 1.25rem; }
     .tab-btn.active { background: #9ca86a; color: #151510; }
     .tab-panel.hidden { display: none; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: 10px 12px; text-align: left; }
   </style>
 </head>
 
@@ -43,13 +46,48 @@
   <main class="page-wrap py-10">
 
     <div class="flex flex-wrap gap-2">
-      <button data-tab="orders" class="tab-btn active rounded-full border border-line px-4 py-2 text-sm font-bold transition">Orders</button>
+      <button data-tab="overview" class="tab-btn active rounded-full border border-line px-4 py-2 text-sm font-bold transition">Overview</button>
+      <button data-tab="orders" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Orders</button>
+      <button data-tab="customers" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Customers</button>
       <button data-tab="codes" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Verify Reward Code</button>
       <button data-tab="points" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Adjust Points</button>
     </div>
 
+    <!-- OVERVIEW TAB -->
+    <div id="tab-overview" class="tab-panel mt-6">
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div class="rounded-2xl border border-line bg-surface p-5">
+          <p class="text-xs uppercase tracking-wide text-olive">Total Orders</p>
+          <p id="stat-total-orders" class="mt-1 font-display text-3xl">0</p>
+        </div>
+        <div class="rounded-2xl border border-line bg-surface p-5">
+          <p class="text-xs uppercase tracking-wide text-olive">Revenue (Completed)</p>
+          <p id="stat-revenue" class="mt-1 font-display text-3xl">$0</p>
+        </div>
+        <div class="rounded-2xl border border-line bg-surface p-5">
+          <p class="text-xs uppercase tracking-wide text-olive">Total Customers</p>
+          <p id="stat-customers" class="mt-1 font-display text-3xl">0</p>
+        </div>
+        <div class="rounded-2xl border border-line bg-surface p-5">
+          <p class="text-xs uppercase tracking-wide text-olive">Pending Orders</p>
+          <p id="stat-pending" class="mt-1 font-display text-3xl">0</p>
+        </div>
+      </div>
+
+      <div class="mt-6 grid gap-4 lg:grid-cols-2">
+        <div class="rounded-2xl border border-line bg-surface p-5">
+          <h3 class="font-display text-lg mb-3">Orders — Last 7 Days</h3>
+          <canvas id="chart-orders-week" height="220"></canvas>
+        </div>
+        <div class="rounded-2xl border border-line bg-surface p-5">
+          <h3 class="font-display text-lg mb-3">Top Flavors</h3>
+          <canvas id="chart-top-flavors" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+
     <!-- ORDERS TAB -->
-    <div id="tab-orders" class="tab-panel mt-6">
+    <div id="tab-orders" class="tab-panel mt-6 hidden">
       <div class="flex flex-wrap gap-3">
         <select id="status-filter" class="rounded-xl border border-line bg-surface p-2 text-sm text-stone">
           <option value="">All statuses</option>
@@ -60,6 +98,21 @@
         <button id="refresh-orders" class="rounded-xl border border-line px-3 py-2 text-sm text-stone2 hover:border-olive transition">Refresh</button>
       </div>
       <div id="orders-table" class="mt-4 space-y-3"></div>
+    </div>
+
+    <!-- CUSTOMERS TAB -->
+    <div id="tab-customers" class="tab-panel mt-6 hidden">
+      <input id="customer-search" placeholder="Search by name, email, or phone..." class="w-full max-w-md rounded-xl border border-line bg-surface p-3 text-sm text-stone focus:border-olive outline-none" />
+      <div class="mt-4 overflow-x-auto rounded-2xl border border-line bg-surface">
+        <table class="text-sm">
+          <thead class="border-b border-line text-xs uppercase text-olive">
+            <tr>
+              <th>Name</th><th>Email</th><th>Phone</th><th>Points</th><th>Active Reward</th><th>Address</th>
+            </tr>
+          </thead>
+          <tbody id="customers-tbody" class="divide-y divide-line text-stone2"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- VERIFY REWARD CODE TAB -->
@@ -99,18 +152,21 @@
   <script type="module">
     import {
       auth, watchAuth, logOut, isAdminEmail, getAllOrders, markOrderCompletedAndAwardPoints,
-      markOrderCancelled, markRewardCodeUsed, adjustUserPoints, db
+      markOrderCancelled, markRewardCodeUsed, adjustUserPoints, getAllUsers, db
     } from './firebase-config.js';
     import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
     let currentAdmin = null;
     let allOrders = [];
+    let allCustomers = [];
+    let ordersChart = null;
+    let flavorsChart = null;
 
     watchAuth((user) => {
       if (!user || !isAdminEmail(user.email)) { window.location.href = 'login.html'; return; }
       currentAdmin = user;
-      loadOrders();
+      loadEverything();
     });
 
     $('logout-btn').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
@@ -124,11 +180,85 @@
       });
     });
 
-    async function loadOrders() {
-      allOrders = await getAllOrders();
+    async function loadEverything() {
+      [allOrders, allCustomers] = await Promise.all([getAllOrders(), getAllUsers()]);
+      renderOverview();
       renderOrders();
+      renderCustomers();
     }
 
+    // ---------------- OVERVIEW ----------------
+    function renderOverview() {
+      const completed = allOrders.filter(o => o.status === 'Completed');
+      const revenue = completed.reduce((sum, o) => sum + Number(o.subtotal || 0), 0);
+      const pending = allOrders.filter(o => o.status === 'New').length;
+
+      $('stat-total-orders').textContent = allOrders.length;
+      $('stat-revenue').textContent = '$' + revenue.toFixed(2);
+      $('stat-customers').textContent = allCustomers.length;
+      $('stat-pending').textContent = pending;
+
+      // Orders per day, last 7 days
+      const days = [];
+      const counts = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        days.push(label);
+        const dayCount = allOrders.filter(o => {
+          const created = o.createdAt?.toDate ? o.createdAt.toDate() : null;
+          return created && created.toDateString() === d.toDateString();
+        }).length;
+        counts.push(dayCount);
+      }
+
+      if (ordersChart) ordersChart.destroy();
+      ordersChart = new Chart($('chart-orders-week'), {
+        type: 'bar',
+        data: { labels: days, datasets: [{ label: 'Orders', data: counts, backgroundColor: '#9ca86a' }] },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#918878' }, grid: { color: '#554f43' } },
+            y: { ticks: { color: '#918878' }, grid: { color: '#554f43' }, beginAtZero: true }
+          }
+        }
+      });
+
+      // Top flavors — parsed from itemsText like "2× Mango, 1× Blueberry"
+      const flavorCounts = {};
+      allOrders.forEach(o => {
+        (o.itemsText || '').split(',').forEach(part => {
+          const match = part.trim().match(/(\d+)×\s*(.+)/);
+          if (match) {
+            const qty = Number(match[1]);
+            const flavor = match[2].trim();
+            flavorCounts[flavor] = (flavorCounts[flavor] || 0) + qty;
+          }
+        });
+      });
+      const sortedFlavors = Object.entries(flavorCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+      if (flavorsChart) flavorsChart.destroy();
+      flavorsChart = new Chart($('chart-top-flavors'), {
+        type: 'bar',
+        data: {
+          labels: sortedFlavors.map(f => f[0]),
+          datasets: [{ label: 'Units sold', data: sortedFlavors.map(f => f[1]), backgroundColor: '#b5aa96' }]
+        },
+        options: {
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#918878' }, grid: { color: '#554f43' }, beginAtZero: true },
+            y: { ticks: { color: '#918878' }, grid: { color: '#554f43' } }
+          }
+        }
+      });
+    }
+
+    // ---------------- ORDERS ----------------
     function renderOrders() {
       const filter = $('status-filter').value;
       const filtered = filter ? allOrders.filter(o => o.status === filter) : allOrders;
@@ -162,20 +292,45 @@
       document.querySelectorAll('.complete-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           await markOrderCompletedAndAwardPoints(btn.dataset.id);
-          loadOrders();
+          await loadEverything();
         });
       });
       document.querySelectorAll('.cancel-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           await markOrderCancelled(btn.dataset.id);
-          loadOrders();
+          await loadEverything();
         });
       });
     }
 
     $('status-filter').addEventListener('change', renderOrders);
-    $('refresh-orders').addEventListener('click', loadOrders);
+    $('refresh-orders').addEventListener('click', loadEverything);
 
+    // ---------------- CUSTOMERS ----------------
+    function renderCustomers() {
+      const term = $('customer-search').value.trim().toLowerCase();
+      const filtered = allCustomers.filter(c =>
+        !term ||
+        (c.name || '').toLowerCase().includes(term) ||
+        (c.email || '').toLowerCase().includes(term) ||
+        (c.phone || '').toLowerCase().includes(term)
+      );
+
+      $('customers-tbody').innerHTML = filtered.map(c => `
+        <tr>
+          <td class="text-stone font-medium">${c.name || ''}</td>
+          <td>${c.email || ''}</td>
+          <td>${c.phone || ''}</td>
+          <td>${c.points ?? 0}</td>
+          <td>${c.activeReward ? c.activeReward.reward + ' (' + c.activeReward.code + ')' : '—'}</td>
+          <td>${c.address || '—'}</td>
+        </tr>
+      `).join('');
+    }
+
+    $('customer-search').addEventListener('input', renderCustomers);
+
+    // ---------------- REWARD CODE VERIFY ----------------
     $('verify-code-btn').addEventListener('click', async () => {
       const code = $('code-input').value.trim().toUpperCase();
       const snap = await getDoc(doc(db, 'rewardCodes', code));
@@ -201,6 +356,7 @@
       });
     });
 
+    // ---------------- ADJUST POINTS ----------------
     $('adjust-points-btn').addEventListener('click', async () => {
       const resultEl = $('points-result');
       resultEl.classList.remove('hidden');
@@ -219,6 +375,7 @@
         resultEl.textContent = 'Points adjusted successfully.';
         resultEl.className = 'mt-3 block text-xs font-medium text-olive';
         $('points-email').value = ''; $('points-delta').value = ''; $('points-reason').value = '';
+        await loadEverything();
       } catch (err) {
         resultEl.textContent = 'Error: ' + err.message;
         resultEl.className = 'mt-3 block text-xs font-medium text-red-400';
