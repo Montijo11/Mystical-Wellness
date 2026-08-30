@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Log In or Sign Up — Mystical Wellness</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { display: ['Fraunces', 'Georgia', 'serif'] },
+          colors: {
+            ink: '#151510', surface: '#201f18', surface2: '#29261e',
+            olive: '#9ca86a', stone: '#b5aa96', stone2: '#918878', line: '#554f43'
+          }
+        }
+      }
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: hidden; width: 100%; margin: 0; padding: 0; }
+    body { font-family: Inter, sans-serif; }
+    .page-wrap { width: 100%; max-width: 28rem; margin: 0 auto; padding: 1.25rem; }
+    .tab-active { background: #9ca86a; color: #151510; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-ink text-stone flex items-center">
+  <div class="page-wrap py-16">
+
+    <a href="index.html" class="flex items-center gap-2.5 justify-center mb-8">
+      <img src="logo.JPG" alt="Mystical Wellness logo" class="h-11 w-11 rounded-full object-cover border border-line" />
+      <span class="font-display text-xl text-stone">Mystical Wellness</span>
+    </a>
+
+    <div class="rounded-2xl border border-line bg-surface p-6">
+
+      <div class="grid grid-cols-2 gap-2 rounded-full border border-line p-1">
+        <button id="tab-login" class="tab-active rounded-full py-2 text-sm font-bold transition">Log In</button>
+        <button id="tab-signup" class="rounded-full py-2 text-sm font-bold text-stone2 transition">Sign Up</button>
+      </div>
+
+      <!-- LOG IN FORM -->
+      <form id="login-form" class="mt-6 space-y-3">
+        <label class="text-sm block">
+          Email
+          <input id="login-email" type="email" required autocomplete="email"
+            class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
+        </label>
+        <label class="text-sm block">
+          Password
+          <input id="login-password" type="password" required autocomplete="current-password"
+            class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
+        </label>
+        <label class="flex items-center gap-2 text-xs text-stone2">
+          <input id="remember-me" type="checkbox" class="rounded border-line" />
+          Remember me
+        </label>
+        <button type="submit" class="w-full rounded-xl bg-olive p-3 text-sm font-bold text-ink hover:bg-olive/90 transition">
+          Log In
+        </button>
+        <button type="button" id="forgot-password" class="w-full text-center text-xs text-stone2 hover:text-olive transition">
+          Forgot password?
+        </button>
+      </form>
+
+      <!-- SIGN UP FORM -->
+      <form id="signup-form" class="mt-6 space-y-3 hidden">
+        <label class="text-sm block">
+          Full name
+          <input id="signup-name" type="text" required
+            class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
+        </label>
+        <label class="text-sm block">
+          Phone number
+          <input id="signup-phone" type="tel" required
+            class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
+        </label>
+        <label class="text-sm block">
+          Email
+          <input id="signup-email" type="email" required autocomplete="email"
+            class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
+        </label>
+        <label class="text-sm block">
+          Password <span class="text-stone2">(6+ characters)</span>
+          <input id="signup-password" type="password" required minlength="6" autocomplete="new-password"
+            class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
+        </label>
+        <button type="submit" class="w-full rounded-xl bg-olive p-3 text-sm font-bold text-ink hover:bg-olive/90 transition">
+          Create Account
+        </button>
+      </form>
+
+      <p id="status-msg" class="mt-4 hidden rounded-lg p-3 text-xs font-medium"></p>
+    </div>
+
+    <p class="mt-6 text-center text-xs text-stone2">
+      <a href="index.html" class="hover:text-olive transition">← Back to menu</a>
+    </p>
+  </div>
+
+  <script type="module">
+    import { logIn, signUpCustomer, resetPassword, isAdminEmail } from './firebase-config.js';
+
+    const $ = (id) => document.getElementById(id);
+
+    function showStatus(message, isError = true) {
+      const el = $('status-msg');
+      el.textContent = message;
+      el.className = isError
+        ? 'mt-4 block rounded-lg bg-red-950/50 border border-red-800/60 p-3 text-xs text-red-200'
+        : 'mt-4 block rounded-lg bg-olive/20 border border-olive/50 p-3 text-xs text-olive font-semibold';
+    }
+
+    $('tab-login').addEventListener('click', () => {
+      $('tab-login').classList.add('tab-active'); $('tab-login').classList.remove('text-stone2');
+      $('tab-signup').classList.remove('tab-active'); $('tab-signup').classList.add('text-stone2');
+      $('login-form').classList.remove('hidden');
+      $('signup-form').classList.add('hidden');
+    });
+
+    $('tab-signup').addEventListener('click', () => {
+      $('tab-signup').classList.add('tab-active'); $('tab-signup').classList.remove('text-stone2');
+      $('tab-login').classList.remove('tab-active'); $('tab-login').classList.add('text-stone2');
+      $('signup-form').classList.remove('hidden');
+      $('login-form').classList.add('hidden');
+    });
+
+    $('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const cred = await logIn($('login-email').value.trim(), $('login-password').value, $('remember-me').checked);
+        showStatus('Welcome back! Redirecting...', false);
+        const dest = isAdminEmail(cred.user.email) ? 'admin.html' : 'account.html';
+        setTimeout(() => window.location.href = dest, 600);
+      } catch (err) {
+        showStatus('Log in failed: ' + err.message.replace('Firebase: ', ''));
+      }
+    });
+
+    $('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await signUpCustomer({
+          name: $('signup-name').value.trim(),
+          phone: $('signup-phone').value.trim(),
+          email: $('signup-email').value.trim(),
+          password: $('signup-password').value
+        });
+        showStatus('Account created! Redirecting to your dashboard...', false);
+        setTimeout(() => window.location.href = 'account.html', 600);
+      } catch (err) {
+        showStatus('Sign up failed: ' + err.message.replace('Firebase: ', ''));
+      }
+    });
+
+    $('forgot-password').addEventListener('click', async () => {
+      const email = $('login-email').value.trim();
+      if (!email) { showStatus('Enter your email above first, then click "Forgot password?" again.'); return; }
+      try {
+        await resetPassword(email);
+        showStatus('Password reset email sent! Check your inbox.', false);
+      } catch (err) {
+        showStatus('Could not send reset email: ' + err.message.replace('Firebase: ', ''));
+      }
+    });
+  </script>
+</body>
+</html>
