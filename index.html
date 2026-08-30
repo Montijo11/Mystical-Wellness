@@ -81,6 +81,7 @@
         <a class="text-olive font-semibold" href="#menu-section">Menu</a>
         <a class="hover:text-olive transition" href="why.html">Why?</a>
         <a class="hover:text-olive transition" href="nutrition.html">Nutrition</a>
+        <a class="hover:text-olive transition" href="safety.html">Safety</a>
         <div id="nav-account-slot" class="relative"></div>
         <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="#order">Order</a>
       </nav>
@@ -125,6 +126,7 @@
         <a class="mobile-nav-link rounded-xl p-3 text-olive font-semibold hover:bg-surface2 transition" href="#menu-section">Menu</a>
         <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="why.html">Why?</a>
         <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="nutrition.html">Nutrition</a>
+        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="safety.html">Safety</a>
         <a class="mobile-nav-link mt-4 rounded-full bg-olive p-3 text-center font-bold text-ink hover:bg-olive/90 transition" href="#order">Order now</a>
       </nav>
     </div>
@@ -168,7 +170,7 @@
 
         <p class="mt-4 text-xs text-stone2">
           Made with real protein yogurt, oat milk, and chia seeds. Base values exclude optional features.
-          <a class="text-olive" href="nutrition.html">Nutrition details</a>
+          <a class="text-olive" href="nutrition.html">Nutrition details</a> · <a class="text-olive" href="safety.html">Safety & allergen info</a>
         </p>
 
         <!-- Desktop/tablet card grid (hidden on mobile) -->
@@ -236,6 +238,7 @@
               </div>
             </div>
 
+            <!-- Fulfillment with Zip Code Checker -->
             <div class="rounded-2xl border border-line bg-surface p-5">
               <h3 class="font-display text-xl"><span class="text-olive">3.</span> Pickup or delivery</h3>
               <div class="mt-3 flex flex-wrap gap-5 text-sm">
@@ -245,6 +248,24 @@
               <p class="mt-3 text-xs text-stone2">
                 Monday & Tuesday pickup. Delivery within 5 miles; 2-Nourishment minimum.
               </p>
+
+              <!-- Delivery Zip Checker Box -->
+              <div id="zip-checker-box" class="mt-4 rounded-xl border border-line bg-ink/40 p-3">
+                <p class="text-xs font-semibold text-stone">Check delivery availability</p>
+                <div class="mt-2 flex gap-2">
+                  <input
+                    id="zip-input"
+                    maxlength="5"
+                    inputmode="numeric"
+                    placeholder="Enter 5-digit ZIP"
+                    class="w-36 rounded-lg border border-line bg-surface px-3 py-2 text-xs text-stone outline-none focus:border-olive"
+                  />
+                  <button id="zip-check-btn" type="button" class="rounded-lg bg-olive px-3 py-2 text-xs font-bold text-ink hover:bg-olive/90 transition">
+                    Check ZIP
+                  </button>
+                </div>
+                <p id="zip-result" class="mt-2 hidden text-xs font-medium"></p>
+              </div>
             </div>
 
             <div class="rounded-2xl border border-line bg-surface p-5">
@@ -374,18 +395,18 @@
   </div>
 
   <script type="module">
-    import { auth, watchAuth, saveOrderToFirestore, lookupRewardCode, isAdminEmail, logOut, getUserProfile } from './firebase-config.js';
+    import { auth, watchAuth, saveOrderToFirestore, lookupRewardCode, isAdminEmail, logOut, getUserProfile, BACKEND_URL } from './firebase-config.js';
 
-    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbyhJ9XFAB8dlyziBxKLi1gb4cfumb4D6BD2NxL0yp7fQ_y7PASSJOsAph4Mi_AHWBIa/exec';
-
-    // [id, name, description, calories, protein, badge, photo, fiber, carbs, fat]
+    // [id, name, calories, protein, badge, photo, fiber, carbs, fat]
     const FLAVORS = [
-      ['apple', 'Apple Cinnamon', 'Cinnamon apple + oat topping', 118, 8, 'Core', 'Apple%20Cinnamon.jpeg', 4, 10, 4],
-      ['mango', 'Mango', 'Coconut chia + sweet mango', 122, 8, 'Core', 'Mango.jpeg', 4, 11, 4],
-      ['pina-colada', 'Piña Colada', 'Coconut chia + pineapple, tropical twist', 118, 8, 'New!', 'Pina%20Colada.jpg', 4, 10, 4],
-      ['strawberry', 'Strawberry', 'Vanilla chia + fresh strawberry', 115, 8, 'Core', 'Strawberry.jpeg', 4, 9, 4],
-      ['blueberry', 'Blueberry', 'Coconut chia + sweet blueberries', 119, 8, 'Core', null, 4, 10, 4]
+      ['apple', 'Apple Cinnamon', 118, 8, 'Core', 'Apple%20Cinnamon.jpeg', 4, 10, 4],
+      ['mango', 'Mango', 122, 8, 'Core', 'Mango.jpeg', 4, 11, 4],
+      ['pineapple', 'Pineapple', 118, 8, 'Core', 'Pina%20Colada.jpg', 4, 10, 4],
+      ['strawberry', 'Strawberry', 115, 8, 'Core', 'Strawberry.jpeg', 4, 9, 4],
+      ['blueberry', 'Blueberry', 119, 8, 'Core', null, 4, 10, 4]
     ];
+
+    const LOCAL_ZIPS = ['92101', '92102', '92103', '92104', '92105', '92108', '92116'];
 
     const quantities = {};
     const $ = (id) => document.getElementById(id);
@@ -411,6 +432,25 @@
     function closeMenuOnAnyClickInside(containerId) {
       $(containerId).querySelectorAll('a, button').forEach((el) => el.addEventListener('click', closeMobileMenu));
     }
+
+    // ---- Zip Checker ----
+    $('zip-check-btn').addEventListener('click', () => {
+      const zip = $('zip-input').value.trim();
+      const res = $('zip-result');
+      res.classList.remove('hidden');
+      if (!zip || zip.length < 5) {
+        res.textContent = 'Please enter a valid 5-digit ZIP code.';
+        res.className = 'mt-2 block text-xs text-red-400';
+        return;
+      }
+      if (LOCAL_ZIPS.includes(zip)) {
+        res.textContent = `✓ Great news! Delivery is available to ${zip}.`;
+        res.className = 'mt-2 block text-xs text-olive font-semibold';
+      } else {
+        res.textContent = `ZIP ${zip} is outside our direct 5-mile zone. You can still order for Monday/Tuesday pickup!`;
+        res.className = 'mt-2 block text-xs text-stone2';
+      }
+    });
 
     function renderGuestNav() {
       $('nav-account-slot').innerHTML = `<a href="login.html" class="hover:text-olive transition">Log In</a>`;
@@ -522,9 +562,9 @@
       const target = $('menu-grid');
       if (!target) return;
       target.innerHTML = FLAVORS.map((flavor) => {
-        const [id, name, description, calories, protein, badge, photo] = flavor;
+        const [id, name, calories, protein, badge, photo] = flavor;
         const photoHtml = photo
-          ? `<img src="${photo}" alt="${name} chia pudding" class="mb-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
+          ? `<img src="${photo}" alt="${name}" class="mb-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
           : '';
         return `
           <article class="card rounded-2xl border border-line bg-surface p-4">
@@ -533,7 +573,6 @@
               <h3 class="font-display text-xl text-stone">${name}</h3>
               <span class="shrink-0 rounded-full bg-olive/15 px-2 py-1 text-[10px] font-bold uppercase text-olive">${badge}</span>
             </div>
-            <p class="mt-2 break-words text-sm text-stone2">${description}</p>
             <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-stone2">
               <span>${calories} cal · ${protein}g protein base</span>
               <b class="text-stone">$6</b>
@@ -547,9 +586,9 @@
       const target = $('menu-accordion');
       if (!target) return;
       target.innerHTML = FLAVORS.map((flavor, index) => {
-        const [id, name, description, calories, protein, badge, photo, fiber, carbs, fat] = flavor;
+        const [id, name, calories, protein, badge, photo, fiber, carbs, fat] = flavor;
         const photoHtml = photo
-          ? `<img src="${photo}" alt="${name} chia pudding" class="mt-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
+          ? `<img src="${photo}" alt="${name}" class="mt-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
           : '';
         return `
           <div class="accordion-row rounded-xl border border-line bg-surface overflow-hidden">
@@ -563,7 +602,6 @@
               </svg>
             </button>
             <div class="accordion-panel hidden border-t border-line p-4">
-              <p class="text-sm text-stone2">${description}</p>
               ${photoHtml}
               <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-stone2 sm:grid-cols-5">
                 <div><b class="block text-stone">${calories}</b>Calories</div>
@@ -592,7 +630,7 @@
       const target = $('items');
       if (!target) return;
       target.innerHTML = FLAVORS.map((flavor) => {
-        const [id, name, description, calories] = flavor;
+        const [id, name, calories] = flavor;
         return `
           <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-ink/30 p-3">
             <span class="min-w-0">
