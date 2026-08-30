@@ -105,7 +105,6 @@
         Go to My Dashboard →
       </button>
 
-      <!-- BROWSE YOUR NOURISHMENTS SECTION -->
       <div class="mt-14 border-t border-line pt-12">
         <div class="flex flex-wrap items-end justify-between gap-2">
           <div>
@@ -122,10 +121,7 @@
           <a class="text-olive" href="nutrition.html">Nutrition details</a> · <a class="text-olive" href="safety.html">Safety & allergen info</a>
         </p>
 
-        <!-- Desktop/tablet card grid -->
         <div id="menu-grid" class="mt-7 hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-5"></div>
-
-        <!-- Mobile-only accordion dropdown -->
         <div id="menu-accordion" class="mt-7 space-y-2 sm:hidden"></div>
 
         <div class="mt-8 text-center sm:text-left">
@@ -207,7 +203,6 @@
     </button>
   </footer>
 
-  <!-- Review Modal -->
   <div id="review-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/80 p-4">
     <div class="w-full max-w-md rounded-2xl border border-line bg-surface p-6">
       <div class="flex items-center justify-between">
@@ -250,7 +245,6 @@
       getOrdersForUser, getGreeting, REWARD_TIERS, redeemReward, isAdminEmail, BACKEND_URL
     } from './firebase-config.js';
 
-    // [id, name, calories, protein, badge, photo, fiber, carbs, fat]
     const FLAVORS = [
       ['apple', 'Apple Cinnamon', 118, 8, 'Core', 'Apple%20Cinnamon.jpeg', 4, 10, 4],
       ['mango', 'Mango', 122, 8, 'Core', 'Mango.jpeg', 4, 11, 4],
@@ -505,7 +499,7 @@
               <span class="${statusColor} font-semibold">${o.status}</span>
             </div>
             <p class="mt-1 text-sm text-stone2">${o.itemsText}</p>
-            <p class="mt-1 text-xs text-stone2">Subtotal: $${Number(o.subtotal || 0).toFixed(2)} · ${o.mode}</p>
+            <p class="mt-1 text-xs text-stone2">Subtotal: $${Number(o.subtotal || 0).toFixed(2)} · ${o.mode}${o.deliveryZip ? ' · ZIP ' + o.deliveryZip : ''}</p>
             ${o.rewardCodeApplied ? `<p class="mt-1 text-xs text-olive">Reward applied: ${o.rewardCodeApplied}</p>` : ''}
           </div>
         `;
