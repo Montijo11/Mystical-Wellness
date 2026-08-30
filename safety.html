@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Safety & Transparency — Mystical Wellness</title>
+  <meta name="description" content="Food safety, allergen declarations, refrigeration guidelines, and FDA compliance for Mystical Wellness Nourishments." />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { display: ['Fraunces', 'Georgia', 'serif'] },
+          colors: {
+            ink: '#151510', surface: '#201f18', surface2: '#29261e',
+            olive: '#9ca86a', stone: '#b5aa96', stone2: '#918878', line: '#554f43'
+          }
+        }
+      }
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: hidden; width: 100%; max-width: 100%; margin: 0; padding: 0; }
+    body { font-family: Inter, sans-serif; }
+    .page-wrap {
+      width: 100%; max-width: 64rem; margin-left: auto; margin-right: auto;
+      padding-left: 1.25rem; padding-right: 1.25rem;
+    }
+    #mobile-panel { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); transform: translateX(100%); }
+    #mobile-panel.open { transform: translateX(0); }
+    input::placeholder, textarea::placeholder { color: #9ca86a; opacity: 1; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-ink text-stone">
+
+  <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
+    <div class="page-wrap flex items-center justify-between py-4">
+      <a href="index.html" class="flex items-center gap-2.5">
+        <img src="logo.JPG" alt="Mystical Wellness logo" class="h-10 w-10 rounded-full object-cover border border-line" />
+        <span class="font-display text-xl text-stone">Mystical Wellness</span>
+      </a>
+
+      <nav class="hidden items-center gap-5 text-sm text-stone2 sm:flex">
+        <a class="hover:text-olive transition" href="index.html#menu-section">Menu</a>
+        <a class="hover:text-olive transition" href="why.html">Why?</a>
+        <a class="hover:text-olive transition" href="nutrition.html">Nutrition</a>
+        <a class="text-olive font-semibold" href="safety.html">Safety</a>
+        <div id="nav-account-slot" class="relative"></div>
+        <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order</a>
+      </nav>
+
+      <button
+        id="mobile-open-btn"
+        type="button"
+        aria-label="Open mobile menu"
+        class="grid h-10 w-10 place-items-center rounded-xl border border-line text-stone sm:hidden hover:border-olive transition"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="mobile-scrim" class="fixed inset-0 z-40 hidden bg-ink/80 backdrop-blur-sm sm:hidden"></div>
+
+  <aside id="mobile-panel" class="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] border-l border-line bg-surface p-6 sm:hidden flex flex-col justify-between">
+    <div>
+      <div class="flex items-center justify-between pb-4 border-b border-line">
+        <div class="flex items-center gap-2">
+          <img src="logo.JPG" alt="Mystical Wellness logo" class="h-8 w-8 rounded-full object-cover border border-line" />
+          <b class="font-display text-lg text-stone">Menu</b>
+        </div>
+        <button
+          id="mobile-close-btn"
+          type="button"
+          aria-label="Close mobile menu"
+          class="grid h-8 w-8 place-items-center rounded-lg border border-line text-stone hover:border-olive"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+
+      <div id="mobile-account-slot" class="mt-4"></div>
+
+      <nav class="mt-4 flex flex-col gap-2 text-base">
+        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="index.html#menu-section">Menu</a>
+        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="why.html">Why?</a>
+        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="nutrition.html">Nutrition</a>
+        <a class="mobile-nav-link rounded-xl p-3 text-olive font-semibold hover:bg-surface2 transition" href="safety.html">Safety</a>
+        <a class="mobile-nav-link mt-4 rounded-full bg-olive p-3 text-center font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order now</a>
+      </nav>
+    </div>
+
+    <div class="border-t border-line pt-4 text-xs text-stone2 text-center">
+      Made to Nourish
+    </div>
+  </aside>
+
+  <main class="page-wrap py-16">
+
+    <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Quality, Safety & Standards</p>
+
+    <h1 class="mt-3 font-display text-5xl sm:text-7xl">
+      Food safety &<br />
+      <span class="text-olive">compliance.</span>
+    </h1>
+
+    <p class="mt-5 max-w-2xl leading-relaxed text-stone2">
+      At Mystical Wellness, transparency and safety are our foundation. Because every Nourishment is prepared
+      fresh with real protein yogurt, raw cut fruit, and wholesome plant milks without chemical preservatives,
+      we uphold strict refrigeration, hygiene, and allergen handling standards.
+    </p>
+
+    <!-- Section 1: Storage & Freshness -->
+    <section class="mt-12">
+      <h2 class="font-display text-3xl">Storage & Freshness Guidelines</h2>
+      <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <article class="rounded-2xl border border-line bg-surface p-5">
+          <div class="flex items-center gap-2 text-olive mb-2">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <h3 class="font-display text-xl text-stone">Keep Cold (≤ 38°F)</h3>
+          </div>
+          <p class="text-sm text-stone2">Refrigerate immediately upon pickup or delivery. Keep stored at or below 38°F (3°C) at all times.</p>
+        </article>
+
+        <article class="rounded-2xl border border-line bg-surface p-5">
+          <div class="flex items-center gap-2 text-olive mb-2">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <h3 class="font-display text-xl text-stone">Best Within 4–5 Days</h3>
+          </div>
+          <p class="text-sm text-stone2">Freshly cut raw whole fruit contains no artificial preservatives. For optimal flavor and texture, consume within 4 to 5 days.</p>
+        </article>
+
+        <article class="rounded-2xl border border-line bg-surface p-5">
+          <div class="flex items-center gap-2 text-olive mb-2">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            <h3 class="font-display text-xl text-stone">Natural Separation</h3>
+          </div>
+          <p class="text-sm text-stone2">Natural separation of oat milk, coconut milk, and chia gel may occur over time. Simply give your jar a gentle stir before enjoying.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Section 2: Allergen Declaration -->
+    <section class="mt-14">
+      <h2 class="font-display text-3xl">Allergen Declarations</h2>
+      <div class="mt-5 rounded-2xl border border-line bg-surface p-6">
+        <div class="space-y-4 text-sm leading-relaxed text-stone2">
+          <p><b class="text-stone font-semibold">CONTAINS:</b> <span class="text-stone">Milk</span> (Real Chobani protein yogurt) and <span class="text-stone">Coconut</span> (Coconut milk base & optional coconut flakes).</p>
+          <p><b class="text-stone font-semibold">OPTIONAL ALLERGENS:</b> Sliced almonds are an optional add-on and contain <span class="text-stone">Tree Nuts</span> (Almonds). Almonds are stored in dedicated sealed containers and handled with clean utensils.</p>
+          <p><b class="text-stone font-semibold">GLUTEN & OATS:</b> Our recipe is made with pure oat milk and chia seeds. While oats do not naturally contain gluten, they may be processed in facilities that handle grains.</p>
+          <p><b class="text-stone font-semibold">DAIRY NOTICE:</b> This recipe contains real dairy yogurt and is not a dairy-free or vegan product.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: FDA Compliance & Disclaimers -->
+    <section class="mt-14">
+      <h2 class="font-display text-3xl">FDA Compliance & Transparency</h2>
+      <div class="mt-5 space-y-4 rounded-2xl border border-line bg-surface p-6 text-xs text-stone2 leading-relaxed">
+        <p>
+          <b class="text-stone">FDA Disclaimer:</b> The statements, nutritional values, and health information shared on this website have not been evaluated by the Food and Drug Administration (FDA). Mystical Wellness Nourishments and products are not intended to diagnose, treat, cure, or prevent any disease.
+        </p>
+        <p>
+          <b class="text-stone">Nutritional Estimates:</b> Macronutrient figures (calories, protein, fat, carbohydrates, and fiber) are calculated using standard manufacturer data for the base recipe (protein yogurt, oat milk, coconut milk, chia seeds). Micronutrient values (Sugar, Vitamin C, Potassium, Calcium, Sodium, Iron) are calculated from USDA FoodData Central reference values for the exact raw fruit portions used per serving. These figures are calculated estimates, not laboratory-tested Nutrition Facts labels.
+        </p>
+        <p>
+          <b class="text-stone">Preparation Standards:</b> Every order is hand-crafted in accordance with local health department food handling practices, using sanitized prep surfaces, temperature-controlled refrigeration, and fresh fruit inspected prior to cutting.
+        </p>
+      </div>
+    </section>
+
+    <div class="mt-12 text-center sm:text-left">
+      <a class="inline-block rounded-full bg-olive px-6 py-3 text-sm font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">
+        Build your order
+      </a>
+    </div>
+
+  </main>
+
+  <footer class="border-t border-line py-8 text-center text-xs text-stone2">
+    <a href="https://instagram.com/mystical.wellness.26" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-olive hover:text-olive/80 transition">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.9.07 1.2.06 2.2.27 3 .58a6 6 0 0 1 2.2 1.4 6 6 0 0 1 1.4 2.2c.3.8.5 1.8.6 3 .1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 2.2-.6 3a6 6 0 0 1-1.4 2.2 6 6 0 0 1-2.2 1.4c-.8.3-1.8.5-3 .6-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-2.2-.3-3-.6a6 6 0 0 1-2.2-1.4 6 6 0 0 1-1.4-2.2c-.3-.8-.5-1.8-.6-3C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-2.2.6-3a6 6 0 0 1 1.4-2.2A6 6 0 0 1 6.5.5c.8-.3 1.8-.5 3-.6C10.8 2.2 11.2 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.1-1 .1-1.7.2-2.3.5a4.2 4.2 0 0 0-1.5 1 4.2 4.2 0 0 0-1 1.5c-.3.6-.4 1.3-.5 2.3-.1 1.2-.1 1.6-.1 4.7s0 3.5.1 4.7c.1 1 .2 1.7.5 2.3a4.2 4.2 0 0 0 1 1.5 4.2 4.2 0 0 0 1.5 1c.6.3 1.3.4 2.3.5 1.2.1 1.6.1 4.7.1s3.5 0 4.7-.1c1-.1 1.7-.2 2.3-.5a4.2 4.2 0 0 0 1.5-1 4.2 4.2 0 0 0 1-1.5c.3-.6.4-1.3.5-2.3.1-1.2.1-1.6.1-4.7s0-3.5-.1-4.7c-.1-1-.2-1.7-.5-2.3a4.2 4.2 0 0 0-1-1.5 4.2 4.2 0 0 0-1.5-1c-.6-.3-1.3-.4-2.3-.5-1.2-.1-1.6-.1-4.7-.1zm0 4.6a5.4 5.4 0 1 1 0 10.8 5.4 5.4 0 0 1 0-10.8zm0 1.8a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2zm5.6-3.2a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z"/></svg>
+      @mystical.wellness.26
+    </a>
+    <p class="mt-3">Mystical Wellness · Made to Nourish</p>
+    <button id="review-btn" class="mt-3 inline-block rounded-full bg-olive px-4 py-2 text-xs font-bold text-ink hover:bg-olive/90 transition">
+      Leave a Review
+    </button>
+  </footer>
+
+  <!-- Review Modal -->
+  <div id="review-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/80 p-4">
+    <div class="w-full max-w-md rounded-2xl border border-line bg-surface p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="font-display text-2xl text-olive">Leave a Review</h3>
+        <button id="review-close" class="text-stone2 hover:text-olive">✕</button>
+      </div>
+      <p class="mt-2 text-xs text-stone2">Your review is sent directly to us — thank you for the feedback!</p>
+      <form id="review-form" class="mt-4 space-y-3">
+        <label class="text-sm block">
+          Your name <span class="text-olive">*</span>
+          <input id="review-name" required class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" placeholder="Jane Doe" />
+        </label>
+        <label class="text-sm block">
+          Your email <span class="text-olive">*</span>
+          <input id="review-email" type="email" required class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" placeholder="jane@email.com" />
+        </label>
+        <label class="text-sm block">
+          Rating
+          <select id="review-rating" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
+            <option value="5">★★★★★ (5)</option>
+            <option value="4">★★★★☆ (4)</option>
+            <option value="3">★★★☆☆ (3)</option>
+            <option value="2">★★☆☆☆ (2)</option>
+            <option value="1">★☆☆☆☆ (1)</option>
+          </select>
+        </label>
+        <label class="text-sm block">
+          Your review <span class="text-olive">*</span>
+          <textarea id="review-text" required rows="4" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none"></textarea>
+        </label>
+        <button type="submit" class="w-full rounded-xl bg-olive p-3 text-sm font-bold text-ink hover:bg-olive/90 transition">Send Review</button>
+      </form>
+      <p id="review-status" class="mt-3 hidden text-xs font-medium"></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { watchAuth, logOut, isAdminEmail, getUserProfile, BACKEND_URL } from './firebase-config.js';
+
+    const $ = (id) => document.getElementById(id);
+    function openMobileMenu() {
+      $('mobile-panel').classList.add('open');
+      $('mobile-scrim').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeMobileMenu() {
+      $('mobile-panel').classList.remove('open');
+      $('mobile-scrim').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+    $('mobile-open-btn').addEventListener('click', openMobileMenu);
+    $('mobile-close-btn').addEventListener('click', closeMobileMenu);
+    $('mobile-scrim').addEventListener('click', closeMobileMenu);
+    document.querySelectorAll('.mobile-nav-link').forEach((link) => link.addEventListener('click', closeMobileMenu));
+
+    function closeMenuOnAnyClickInside(containerId) {
+      $(containerId).querySelectorAll('a, button').forEach((el) => el.addEventListener('click', closeMobileMenu));
+    }
+
+    function openReviewModal() {
+      $('review-modal').classList.remove('hidden');
+      $('review-modal').classList.add('flex');
+    }
+    function closeReviewModal() {
+      $('review-modal').classList.add('hidden');
+      $('review-modal').classList.remove('flex');
+    }
+    $('review-btn').addEventListener('click', openReviewModal);
+    $('review-close').addEventListener('click', closeReviewModal);
+
+    $('review-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const statusEl = $('review-status');
+      statusEl.classList.remove('hidden');
+
+      if (BACKEND_URL.includes('PASTE_')) {
+        statusEl.textContent = 'Reviews are not yet connected — backend URL not configured.';
+        statusEl.className = 'mt-3 block text-xs font-medium text-red-400';
+        return;
+      }
+
+      try {
+        await fetch(BACKEND_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'sendReview',
+            reviewerName: $('review-name').value.trim(),
+            reviewerEmail: $('review-email').value.trim(),
+            rating: $('review-rating').value,
+            reviewText: $('review-text').value.trim()
+          })
+        });
+        statusEl.textContent = 'Thank you! Your review has been sent.';
+        statusEl.className = 'mt-3 block text-xs font-medium text-olive';
+        $('review-form').reset();
+        setTimeout(closeReviewModal, 1500);
+      } catch (err) {
+        statusEl.textContent = 'Could not send review. Please try again later.';
+        statusEl.className = 'mt-3 block text-xs font-medium text-red-400';
+      }
+    });
+
+    function renderGuestNav() {
+      $('nav-account-slot').innerHTML = `<a href="login.html" class="hover:text-olive transition">Log In</a>`;
+      $('mobile-account-slot').innerHTML = `<a href="login.html" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Log In</a>`;
+      closeMenuOnAnyClickInside('mobile-account-slot');
+    }
+
+    function renderAdminNav() {
+      $('nav-account-slot').innerHTML = `<a href="admin.html" class="hover:text-olive transition">Admin Dashboard</a>`;
+      $('mobile-account-slot').innerHTML = `<a href="admin.html" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Admin Dashboard</a>`;
+      closeMenuOnAnyClickInside('mobile-account-slot');
+    }
+
+    function renderCustomerNav(firstName) {
+      $('nav-account-slot').innerHTML = `
+        <div id="account-dropdown-wrap" class="relative">
+          <button id="account-trigger" class="hover:text-olive transition">Hi, ${firstName}</button>
+          <div id="account-dropdown" class="hidden absolute right-0 top-full mt-2 w-52 rounded-xl border border-line bg-surface p-2 shadow-lg z-50">
+            <a href="account.html#profile" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">My Profile</a>
+            <a href="account.html#orders" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Past Orders</a>
+            <a href="account.html#rewards" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Points & Rewards</a>
+            <hr class="my-2 border-line" />
+            <button id="dropdown-logout" class="block w-full text-left rounded-lg p-2 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
+          </div>
+        </div>
+      `;
+      const wrap = $('account-dropdown-wrap');
+      wrap.addEventListener('mouseenter', () => $('account-dropdown').classList.remove('hidden'));
+      wrap.addEventListener('mouseleave', () => $('account-dropdown').classList.add('hidden'));
+      $('dropdown-logout').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
+
+      $('mobile-account-slot').innerHTML = `
+        <a href="account.html" class="block font-display text-lg text-stone mb-2">Hi, ${firstName}</a>
+        <a href="account.html#profile" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">My Profile</a>
+        <a href="account.html#orders" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Past Orders</a>
+        <a href="account.html#rewards" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Points & Rewards</a>
+        <button id="mobile-logout" class="block w-full text-left rounded-xl p-3 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
+      `;
+      $('mobile-logout').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
+      closeMenuOnAnyClickInside('mobile-account-slot');
+    }
+
+    watchAuth(async (user) => {
+      if (!user) { renderGuestNav(); return; }
+      if (isAdminEmail(user.email)) { renderAdminNav(); return; }
+      const profile = await getUserProfile(user.uid);
+      const firstName = (profile?.name || 'there').split(' ')[0];
+      renderCustomerNav(firstName);
+    });
+  </script>
+
+</body>
+</html>
