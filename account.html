@@ -25,12 +25,16 @@
     *, *::before, *::after { box-sizing: border-box; }
     html, body { overflow-x: hidden; width: 100%; margin: 0; padding: 0; }
     body { font-family: Inter, sans-serif; }
+    .card { transition: 0.2s; min-width: 0; width: 100%; }
+    .card:hover { transform: translateY(-3px); border-color: #9ca86a; }
     .page-wrap { width: 100%; max-width: 64rem; margin: 0 auto; padding: 1.25rem; }
     .view { display: none; }
     .view.active { display: block; }
     .tab-btn.active { background: #9ca86a; color: #151510; }
     #mobile-panel { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); transform: translateX(100%); }
     #mobile-panel.open { transform: translateX(0); }
+    .chevron { transition: transform 0.2s; }
+    .accordion-row.open .chevron { transform: rotate(180deg); }
     input::placeholder, textarea::placeholder { color: #9ca86a; opacity: 1; }
   </style>
 </head>
@@ -48,6 +52,7 @@
         <a class="hover:text-olive transition" href="index.html#menu-section">Menu</a>
         <a class="hover:text-olive transition" href="why.html">Why?</a>
         <a class="hover:text-olive transition" href="nutrition.html">Nutrition</a>
+        <a class="hover:text-olive transition" href="safety.html">Safety</a>
         <div id="nav-account-slot" class="relative"></div>
         <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order</a>
       </nav>
@@ -82,6 +87,7 @@
         <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="index.html#menu-section">Menu</a>
         <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="why.html">Why?</a>
         <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="nutrition.html">Nutrition</a>
+        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="safety.html">Safety</a>
         <a class="mobile-nav-link mt-4 rounded-full bg-olive p-3 text-center font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order now</a>
       </nav>
     </div>
@@ -99,15 +105,34 @@
         Go to My Dashboard →
       </button>
 
-      <div class="mt-12 border-t border-line pt-10">
-        <h2 class="font-display text-3xl sm:text-4xl">
-          Browse your<br />
-          <span class="text-olive">Nourishments.</span>
-        </h2>
-        <p class="mt-3 max-w-xl text-stone2">Ready to reorder? Head to the menu to build a new order.</p>
-        <a href="index.html#menu-section" class="mt-5 inline-block rounded-full bg-olive px-6 py-3 text-sm font-bold text-ink hover:bg-olive/90 transition">
-          Browse Menu →
-        </a>
+      <!-- BROWSE YOUR NOURISHMENTS SECTION -->
+      <div class="mt-14 border-t border-line pt-12">
+        <div class="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 class="font-display text-4xl sm:text-5xl">
+              Browse your<br />
+              <span class="text-olive">Nourishments.</span>
+            </h2>
+          </div>
+          <span class="text-sm text-stone2">$6 per 12oz Nourishment</span>
+        </div>
+
+        <p class="mt-4 text-xs text-stone2">
+          Made with real protein yogurt, oat milk, and chia seeds. Base values exclude optional features.
+          <a class="text-olive" href="nutrition.html">Nutrition details</a> · <a class="text-olive" href="safety.html">Safety & allergen info</a>
+        </p>
+
+        <!-- Desktop/tablet card grid -->
+        <div id="menu-grid" class="mt-7 hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-5"></div>
+
+        <!-- Mobile-only accordion dropdown -->
+        <div id="menu-accordion" class="mt-7 space-y-2 sm:hidden"></div>
+
+        <div class="mt-8 text-center sm:text-left">
+          <a href="index.html#order" class="inline-block rounded-full bg-olive px-6 py-3 text-sm font-bold text-ink hover:bg-olive/90 transition">
+            Build an order →
+          </a>
+        </div>
       </div>
     </section>
 
@@ -225,6 +250,15 @@
       getOrdersForUser, getGreeting, REWARD_TIERS, redeemReward, isAdminEmail, BACKEND_URL
     } from './firebase-config.js';
 
+    // [id, name, calories, protein, badge, photo, fiber, carbs, fat]
+    const FLAVORS = [
+      ['apple', 'Apple Cinnamon', 118, 8, 'Core', 'Apple%20Cinnamon.jpeg', 4, 10, 4],
+      ['mango', 'Mango', 122, 8, 'Core', 'Mango.jpeg', 4, 11, 4],
+      ['pineapple', 'Pineapple', 118, 8, 'Core', 'Pina%20Colada.jpg', 4, 10, 4],
+      ['strawberry', 'Strawberry', 115, 8, 'Core', 'Strawberry.jpeg', 4, 9, 4],
+      ['blueberry', 'Blueberry', 119, 8, 'Core', null, 4, 10, 4]
+    ];
+
     const $ = (id) => document.getElementById(id);
     let currentUser = null;
     let currentProfile = null;
@@ -313,6 +347,74 @@
       `;
       $('mobile-logout').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
       closeMenuOnAnyClickInside('mobile-account-slot');
+    }
+
+    function renderMenu() {
+      const target = $('menu-grid');
+      if (!target) return;
+      target.innerHTML = FLAVORS.map((flavor) => {
+        const [id, name, calories, protein, badge, photo] = flavor;
+        const photoHtml = photo
+          ? `<img src="${photo}" alt="${name}" class="mb-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
+          : '';
+        return `
+          <article class="card rounded-2xl border border-line bg-surface p-4">
+            ${photoHtml}
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-display text-xl text-stone">${name}</h3>
+              <span class="shrink-0 rounded-full bg-olive/15 px-2 py-1 text-[10px] font-bold uppercase text-olive">${badge}</span>
+            </div>
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-stone2">
+              <span>${calories} cal · ${protein}g protein base</span>
+              <b class="text-stone">$6</b>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderMenuAccordion() {
+      const target = $('menu-accordion');
+      if (!target) return;
+      target.innerHTML = FLAVORS.map((flavor, index) => {
+        const [id, name, calories, protein, badge, photo, fiber, carbs, fat] = flavor;
+        const photoHtml = photo
+          ? `<img src="${photo}" alt="${name}" class="mt-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
+          : '';
+        return `
+          <div class="accordion-row rounded-xl border border-line bg-surface overflow-hidden">
+            <button data-accordion="${index}" class="accordion-toggle flex w-full items-center justify-between p-4 text-left">
+              <span>
+                <b class="text-sm text-stone">${name}</b>
+                <span class="ml-2 text-xs text-stone2">$6 · ${calories} cal</span>
+              </span>
+              <svg class="chevron h-4 w-4 shrink-0 text-olive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+            <div class="accordion-panel hidden border-t border-line p-4">
+              ${photoHtml}
+              <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-stone2 sm:grid-cols-5">
+                <div><b class="block text-stone">${calories}</b>Calories</div>
+                <div><b class="block text-stone">${protein}g</b>Protein</div>
+                <div><b class="block text-stone">${fiber}g</b>Fiber</div>
+                <div><b class="block text-stone">${carbs}g</b>Carbs</div>
+                <div><b class="block text-stone">${fat}g</b>Fat</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      target.querySelectorAll('.accordion-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const row = btn.closest('.accordion-row');
+          const panel = row.querySelector('.accordion-panel');
+          const isOpen = row.classList.contains('open');
+          row.classList.toggle('open', !isOpen);
+          panel.classList.toggle('hidden', isOpen);
+        });
+      });
     }
 
     watchAuth(async (user) => {
@@ -471,6 +573,9 @@
         status.className = 'mt-3 block text-xs font-medium text-red-400';
       }
     });
+
+    renderMenu();
+    renderMenuAccordion();
   </script>
 </body>
 </html>
