@@ -1,250 +1,599 @@
-// =====================================================================
-// Mystical Wellness — Shared Firebase Configuration & Helpers
-// Include this on every page with: <script type="module" src="firebase-config.js"></script>
-// Other pages import from it: import { auth, db, ... } from './firebase-config.js';
-// =====================================================================
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mystical Wellness — Made to Nourish</title>
+  <meta name="description" content="Small-batch chia pudding made with oat milk, coconut milk, real fruit, and optional features. Made fresh weekly in El Cajon, CA." />
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-import {
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged, sendPasswordResetEmail, setPersistence,
-  browserLocalPersistence, browserSessionPersistence
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import {
-  getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc,
-  query, where, orderBy, getDocs, serverTimestamp, runTransaction
-} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Mystical Wellness" />
+  <meta property="og:title" content="Mystical Wellness — Made to Nourish" />
+  <meta property="og:description" content="Small-batch chia pudding made with oat milk, coconut milk, real fruit, and optional features. Made fresh weekly in El Cajon, CA." />
+  <meta property="og:image" content="https://www.mysticalwellness.org/og-image.JPG?v=2" />
+  <meta property="og:image:secure_url" content="https://www.mysticalwellness.org/og-image.JPG?v=2" />
+  <meta property="og:image:width" content="1729" />
+  <meta property="og:image:height" content="910" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:url" content="https://www.mysticalwellness.org/" />
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDXfMK8nxFQ9-wbazPYqgPmF58QFS_Y1Vs",
-  authDomain: "mystical-wellness.firebaseapp.com",
-  projectId: "mystical-wellness",
-  storageBucket: "mystical-wellness.firebasestorage.app",
-  messagingSenderId: "859227928719",
-  appId: "1:859227928719:web:88f098c46bed52e44318fa"
-};
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Mystical Wellness — Made to Nourish" />
+  <meta name="twitter:description" content="Small-batch chia pudding made with oat milk, coconut milk, real fruit, and optional features." />
+  <meta name="twitter:image" content="https://www.mysticalwellness.org/og-image.JPG?v=2" />
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { display: ['Fraunces', 'Georgia', 'serif'] },
+          colors: {
+            ink: '#151510', surface: '#201f18', surface2: '#29261e',
+            olive: '#9ca86a', stone: '#b5aa96', stone2: '#918878', line: '#554f43'
+          }
+        }
+      }
+    };
+  </script>
 
-// ---- ADMIN ACCOUNTS ----------------------------------------------------
-export const ADMIN_EMAILS = [
-  'mysticalwellness26@gmail.com',
-  'mysticalwellness26recovery@gmail.com'
-];
-export function isAdminEmail(email) {
-  return ADMIN_EMAILS.includes((email || '').toLowerCase());
-}
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
 
-// ---- REWARD TIERS --------------------------------------------------------
-// ⚠️ PLACEHOLDER NUMBERS — please confirm/edit these to match your exact
-// program before launch. Nothing else in the code needs to change if you
-// adjust these values or add/remove tiers.
-export const REWARD_TIERS = [
-  { points: 20, reward: '$2 off your next order' },
-  { points: 40, reward: '$4 off your next order' },
-  { points: 75, reward: '1 free Nourishment' },
-  { points: 150, reward: '2 free Nourishments + free topping upgrade' }
-];
-export const POINTS_PER_DOLLAR = 1; // 1 point earned per $1 spent on completed orders
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: hidden; width: 100%; max-width: 100%; margin: 0; padding: 0; }
+    body { font-family: Inter, sans-serif; }
+    .grain {
+      background:
+        radial-gradient(circle at 12% 3%, #9ca86a20, transparent 30rem),
+        radial-gradient(circle at 94% 16%, #86634220, transparent 24rem);
+    }
+    .card { transition: 0.2s; min-width: 0; width: 100%; }
+    .card:hover { transform: translateY(-3px); border-color: #9ca86a; }
+    .page-wrap {
+      width: 100%; max-width: 64rem; margin-left: auto; margin-right: auto;
+      padding-left: 1.25rem; padding-right: 1.25rem;
+    }
+    #mobile-panel { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); transform: translateX(100%); }
+    #mobile-panel.open { transform: translateX(0); }
+  </style>
+</head>
 
-// ---- APPS SCRIPT BACKEND (for email notifications) -----------------------
-export const BACKEND_URL = 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
+<body class="min-h-screen bg-ink text-stone">
 
-// ---- AUTH HELPERS ----------------------------------------------------------
-export async function signUpCustomer({ name, phone, email, password }) {
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-  await setDoc(doc(db, 'users', cred.user.uid), {
-    name, phone, email,
-    address: null,
-    points: 0,
-    activeReward: null,
-    isAdmin: isAdminEmail(email),
-    createdAt: serverTimestamp()
-  });
-  return cred.user;
-}
+  <div class="grain fixed inset-0 -z-10"></div>
 
-export async function logIn(email, password, rememberMe) {
-  await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
-  localStorage.setItem('mw_last_active', String(Date.now()));
-  localStorage.setItem('mw_remember_me', rememberMe ? '1' : '0');
-  return signInWithEmailAndPassword(auth, email, password);
-}
+  <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
+    <div class="page-wrap flex items-center justify-between py-4">
+      <a href="index.html" class="flex items-center gap-2.5">
+        <img src="logo.JPG" alt="Mystical Wellness logo" class="h-11 w-11 rounded-full object-cover border border-line" />
+        <span class="font-display text-xl text-stone">Mystical Wellness</span>
+      </a>
 
-export function logOut() {
-  localStorage.removeItem('mw_last_active');
-  localStorage.removeItem('mw_remember_me');
-  return signOut(auth);
-}
-export function resetPassword(email) { return sendPasswordResetEmail(auth, email); }
-export function watchAuth(callback) { return onAuthStateChanged(auth, callback); }
+      <nav class="hidden items-center gap-5 text-sm text-stone2 sm:flex">
+        <a class="hover:text-olive transition" href="#menu-section">Menu</a>
+        <a class="hover:text-olive transition" href="why.html">Why?</a>
+        <a class="hover:text-olive transition" href="nutrition.html">Nutrition</a>
+        <a id="nav-account-link" class="hover:text-olive transition" href="login.html">My Account</a>
+        <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="#order">Order</a>
+      </nav>
 
-// Call once on every protected page load to enforce the 24-hour
-// inactivity timeout (skipped entirely if "Remember Me" was checked).
-export function enforceSessionTimeout() {
-  const remembered = localStorage.getItem('mw_remember_me') === '1';
-  if (remembered) return true;
+      <button
+        id="mobile-open-btn"
+        type="button"
+        aria-label="Open mobile menu"
+        class="grid h-10 w-10 place-items-center rounded-xl border border-line text-stone sm:hidden hover:border-olive transition"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 7h16M4 12h16M4 17h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
 
-  const last = Number(localStorage.getItem('mw_last_active') || 0);
-  const twentyFourHours = 24 * 60 * 60 * 1000;
-  if (Date.now() - last > twentyFourHours) {
-    logOut();
-    return false;
-  }
-  localStorage.setItem('mw_last_active', String(Date.now()));
-  return true;
-}
+  <div id="mobile-scrim" class="fixed inset-0 z-40 hidden bg-ink/80 backdrop-blur-sm sm:hidden"></div>
 
-// ---- USER PROFILE HELPERS ---------------------------------------------------
-export async function getUserProfile(uid) {
-  const snap = await getDoc(doc(db, 'users', uid));
-  return snap.exists() ? snap.data() : null;
-}
-export async function updateUserProfile(uid, data) {
-  return updateDoc(doc(db, 'users', uid), data);
-}
+  <aside id="mobile-panel" class="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] border-l border-line bg-surface p-6 sm:hidden flex flex-col justify-between">
+    <div>
+      <div class="flex items-center justify-between pb-4 border-b border-line">
+        <div class="flex items-center gap-2">
+          <img src="logo.JPG" alt="Mystical Wellness logo" class="h-9 w-9 rounded-full object-cover border border-line" />
+          <b class="font-display text-lg text-stone">Menu</b>
+        </div>
+        <button
+          id="mobile-close-btn"
+          type="button"
+          aria-label="Close mobile menu"
+          class="grid h-8 w-8 place-items-center rounded-lg border border-line text-stone hover:border-olive"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
 
-// Admin: fetch every customer profile (for the Customers tab).
-export async function getAllUsers() {
-  const snap = await getDocs(collection(db, 'users'));
-  return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
-}
+      <nav class="mt-6 flex flex-col gap-2 text-base">
+        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="#menu-section">Menu</a>
+        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="why.html">Why?</a>
+        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="nutrition.html">Nutrition</a>
+        <a id="nav-account-link-mobile" class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="login.html">My Account</a>
+        <a class="mobile-nav-link mt-4 rounded-full bg-olive p-3 text-center font-bold text-ink hover:bg-olive/90 transition" href="#order">Order now</a>
+      </nav>
+    </div>
 
-// ---- ORDER HELPERS ------------------------------------------------------------
-export async function saveOrderToFirestore(order, uid) {
-  return addDoc(collection(db, 'orders'), {
-    uid: uid || null,
-    ...order,
-    status: 'New',
-    pointsAwarded: false,
-    createdAt: serverTimestamp()
-  });
-}
+    <div class="border-t border-line pt-4 text-xs text-stone2 text-center">
+      Made to Nourish · El Cajon, CA
+    </div>
+  </aside>
 
-export async function getOrdersForUser(uid) {
-  const q = query(collection(db, 'orders'), where('uid', '==', uid), orderBy('createdAt', 'desc'));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-}
+  <main>
 
-export async function getAllOrders() {
-  const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-}
+    <section class="border-b border-line">
+      <div class="page-wrap py-16">
+        <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">
+          Made fresh weekly · El Cajon, CA
+        </p>
+        <h1 class="mt-3 font-display text-5xl leading-none sm:text-7xl">
+          Made to,<br />
+          <span class="text-olive">Nourish.</span>
+        </h1>
+        <p class="mt-5 max-w-xl leading-relaxed text-stone2">
+          Small-batch chia pudding made with oat milk, coconut milk, real fruit,
+          and optional features.
+        </p>
+        <a class="mt-7 inline-block rounded-full bg-olive px-5 py-3 text-sm font-bold text-ink" href="#order">
+          Build an order
+        </a>
+      </div>
+    </section>
 
-// ---- POINTS / REWARDS LOGIC -----------------------------------------------------
-export function currentTierIndexForPoints(points) {
-  let idx = -1;
-  REWARD_TIERS.forEach((tier, i) => { if (points >= tier.points) idx = i; });
-  return idx;
-}
+    <section id="menu-section" class="border-b border-line">
+      <div class="page-wrap py-14">
+        <div class="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 class="font-display text-4xl sm:text-6xl">
+              Browse your<br />
+              <span class="text-olive">Nourishments.</span>
+            </h2>
+          </div>
+          <span class="text-sm text-stone2">$6 per 12oz Nourishment</span>
+        </div>
 
-function generateRewardCode() {
-  const rand = Math.floor(1000 + Math.random() * 9000);
-  return `MW-${rand}`;
-}
+        <p class="mt-4 text-xs text-stone2">
+          Naturally dairy-free: oat milk + coconut milk. Base values exclude optional features.
+          <a class="text-olive" href="nutrition.html">Nutrition details</a>
+        </p>
 
-// Admin calls this when marking an order "Completed."
-// Guest orders (no uid) simply get marked complete with no points.
-export async function markOrderCompletedAndAwardPoints(orderId) {
-  const orderRef = doc(db, 'orders', orderId);
-  const orderSnap = await getDoc(orderRef);
-  if (!orderSnap.exists()) throw new Error('Order not found');
-  const order = orderSnap.data();
+        <div id="menu-grid" class="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"></div>
+      </div>
+    </section>
 
-  await updateDoc(orderRef, { status: 'Completed', completedAt: serverTimestamp() });
+    <section id="order" class="bg-surface/50">
+      <div class="page-wrap py-14">
+        <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Order now</p>
+        <h2 class="mt-2 font-display text-4xl">Build your order</h2>
 
-  if (!order.uid || order.pointsAwarded) return;
+        <div class="mt-7 grid gap-5 lg:grid-cols-[1.4fr_.85fr]">
 
-  const earned = Math.floor(Number(order.subtotal || 0) * POINTS_PER_DOLLAR);
-  const userRef = doc(db, 'users', order.uid);
+          <div class="space-y-4 min-w-0">
 
-  await runTransaction(db, async (tx) => {
-    const userSnap = await tx.get(userRef);
-    const userData = userSnap.data();
-    const newPoints = (userData.points || 0) + earned;
-    tx.update(userRef, { points: newPoints });
-  });
+            <div class="rounded-2xl border border-line bg-surface p-5">
+              <h3 class="font-display text-xl">1. Choose Nourishments</h3>
+              <div id="items" class="mt-4 space-y-2"></div>
+            </div>
 
-  await updateDoc(orderRef, { pointsAwarded: true });
-}
+            <div class="rounded-2xl border border-line bg-surface p-5">
+              <h3 class="font-display text-xl">2. Customize</h3>
+              <p class="mt-1 text-xs text-stone2">
+                All Nourishments use oat milk and coconut milk — naturally dairy-free.
+              </p>
 
-export async function markOrderCancelled(orderId) {
-  return updateDoc(doc(db, 'orders', orderId), { status: 'Cancelled' });
-}
+              <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label class="text-sm">
+                  Protein boost
+                  <select id="protein" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
+                    <option value="no">No protein boost</option>
+                    <option value="yes">Yes — +$1 per Nourishment</option>
+                  </select>
+                </label>
+              </div>
 
-// Redeem a reward — blocked if the customer already has an active,
-// unused reward. Leftover points beyond the tier threshold carry over.
-export async function redeemReward(uid, tierIndex) {
-  const userRef = doc(db, 'users', uid);
-  const userSnap = await getDoc(userRef);
-  const userData = userSnap.data();
+              <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <label class="text-sm">
+                  Almond flakes
+                  <select id="almond" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
+                    <option>Add</option>
+                    <option>No thanks</option>
+                  </select>
+                </label>
 
-  if (userData.activeReward) {
-    throw new Error('You already have an active reward. Use it before redeeming another.');
-  }
+                <label class="text-sm">
+                  Coconut flakes
+                  <select id="coconut" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
+                    <option>Add</option>
+                    <option>No thanks</option>
+                  </select>
+                </label>
 
-  const tier = REWARD_TIERS[tierIndex];
-  if (!tier || userData.points < tier.points) {
-    throw new Error('Not enough points for this reward yet.');
-  }
+                <label class="text-sm">
+                  Maple syrup
+                  <select id="maple" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
+                    <option>Add</option>
+                    <option>No thanks</option>
+                  </select>
+                </label>
+              </div>
+            </div>
 
-  const code = generateRewardCode();
-  const leftoverPoints = userData.points - tier.points;
+            <div class="rounded-2xl border border-line bg-surface p-5">
+              <h3 class="font-display text-xl">3. Pickup or delivery</h3>
+              <div class="mt-3 flex flex-wrap gap-5 text-sm">
+                <label><input checked name="mode" type="radio" value="Pickup" /> Pickup</label>
+                <label><input name="mode" type="radio" value="Delivery" /> Delivery</label>
+              </div>
+              <p class="mt-3 text-xs text-stone2">
+                Monday & Tuesday pickup. Delivery within 5 miles; 2-Nourishment minimum.
+              </p>
+            </div>
 
-  await setDoc(doc(db, 'rewardCodes', code), {
-    code, uid, tier: tierIndex, reward: tier.reward,
-    status: 'active', createdAt: serverTimestamp()
-  });
+            <div class="rounded-2xl border border-line bg-surface p-5">
+              <h3 class="font-display text-xl">4. Contact information</h3>
+              <p class="mt-1 text-xs text-stone2">
+                Required so we can confirm your order and reach you.
+              </p>
 
-  await updateDoc(userRef, {
-    points: leftoverPoints,
-    activeReward: { code, reward: tier.reward, tier: tierIndex }
-  });
+              <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label class="text-sm">
+                  Full name <span class="text-red-400">*</span>
+                  <input
+                    id="customer-name"
+                    required
+                    autocomplete="name"
+                    class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none"
+                    placeholder="Jane Smith"
+                  />
+                </label>
 
-  return code;
-}
+                <label class="text-sm">
+                  Phone number <span class="text-red-400">*</span>
+                  <input
+                    id="customer-phone"
+                    required
+                    type="tel"
+                    inputmode="tel"
+                    autocomplete="tel"
+                    class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none"
+                    placeholder="(619) 555-0123"
+                  />
+                </label>
+              </div>
 
-// Admin marks a reward code as used once honored at pickup.
-export async function markRewardCodeUsed(code) {
-  const codeRef = doc(db, 'rewardCodes', code);
-  const codeSnap = await getDoc(codeRef);
-  if (!codeSnap.exists()) throw new Error('Code not found');
-  const data = codeSnap.data();
+              <label class="mt-3 block text-sm">
+                Order notes <span class="text-stone2">(optional)</span>
+                <textarea id="notes" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" rows="3" placeholder="Pickup day, delivery address, allergies, or notes"></textarea>
+              </label>
 
-  await updateDoc(codeRef, { status: 'used', usedAt: serverTimestamp() });
-  await updateDoc(doc(db, 'users', data.uid), { activeReward: null });
-}
+              <label class="mt-3 block text-sm">
+                Reward code <span class="text-stone2">(optional — from your account)</span>
+                <input id="reward-code" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" placeholder="MW-1234" />
+              </label>
+            </div>
 
-// Admin manual point adjustment — always requires a reason (audit trail).
-export async function adjustUserPoints(uid, delta, reason, adminEmail) {
-  if (!reason || !reason.trim()) throw new Error('A reason is required for point adjustments.');
-  const userRef = doc(db, 'users', uid);
-  const userSnap = await getDoc(userRef);
-  const newPoints = Math.max(0, (userSnap.data().points || 0) + delta);
-  await updateDoc(userRef, { points: newPoints });
-  await addDoc(collection(db, 'pointAdjustments'), {
-    uid, delta, reason: reason.trim(), adminEmail, createdAt: serverTimestamp()
-  });
-}
+          </div>
 
-// Look up a reward code (used by the checkout "apply code" field).
-export async function lookupRewardCode(code) {
-  const snap = await getDoc(doc(db, 'rewardCodes', code.trim().toUpperCase()));
-  if (!snap.exists()) return null;
-  const data = snap.data();
-  return data.status === 'active' ? data : null;
-}
+          <aside class="h-fit min-w-0 rounded-2xl border border-olive/60 bg-surface2 p-5 lg:sticky lg:top-24 lg:self-start">
+            <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Your order</p>
+            <h3 class="mt-1 font-display text-2xl">Order summary</h3>
 
-// ---- GREETING HELPER (business timezone: America/Los_Angeles) --------------
-export function getGreeting() {
-  const hour = Number(new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric', hour12: false, timeZone: 'America/Los_Angeles'
-  }).format(new Date()));
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
-}
+            <div id="summary" class="mt-5 space-y-2 break-words text-sm text-stone2">
+              Choose a flavor to begin.
+            </div>
+
+            <div id="reward-note" class="mt-3 hidden rounded-lg border border-olive/50 bg-olive/10 p-3 text-xs text-olive"></div>
+
+            <div class="mt-5 flex justify-between border-t border-line pt-4">
+              <span>Subtotal</span>
+              <b id="total" class="font-display text-3xl">$0.00</b>
+            </div>
+
+            <p id="status-msg" class="mt-3 hidden rounded-lg p-3 text-xs font-medium"></p>
+
+            <button id="submit" class="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-olive p-3 text-sm font-bold text-ink transition hover:bg-olive/90 disabled:opacity-50">
+              <span id="spinner" class="hidden h-4 w-4 animate-spin rounded-full border-2 border-ink border-t-transparent"></span>
+              <span id="submit-text">Submit order online</span>
+            </button>
+
+            <a id="sms" class="mt-2 block rounded-xl border border-line p-3 text-center text-sm font-bold text-stone transition hover:border-olive hover:text-olive">
+              Text this order instead
+            </a>
+          </aside>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-line py-8 text-center text-xs text-stone2">
+    Mystical Wellness · Made to Nourish · El Cajon, CA
+  </footer>
+
+  <script type="module">
+    import { auth, watchAuth, saveOrderToFirestore, lookupRewardCode, isAdminEmail } from './firebase-config.js';
+
+    const BACKEND_URL = 'PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE';
+
+    const FLAVORS = [
+      ['apple', 'Apple Cinnamon', 'Cinnamon apple + oat topping', 131, 2.5, 'Core', 'apple-cinnamon-pudding.jpg'],
+      ['mango', 'Mango', 'Coconut chia + sweet mango', 135, 2.7, 'Core', 'mango-pudding.jpg'],
+      ['pina-colada', 'Piña Colada', 'Coconut chia + pineapple, tropical twist', 132, 2.6, 'New!', 'pina-colada-pudding.jpg'],
+      ['strawberry', 'Strawberry', 'Vanilla chia + fresh strawberry', 129, 2.6, 'Core', null],
+      ['blueberry', 'Blueberry', 'Coconut chia + sweet blueberries', 133, 2.6, 'Core', null]
+    ];
+
+    const quantities = {};
+    const $ = (id) => document.getElementById(id);
+    const formatMoney = (amount) => '$' + amount.toFixed(2);
+    let loggedInUser = null;
+    let appliedReward = null;
+
+    watchAuth((user) => {
+      loggedInUser = user;
+      if (user) {
+        const dest = isAdminEmail(user.email) ? 'admin.html' : 'account.html';
+        $('nav-account-link').textContent = 'My Account';
+        $('nav-account-link').href = dest;
+        $('nav-account-link-mobile').textContent = 'My Account';
+        $('nav-account-link-mobile').href = dest;
+      }
+    });
+
+    function showStatus(message, isError = true) {
+      const el = $('status-msg');
+      el.textContent = message;
+      el.className = isError
+        ? 'mt-3 block rounded-lg bg-red-950/50 border border-red-800/60 p-3 text-xs text-red-200'
+        : 'mt-3 block rounded-lg bg-olive/20 border border-olive/50 p-3 text-xs text-olive font-semibold';
+      el.classList.remove('hidden');
+    }
+    function hideStatus() { $('status-msg').classList.add('hidden'); }
+
+    function openMobileMenu() {
+      $('mobile-panel').classList.add('open');
+      $('mobile-scrim').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeMobileMenu() {
+      $('mobile-panel').classList.remove('open');
+      $('mobile-scrim').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+    $('mobile-open-btn').addEventListener('click', openMobileMenu);
+    $('mobile-close-btn').addEventListener('click', closeMobileMenu);
+    $('mobile-scrim').addEventListener('click', closeMobileMenu);
+    document.querySelectorAll('.mobile-nav-link').forEach((link) => link.addEventListener('click', closeMobileMenu));
+
+    function renderMenu() {
+      const target = $('menu-grid');
+      if (!target) return;
+      target.innerHTML = FLAVORS.map((flavor) => {
+        const [id, name, description, calories, protein, badge, photo] = flavor;
+        const photoHtml = photo
+          ? `<img src="${photo}" alt="${name} chia pudding" class="mb-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
+          : '';
+        return `
+          <article class="card rounded-2xl border border-line bg-surface p-4">
+            ${photoHtml}
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-display text-xl text-stone">${name}</h3>
+              <span class="shrink-0 rounded-full bg-olive/15 px-2 py-1 text-[10px] font-bold uppercase text-olive">${badge}</span>
+            </div>
+            <p class="mt-2 break-words text-sm text-stone2">${description}</p>
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-stone2">
+              <span>${calories} cal · ${protein}g protein base</span>
+              <b class="text-stone">$6</b>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderItems() {
+      const target = $('items');
+      if (!target) return;
+      target.innerHTML = FLAVORS.map((flavor) => {
+        const [id, name, description, calories] = flavor;
+        return `
+          <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-ink/30 p-3">
+            <span class="min-w-0">
+              <b class="text-sm text-stone">${name}</b>
+              <small class="block text-xs text-stone2">$6 · ${calories} cal base</small>
+            </span>
+            <span class="flex gap-3">
+              <button data-flavor="${id}" data-delta="-1" class="px-2 py-1 text-lg text-stone hover:text-olive">−</button>
+              <b id="qty-${id}" class="w-4 text-center text-stone">0</b>
+              <button data-flavor="${id}" data-delta="1" class="px-2 py-1 text-lg text-stone hover:text-olive">+</button>
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function buildOrder() {
+      let totalNourishments = 0;
+      let subtotal = 0;
+      const lines = [];
+      FLAVORS.forEach((flavor) => {
+        const [id, name] = flavor;
+        const qty = quantities[id] || 0;
+        if (qty > 0) {
+          totalNourishments += qty;
+          subtotal += qty * 6;
+          lines.push(`${qty}× ${name}`);
+        }
+      });
+      const proteinBoost = $('protein').value === 'yes';
+      if (proteinBoost) subtotal += totalNourishments;
+      const addOns = ['almond', 'coconut', 'maple']
+        .filter((key) => $(key).value === 'Add')
+        .map((key) => (key === 'maple' ? 'maple syrup' : `${key} flakes`));
+      const fulfillmentMode = document.querySelector('[name="mode"]:checked').value;
+      return {
+        totalNourishments, subtotal, lines, addOns, proteinBoost, fulfillmentMode,
+        customerName: $('customer-name').value.trim(),
+        customerPhone: $('customer-phone').value.trim(),
+        notes: $('notes').value.trim()
+      };
+    }
+
+    function buildMessageText(order) {
+      const parts = [
+        'Hi! I would like to order from Mystical Wellness:',
+        ...order.lines,
+        order.proteinBoost ? 'Protein boost requested' : '',
+        order.addOns.length ? `Add: ${order.addOns.join(', ')}` : '',
+        `Subtotal: ${formatMoney(order.subtotal)}`,
+        `Fulfillment: ${order.fulfillmentMode}`,
+        order.customerName ? `Name: ${order.customerName}` : '',
+        order.customerPhone ? `Phone: ${order.customerPhone}` : '',
+        order.notes ? `Notes: ${order.notes}` : ''
+      ];
+      return parts.filter(Boolean).join('\n');
+    }
+
+    function renderSummary() {
+      const order = buildOrder();
+      if (order.lines.length === 0) {
+        $('summary').innerHTML = 'Choose a flavor to begin.';
+      } else {
+        let html = order.lines.map((line) => `<p>${line}</p>`).join('');
+        if (order.proteinBoost) html += '<p>Protein boost</p>';
+        if (order.addOns.length) html += `<p>Add: ${order.addOns.join(', ')}</p>`;
+        $('summary').innerHTML = html;
+      }
+      $('total').textContent = formatMoney(order.subtotal);
+      $('sms').href = 'sms:+16198383928?&body=' + encodeURIComponent(buildMessageText(order));
+      return order;
+    }
+
+    function validateOrder(order) {
+      if (!order.totalNourishments) return 'Add at least one Nourishment to begin.';
+      if (!order.customerName) return 'Please enter your full name.';
+      if (!order.customerPhone) return 'Please enter your phone number.';
+      const digitsOnly = order.customerPhone.replace(/\D/g, '');
+      if (digitsOnly.length < 10) return 'Please enter a valid 10-digit phone number.';
+      if (order.fulfillmentMode === 'Delivery' && order.totalNourishments < 2) return 'Delivery requires a 2-Nourishment minimum.';
+      return '';
+    }
+
+    $('items').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-flavor]');
+      if (!button) return;
+      const flavorId = button.dataset.flavor;
+      const delta = Number(button.dataset.delta);
+      quantities[flavorId] = Math.max(0, (quantities[flavorId] || 0) + delta);
+      $(`qty-${flavorId}`).textContent = quantities[flavorId];
+      renderSummary();
+    });
+
+    ['protein', 'almond', 'coconut', 'maple'].forEach((id) => $(id).addEventListener('change', renderSummary));
+    ['customer-name', 'customer-phone', 'notes'].forEach((id) => $(id).addEventListener('input', renderSummary));
+    document.querySelectorAll('[name="mode"]').forEach((radio) => radio.addEventListener('change', renderSummary));
+
+    $('reward-code').addEventListener('blur', async () => {
+      const codeValue = $('reward-code').value.trim();
+      const noteEl = $('reward-note');
+      if (!codeValue) { noteEl.classList.add('hidden'); appliedReward = null; return; }
+
+      const rewardData = await lookupRewardCode(codeValue);
+      if (!rewardData) {
+        noteEl.textContent = 'Code not found or already used.';
+        noteEl.classList.remove('hidden');
+        appliedReward = null;
+        return;
+      }
+      appliedReward = rewardData;
+      renderSummary();
+      noteEl.textContent = `Reward applied: ${codeValue} (${rewardData.reward}). Subtotal shown does not reflect the discount — it will be honored at pickup.`;
+      noteEl.classList.remove('hidden');
+    });
+
+    $('submit').addEventListener('click', async () => {
+      hideStatus();
+      const order = renderSummary();
+      const errorMessage = validateOrder(order);
+
+      if (errorMessage) {
+        showStatus(errorMessage, true);
+        return;
+      }
+
+      const submitBtn = $('submit');
+      const submitText = $('submit-text');
+      const spinner = $('spinner');
+
+      submitBtn.disabled = true;
+      spinner.classList.remove('hidden');
+      submitText.textContent = 'Sending order...';
+
+      const rewardCodeApplied = appliedReward ? $('reward-code').value.trim().toUpperCase() : null;
+
+      try {
+        await saveOrderToFirestore({
+          itemsText: order.lines.join(', '),
+          totalNourishments: order.totalNourishments,
+          subtotal: order.subtotal,
+          mode: order.fulfillmentMode,
+          customerName: order.customerName,
+          customerPhone: order.customerPhone,
+          notes: order.notes || '',
+          proteinBoost: order.proteinBoost,
+          addOns: order.addOns.join(', '),
+          rewardCodeApplied
+        }, loggedInUser ? loggedInUser.uid : null);
+      } catch (firestoreErr) {
+        console.error('Firestore save failed:', firestoreErr);
+      }
+
+      if (!BACKEND_URL.includes('PASTE_')) {
+        try {
+          await fetch(BACKEND_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              itemsText: order.lines.join(', '),
+              totalNourishments: order.totalNourishments,
+              subtotal: order.subtotal,
+              mode: order.fulfillmentMode,
+              customerName: order.customerName,
+              customerPhone: order.customerPhone,
+              notes: order.notes || '',
+              proteinBoost: order.proteinBoost,
+              addOns: order.addOns.join(', ')
+            })
+          });
+        } catch (err) {
+          console.error('Apps Script notify failed:', err);
+        }
+      }
+
+      showStatus('✓ Order received! We will text you shortly to confirm.', false);
+      submitText.textContent = 'Order Sent!';
+      setTimeout(() => {
+        submitBtn.disabled = false;
+        submitText.textContent = 'Submit order online';
+        spinner.classList.add('hidden');
+      }, 5000);
+    });
+
+    renderMenu();
+    renderItems();
+    renderSummary();
+  </script>
+
+</body>
+</html>
