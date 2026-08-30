@@ -32,18 +32,10 @@
     #mobile-panel { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); transform: translateX(100%); }
     #mobile-panel.open { transform: translateX(0); }
     input::placeholder, textarea::placeholder { color: #9ca86a; opacity: 1; }
-    .why-photo {
-      aspect-ratio: 4 / 3;
-      background: #29261e;
-    }
+    .why-photo { aspect-ratio: 4 / 3; background: #29261e; }
     .why-photo.img-error {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #918878;
-      font-size: 0.75rem;
-      text-align: center;
-      padding: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      color: #918878; font-size: 0.75rem; text-align: center; padding: 1rem;
     }
   </style>
 </head>
@@ -140,7 +132,6 @@
       a marketing word here; it's the whole point.
     </p>
 
-    <!-- Row 1: Yogurt image LEFT, text RIGHT -->
     <div class="mt-14 flex flex-col gap-6 md:flex-row md:items-center">
       <img
         src="Yogurt.jpg"
@@ -160,7 +151,6 @@
       </div>
     </div>
 
-    <!-- Row 2: text LEFT, Chia Seeds image RIGHT (alternated) -->
     <div class="mt-10 flex flex-col gap-6 md:flex-row md:items-center md:flex-row-reverse">
       <img
         src="Chia-Seeds.jpg"
@@ -181,7 +171,6 @@
       </div>
     </div>
 
-    <!-- Row 3: Fruit image LEFT, text RIGHT (alternated back) -->
     <div class="mt-10 flex flex-col gap-6 md:flex-row md:items-center">
       <img
         src="Fruit.jpg"
@@ -224,7 +213,6 @@
     </button>
   </footer>
 
-  <!-- Review Modal -->
   <div id="review-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/80 p-4">
     <div class="w-full max-w-md rounded-2xl border border-line bg-surface p-6">
       <div class="flex items-center justify-between">
