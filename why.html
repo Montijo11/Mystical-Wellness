@@ -19,11 +19,7 @@
       }
     };
   </script>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600;700&display=swap"
-    rel="stylesheet"
-  />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -51,6 +47,7 @@
         <a class="hover:text-olive transition" href="index.html#menu-section">Menu</a>
         <a class="text-olive font-semibold" href="why.html">Why?</a>
         <a class="hover:text-olive transition" href="nutrition.html">Nutrition</a>
+        <div id="nav-account-slot" class="relative"></div>
         <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order</a>
       </nav>
 
@@ -88,7 +85,9 @@
         </button>
       </div>
 
-      <nav class="mt-6 flex flex-col gap-2 text-base">
+      <div id="mobile-account-slot" class="mt-4"></div>
+
+      <nav class="mt-4 flex flex-col gap-2 text-base">
         <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="index.html#menu-section">Menu</a>
         <a class="mobile-nav-link rounded-xl p-3 text-olive font-semibold hover:bg-surface2 transition" href="why.html">Why?</a>
         <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="nutrition.html">Nutrition</a>
@@ -113,7 +112,7 @@
     <p class="mt-5 max-w-2xl leading-relaxed text-stone2">
       Mystical Wellness started with a simple idea: real food, made in small batches,
       by someone who actually cares what's in it. No preservatives, no mystery
-      ingredients — just oat milk, coconut milk, chia seeds, and real fruit,
+      ingredients — just real protein yogurt, oat milk, chia seeds, and real fruit,
       prepared fresh every week in El Cajon.
     </p>
 
@@ -124,17 +123,18 @@
       reaches you. Freshness isn't a marketing word here; it's the whole point.
     </p>
 
-    <h2 class="mt-10 font-display text-3xl">Naturally dairy-free</h2>
+    <h2 class="mt-10 font-display text-3xl">Protein-powered, honestly</h2>
     <p class="mt-4 max-w-2xl leading-relaxed text-stone2">
-      Every base uses oat milk and coconut milk instead of dairy — not as a trend,
-      but because it makes the pudding creamy, naturally sweet, and easy on more
-      stomachs, without sacrificing flavor.
+      Every base includes real Chobani protein yogurt alongside oat milk and chia
+      seeds — giving each Nourishment roughly 8 grams of protein without any
+      protein powders or additives. This does mean our recipe contains dairy;
+      we'd rather be upfront about that than make a claim that isn't true.
     </p>
 
     <h2 class="mt-10 font-display text-3xl">Built around chia</h2>
     <p class="mt-4 max-w-2xl leading-relaxed text-stone2">
       Chia seeds are the foundation of everything we make: fiber, plant-based
-      protein, and a satisfying texture that holds up to real fruit and
+      nutrients, and a satisfying texture that holds up to real fruit and
       optional toppings like almonds, coconut flakes, or maple syrup.
       Curious about the exact numbers?
       <a class="text-olive" href="nutrition.html">See full nutrition details.</a>
@@ -157,7 +157,9 @@
     Mystical Wellness · Made to Nourish · El Cajon, CA
   </footer>
 
-  <script>
+  <script type="module">
+    import { watchAuth, logOut, isAdminEmail, getUserProfile } from './firebase-config.js';
+
     const $ = (id) => document.getElementById(id);
     function openMobileMenu() {
       $('mobile-panel').classList.add('open');
@@ -173,6 +175,52 @@
     $('mobile-close-btn').addEventListener('click', closeMobileMenu);
     $('mobile-scrim').addEventListener('click', closeMobileMenu);
     document.querySelectorAll('.mobile-nav-link').forEach((link) => link.addEventListener('click', closeMobileMenu));
+
+    function renderGuestNav() {
+      $('nav-account-slot').innerHTML = `<a href="login.html" class="hover:text-olive transition">Log In</a>`;
+      $('mobile-account-slot').innerHTML = `<a href="login.html" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Log In</a>`;
+    }
+
+    function renderAdminNav() {
+      $('nav-account-slot').innerHTML = `<a href="admin.html" class="hover:text-olive transition">Admin Dashboard</a>`;
+      $('mobile-account-slot').innerHTML = `<a href="admin.html" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Admin Dashboard</a>`;
+    }
+
+    function renderCustomerNav(firstName) {
+      $('nav-account-slot').innerHTML = `
+        <div id="account-dropdown-wrap" class="relative">
+          <button id="account-trigger" class="hover:text-olive transition">Hi, ${firstName}</button>
+          <div id="account-dropdown" class="hidden absolute right-0 top-full mt-2 w-52 rounded-xl border border-line bg-surface p-2 shadow-lg z-50">
+            <a href="account.html#profile" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">My Profile</a>
+            <a href="account.html#orders" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Past Orders</a>
+            <a href="account.html#rewards" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Points & Rewards</a>
+            <hr class="my-2 border-line" />
+            <button id="dropdown-logout" class="block w-full text-left rounded-lg p-2 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
+          </div>
+        </div>
+      `;
+      const wrap = $('account-dropdown-wrap');
+      wrap.addEventListener('mouseenter', () => $('account-dropdown').classList.remove('hidden'));
+      wrap.addEventListener('mouseleave', () => $('account-dropdown').classList.add('hidden'));
+      $('dropdown-logout').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
+
+      $('mobile-account-slot').innerHTML = `
+        <a href="account.html" class="block font-display text-lg text-stone mb-2">Hi, ${firstName}</a>
+        <a href="account.html#profile" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">My Profile</a>
+        <a href="account.html#orders" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Past Orders</a>
+        <a href="account.html#rewards" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Points & Rewards</a>
+        <button id="mobile-logout" class="block w-full text-left rounded-xl p-3 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
+      `;
+      $('mobile-logout').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
+    }
+
+    watchAuth(async (user) => {
+      if (!user) { renderGuestNav(); return; }
+      if (isAdminEmail(user.email)) { renderAdminNav(); return; }
+      const profile = await getUserProfile(user.uid);
+      const firstName = (profile?.name || 'there').split(' ')[0];
+      renderCustomerNav(firstName);
+    });
   </script>
 
 </body>
