@@ -13,6 +13,10 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
   signOut,
   updateProfile
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -50,14 +54,11 @@ export const db = getFirestore(app);
 
 // ------------------------------------------------------------
 // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
-// (Used for: review submissions on index/why/nutrition/safety/account,
-// and order notifications on index.html)
 // ------------------------------------------------------------
 export const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyhJ9XFAB8dlyziBxKLi1gb4cfumb4D6BD2NxL0yp7fQ_y7PASSJOsAph4Mi_AHWBIa/exec";
 
 // ------------------------------------------------------------
-// Admin access — these accounts see admin.html instead of the
-// customer account portal, and can manage orders/rewards.
+// Admin access
 // ------------------------------------------------------------
 const ADMIN_EMAILS = [
   "mysticalwellness26@gmail.com",
@@ -70,7 +71,7 @@ export function isAdminEmail(email) {
 }
 
 // ------------------------------------------------------------
-// Reward tiers (points → reward)
+// Reward tiers
 // ------------------------------------------------------------
 export const REWARD_TIERS = [
   { points: 50, reward: "Free topping on your next order" },
@@ -88,25 +89,45 @@ export function watchAuth(callback) {
   });
 }
 
-export async function logIn(email, password) {
+/**
+ * Logs in a user. rememberMe controls whether the session persists
+ * across browser restarts (local) or clears when the tab closes (session).
+ */
+export async function logIn(email, password, rememberMe = true) {
+  await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
   return signInWithEmailAndPassword(auth, email, password);
 }
 
-export async function signUp(email, password, name) {
+/**
+ * Creates a new customer account and their Firestore profile document.
+ * Called from login.html's sign-up form as:
+ * signUpCustomer({ name, phone, email, password })
+ */
+export async function signUpCustomer({ name, phone, email, password }) {
   const credential = await createUserWithEmailAndPassword(auth, email, password);
+
   if (name) {
     await updateProfile(credential.user, { displayName: name });
   }
+
   await setDoc(doc(db, "users", credential.user.uid), {
     name: name || "",
+    phone: phone || "",
     email,
-    phone: "",
     address: "",
     points: 0,
     activeReward: null,
     createdAt: serverTimestamp()
   });
+
   return credential;
+}
+
+/**
+ * Sends a password reset email to the given address.
+ */
+export async function resetPassword(email) {
+  return sendPasswordResetEmail(auth, email);
 }
 
 export async function logOut() {
@@ -168,7 +189,6 @@ export async function saveOrderToFirestore(orderData, uid) {
   };
   const docRef = await addDoc(collection(db, "orders"), payload);
 
-  // Award loyalty points: 10 points per Nourishment ordered
   if (uid && orderData.totalNourishments) {
     const userRef = doc(db, "users", uid);
     const userSnap = await getDoc(userRef);
