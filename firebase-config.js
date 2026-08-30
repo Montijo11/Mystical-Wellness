@@ -47,7 +47,7 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-export const BACKEND_URL = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
+export const BACKEND_URL = "https://script.google.com/macros/s/AKfycbyhJ9XFAB8dlyziBxKLi1gb4cfumb4D6BD2NxL0yp7fQ_y7PASSJOsAph4Mi_AHWBIa/exec";
 
 const ADMIN_EMAILS = [
   "mysticalwellness26@gmail.com",
