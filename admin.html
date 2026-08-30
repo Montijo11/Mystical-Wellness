@@ -53,7 +53,6 @@
       <button data-tab="points" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Adjust Points</button>
     </div>
 
-    <!-- OVERVIEW TAB -->
     <div id="tab-overview" class="tab-panel mt-6">
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div class="rounded-2xl border border-line bg-surface p-5">
@@ -86,7 +85,6 @@
       </div>
     </div>
 
-    <!-- ORDERS TAB -->
     <div id="tab-orders" class="tab-panel mt-6 hidden">
       <div class="flex flex-wrap gap-3">
         <select id="status-filter" class="rounded-xl border border-line bg-surface p-2 text-sm text-stone">
@@ -100,7 +98,6 @@
       <div id="orders-table" class="mt-4 space-y-3"></div>
     </div>
 
-    <!-- CUSTOMERS TAB -->
     <div id="tab-customers" class="tab-panel mt-6 hidden">
       <input id="customer-search" placeholder="Search by name, email, or phone..." class="w-full max-w-md rounded-xl border border-line bg-surface p-3 text-sm text-stone focus:border-olive outline-none" />
       <div class="mt-4 overflow-x-auto rounded-2xl border border-line bg-surface">
@@ -115,7 +112,6 @@
       </div>
     </div>
 
-    <!-- VERIFY REWARD CODE TAB -->
     <div id="tab-codes" class="tab-panel mt-6 hidden">
       <div class="max-w-md rounded-2xl border border-line bg-surface p-5">
         <label class="text-sm block">
@@ -127,7 +123,6 @@
       </div>
     </div>
 
-    <!-- ADJUST POINTS TAB -->
     <div id="tab-points" class="tab-panel mt-6 hidden">
       <div class="max-w-md rounded-2xl border border-line bg-surface p-5">
         <label class="text-sm block">
@@ -154,7 +149,7 @@
       auth, watchAuth, logOut, isAdminEmail, getAllOrders, markOrderCompletedAndAwardPoints,
       markOrderCancelled, markRewardCodeUsed, adjustUserPoints, getAllUsers, db
     } from './firebase-config.js';
-    import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+    import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
     let currentAdmin = null;
@@ -187,7 +182,6 @@
       renderCustomers();
     }
 
-    // ---------------- OVERVIEW ----------------
     function renderOverview() {
       const completed = allOrders.filter(o => o.status === 'Completed');
       const revenue = completed.reduce((sum, o) => sum + Number(o.subtotal || 0), 0);
@@ -198,7 +192,6 @@
       $('stat-customers').textContent = allCustomers.length;
       $('stat-pending').textContent = pending;
 
-      // Orders per day, last 7 days
       const days = [];
       const counts = [];
       for (let i = 6; i >= 0; i--) {
@@ -226,7 +219,6 @@
         }
       });
 
-      // Top flavors — parsed from itemsText like "2× Mango, 1× Blueberry"
       const flavorCounts = {};
       allOrders.forEach(o => {
         (o.itemsText || '').split(',').forEach(part => {
@@ -258,7 +250,6 @@
       });
     }
 
-    // ---------------- ORDERS ----------------
     function renderOrders() {
       const filter = $('status-filter').value;
       const filtered = filter ? allOrders.filter(o => o.status === filter) : allOrders;
@@ -277,7 +268,7 @@
               <b class="text-stone">${o.customerName || 'Guest'} · ${o.customerPhone || ''}</b>
               <span class="${statusColor} font-semibold">${o.status}</span>
             </div>
-            <p class="mt-1 text-sm text-stone2">${o.itemsText} — $${Number(o.subtotal || 0).toFixed(2)} · ${o.mode}</p>
+            <p class="mt-1 text-sm text-stone2">${o.itemsText} — $${Number(o.subtotal || 0).toFixed(2)} · ${o.mode}${o.deliveryZip ? ' · ZIP ' + o.deliveryZip : ''}</p>
             <p class="mt-1 text-xs text-stone2">${created.toLocaleString()} · ${o.uid ? 'Member' : 'Guest'}</p>
             ${o.status === 'New' ? `
               <div class="mt-3 flex gap-2">
@@ -306,7 +297,6 @@
     $('status-filter').addEventListener('change', renderOrders);
     $('refresh-orders').addEventListener('click', loadEverything);
 
-    // ---------------- CUSTOMERS ----------------
     function renderCustomers() {
       const term = $('customer-search').value.trim().toLowerCase();
       const filtered = allCustomers.filter(c =>
@@ -330,7 +320,6 @@
 
     $('customer-search').addEventListener('input', renderCustomers);
 
-    // ---------------- REWARD CODE VERIFY ----------------
     $('verify-code-btn').addEventListener('click', async () => {
       const code = $('code-input').value.trim().toUpperCase();
       const snap = await getDoc(doc(db, 'rewardCodes', code));
@@ -356,7 +345,6 @@
       });
     });
 
-    // ---------------- ADJUST POINTS ----------------
     $('adjust-points-btn').addEventListener('click', async () => {
       const resultEl = $('points-result');
       resultEl.classList.remove('hidden');
