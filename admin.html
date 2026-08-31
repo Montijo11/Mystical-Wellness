@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin Dashboard — Mystical Wellness</title>
+  <link rel="icon" href="logo.png" type="image/png" />
+  <link rel="apple-touch-icon" href="logo.png" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -90,6 +92,9 @@
         <select id="status-filter" class="rounded-xl border border-line bg-surface p-2 text-sm text-stone">
           <option value="">All statuses</option>
           <option value="New">New</option>
+          <option value="Preparing">Preparing</option>
+          <option value="Ready for Pickup">Ready for Pickup</option>
+          <option value="Out for Delivery">Out for Delivery</option>
           <option value="Completed">Completed</option>
           <option value="Cancelled">Cancelled</option>
         </select>
@@ -147,7 +152,7 @@
   <script type="module">
     import {
       auth, watchAuth, logOut, isAdminEmail, getAllOrders, markOrderCompletedAndAwardPoints,
-      markOrderCancelled, markRewardCodeUsed, adjustUserPoints, getAllUsers, db
+      markOrderCancelled, updateOrderStatus, markRewardCodeUsed, adjustUserPoints, getAllUsers, db
     } from './firebase-config.js';
     import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -157,6 +162,8 @@
     let allCustomers = [];
     let ordersChart = null;
     let flavorsChart = null;
+
+    const STATUS_OPTIONS = ['New', 'Preparing', 'Ready for Pickup', 'Out for Delivery', 'Completed', 'Cancelled'];
 
     watchAuth((user) => {
       if (!user || !isAdminEmail(user.email)) { window.location.href = 'login.html'; return; }
@@ -185,7 +192,7 @@
     function renderOverview() {
       const completed = allOrders.filter(o => o.status === 'Completed');
       const revenue = completed.reduce((sum, o) => sum + Number(o.subtotal || 0), 0);
-      const pending = allOrders.filter(o => o.status === 'New').length;
+      const pending = allOrders.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled').length;
 
       $('stat-total-orders').textContent = allOrders.length;
       $('stat-revenue').textContent = '$' + revenue.toFixed(2);
@@ -250,6 +257,12 @@
       });
     }
 
+    function statusColorClass(status) {
+      if (status === 'Completed') return 'text-olive';
+      if (status === 'Cancelled') return 'text-red-400';
+      return 'text-stone2';
+    }
+
     function renderOrders() {
       const filter = $('status-filter').value;
       const filtered = filter ? allOrders.filter(o => o.status === filter) : allOrders;
@@ -261,35 +274,48 @@
 
       $('orders-table').innerHTML = filtered.map(o => {
         const created = o.createdAt?.toDate ? o.createdAt.toDate() : new Date();
-        const statusColor = o.status === 'Completed' ? 'text-olive' : o.status === 'Cancelled' ? 'text-red-400' : 'text-stone2';
+        const currentStatus = o.status || 'New';
+        const optionsHtml = STATUS_OPTIONS.map(s =>
+          `<option value="${s}" ${s === currentStatus ? 'selected' : ''}>${s}</option>`
+        ).join('');
+
         return `
           <div class="rounded-xl border border-line bg-surface p-4">
             <div class="flex flex-wrap justify-between gap-2 text-sm">
               <b class="text-stone">${o.customerName || 'Guest'} · ${o.customerPhone || ''}</b>
-              <span class="${statusColor} font-semibold">${o.status}</span>
+              <span class="${statusColorClass(currentStatus)} font-semibold">${currentStatus}</span>
             </div>
             <p class="mt-1 text-sm text-stone2">${o.itemsText} — $${Number(o.subtotal || 0).toFixed(2)} · ${o.mode}${o.deliveryZip ? ' · ZIP ' + o.deliveryZip : ''}</p>
             <p class="mt-1 text-xs text-stone2">${created.toLocaleString()} · ${o.uid ? 'Member' : 'Guest'}</p>
-            ${o.status === 'New' ? `
-              <div class="mt-3 flex gap-2">
-                <button data-id="${o.id}" class="complete-btn rounded-full bg-olive px-4 py-2 text-xs font-bold text-ink hover:bg-olive/90 transition">Mark Completed</button>
-                <button data-id="${o.id}" class="cancel-btn rounded-full border border-red-800 px-4 py-2 text-xs font-bold text-red-300 hover:bg-red-950/40 transition">Cancel</button>
-              </div>
-            ` : ''}
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+              <label class="text-xs text-stone2">Update status:</label>
+              <select data-id="${o.id}" class="status-select rounded-lg border border-line bg-ink p-2 text-xs text-stone focus:border-olive outline-none">
+                ${optionsHtml}
+              </select>
+            </div>
           </div>
         `;
       }).join('');
 
-      document.querySelectorAll('.complete-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          await markOrderCompletedAndAwardPoints(btn.dataset.id);
-          await loadEverything();
-        });
-      });
-      document.querySelectorAll('.cancel-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          await markOrderCancelled(btn.dataset.id);
-          await loadEverything();
+      document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', async () => {
+          const orderId = select.dataset.id;
+          const newStatus = select.value;
+
+          select.disabled = true;
+          try {
+            if (newStatus === 'Completed') {
+              await markOrderCompletedAndAwardPoints(orderId);
+            } else if (newStatus === 'Cancelled') {
+              await markOrderCancelled(orderId);
+            } else {
+              await updateOrderStatus(orderId, newStatus);
+            }
+            await loadEverything();
+          } catch (err) {
+            alert('Could not update order: ' + err.message);
+            select.disabled = false;
+          }
         });
       });
     }
