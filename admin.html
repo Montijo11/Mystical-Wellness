@@ -4,11 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin Dashboard — Mystical Wellness</title>
-  <link rel="icon" href="logo.png" type="image/png" />
-  <link rel="apple-touch-icon" href="logo.png" />
+  <link rel="icon" href="logo.JPG" type="image/jpeg" />
+  <link rel="apple-touch-icon" href="logo.JPG" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -92,6 +93,7 @@
         <select id="status-filter" class="rounded-xl border border-line bg-surface p-2 text-sm text-stone">
           <option value="">All statuses</option>
           <option value="New">New</option>
+          <option value="Accepted">Accepted</option>
           <option value="Preparing">Preparing</option>
           <option value="Ready for Pickup">Ready for Pickup</option>
           <option value="Out for Delivery">Out for Delivery</option>
@@ -163,7 +165,7 @@
     let ordersChart = null;
     let flavorsChart = null;
 
-    const STATUS_OPTIONS = ['New', 'Preparing', 'Ready for Pickup', 'Out for Delivery', 'Completed', 'Cancelled'];
+    const STATUS_OPTIONS = ['New', 'Accepted', 'Preparing', 'Ready for Pickup', 'Out for Delivery', 'Completed', 'Cancelled'];
 
     watchAuth((user) => {
       if (!user || !isAdminEmail(user.email)) { window.location.href = 'login.html'; return; }
@@ -263,6 +265,91 @@
       return 'text-stone2';
     }
 
+    // ---------------- Invoice PDF generation ----------------
+    function generateInvoicePDF(order) {
+      const { jsPDF } = window.jspdf;
+      const docPdf = new jsPDF({ unit: 'pt', format: 'letter' });
+      const pageWidth = docPdf.internal.pageSize.getWidth();
+      let y = 56;
+
+      docPdf.setFont('helvetica', 'bold');
+      docPdf.setFontSize(20);
+      docPdf.text('Mystical Wellness', 56, y);
+      y += 20;
+      docPdf.setFont('helvetica', 'normal');
+      docPdf.setFontSize(10);
+      docPdf.text('Spring Valley, CA 91977', 56, y);
+      y += 14;
+      docPdf.text('mysticalwellness26@gmail.com', 56, y);
+
+      docPdf.setFont('helvetica', 'bold');
+      docPdf.setFontSize(16);
+      docPdf.text('INVOICE', pageWidth - 56, 56, { align: 'right' });
+      docPdf.setFont('helvetica', 'normal');
+      docPdf.setFontSize(10);
+      const created = order.createdAt?.toDate ? order.createdAt.toDate() : new Date();
+      docPdf.text('Invoice #: ' + order.id.slice(0, 8).toUpperCase(), pageWidth - 56, 76, { align: 'right' });
+      docPdf.text('Date: ' + created.toLocaleDateString(), pageWidth - 56, 90, { align: 'right' });
+      docPdf.text('Status: Completed', pageWidth - 56, 104, { align: 'right' });
+
+      y = 140;
+      docPdf.setDrawColor(180, 180, 180);
+      docPdf.line(56, y, pageWidth - 56, y);
+      y += 24;
+
+      docPdf.setFont('helvetica', 'bold');
+      docPdf.setFontSize(11);
+      docPdf.text('Bill To:', 56, y);
+      y += 16;
+      docPdf.setFont('helvetica', 'normal');
+      docPdf.text(order.customerName || 'Guest', 56, y);
+      y += 14;
+      docPdf.text(order.customerPhone || '', 56, y);
+      y += 14;
+      if (order.deliveryZip) { docPdf.text('Delivery ZIP: ' + order.deliveryZip, 56, y); y += 14; }
+      docPdf.text('Fulfillment: ' + (order.mode || ''), 56, y);
+
+      y += 30;
+      docPdf.setFont('helvetica', 'bold');
+      docPdf.setFontSize(11);
+      docPdf.text('Item', 56, y);
+      docPdf.text('Amount', pageWidth - 56, y, { align: 'right' });
+      y += 8;
+      docPdf.line(56, y, pageWidth - 56, y);
+      y += 18;
+
+      docPdf.setFont('helvetica', 'normal');
+      docPdf.setFontSize(10);
+      const lines = (order.itemsText || '').split(',').map(s => s.trim()).filter(Boolean);
+      lines.forEach((line) => {
+        docPdf.text(line, 56, y);
+        y += 16;
+      });
+
+      if (order.proteinBoost) { docPdf.text('Protein boost add-on', 56, y); y += 16; }
+      if (order.addOns) { docPdf.text('Add-ons: ' + order.addOns, 56, y); y += 16; }
+
+      y += 10;
+      docPdf.line(56, y, pageWidth - 56, y);
+      y += 20;
+
+      docPdf.setFont('helvetica', 'bold');
+      docPdf.setFontSize(12);
+      docPdf.text('Total Paid:', pageWidth - 200, y);
+      docPdf.text('$' + Number(order.subtotal || 0).toFixed(2), pageWidth - 56, y, { align: 'right' });
+
+      y += 40;
+      docPdf.setFont('helvetica', 'italic');
+      docPdf.setFontSize(9);
+      docPdf.setTextColor(120, 120, 120);
+      docPdf.text('This invoice was generated automatically upon order completion and is intended to serve', 56, y);
+      y += 12;
+      docPdf.text('as a record for personal bookkeeping and tax purposes. Please retain for your records.', 56, y);
+
+      const fileName = `Invoice_${order.customerName ? order.customerName.replace(/\s+/g, '_') : 'Guest'}_${created.toISOString().slice(0, 10)}.pdf`;
+      docPdf.save(fileName);
+    }
+
     function renderOrders() {
       const filter = $('status-filter').value;
       const filtered = filter ? allOrders.filter(o => o.status === filter) : allOrders;
@@ -292,6 +379,7 @@
               <select data-id="${o.id}" class="status-select rounded-lg border border-line bg-ink p-2 text-xs text-stone focus:border-olive outline-none">
                 ${optionsHtml}
               </select>
+              ${currentStatus === 'Completed' ? `<button data-id="${o.id}" class="invoice-btn rounded-lg border border-olive px-3 py-2 text-xs font-bold text-olive hover:bg-olive/10 transition">Download Invoice</button>` : ''}
             </div>
           </div>
         `;
@@ -306,6 +394,8 @@
           try {
             if (newStatus === 'Completed') {
               await markOrderCompletedAndAwardPoints(orderId);
+              const updatedOrder = allOrders.find(o => o.id === orderId);
+              if (updatedOrder) generateInvoicePDF({ ...updatedOrder, status: 'Completed' });
             } else if (newStatus === 'Cancelled') {
               await markOrderCancelled(orderId);
             } else {
@@ -316,6 +406,13 @@
             alert('Could not update order: ' + err.message);
             select.disabled = false;
           }
+        });
+      });
+
+      document.querySelectorAll('.invoice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const order = allOrders.find(o => o.id === btn.dataset.id);
+          if (order) generateInvoicePDF(order);
         });
       });
     }
