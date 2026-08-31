@@ -25,15 +25,15 @@
 
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    html, body { overflow-x: hidden; width: 100%; margin: 0; padding: 0; }
-    body { font-family: Inter, sans-serif; }
+    html, body { overflow-x: hidden; width: 100%; margin: 0; padding: 0; min-height: 100%; }
+    body { font-family: Inter, sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
     .page-wrap { width: 100%; max-width: 28rem; margin: 0 auto; padding: 1.25rem; }
     .tab-active { background: #9ca86a; color: #151510; }
   </style>
 </head>
 
-<body class="min-h-screen bg-ink text-stone flex items-center">
-  <div class="page-wrap py-16">
+<body class="bg-ink text-stone">
+  <div class="page-wrap py-16 flex-1 flex flex-col justify-center">
 
     <a href="index.html" class="flex items-center gap-2.5 justify-center mb-8">
       <img src="logo.JPG" alt="Mystical Wellness logo" class="h-11 w-11 rounded-full object-cover border border-line" />
@@ -105,6 +105,14 @@
       <a href="index.html" class="hover:text-olive transition">← Back to menu</a>
     </p>
   </div>
+
+  <footer class="border-t border-line py-6 text-center text-xs text-stone2">
+    <a href="https://instagram.com/mystical.wellness.26" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-olive hover:text-olive/80 transition">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.9.07 1.2.06 2.2.27 3 .58a6 6 0 0 1 2.2 1.4 6 6 0 0 1 1.4 2.2c.3.8.5 1.8.6 3 .1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 2.2-.6 3a6 6 0 0 1-1.4 2.2 6 6 0 0 1-2.2 1.4c-.8.3-1.8.5-3 .6-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-2.2-.3-3-.6a6 6 0 0 1-2.2-1.4 6 6 0 0 1-1.4-2.2c-.3-.8-.5-1.8-.6-3C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-2.2.6-3a6 6 0 0 1 1.4-2.2A6 6 0 0 1 6.5.5c.8-.3 1.8-.5 3-.6C10.8 2.2 11.2 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.1-1 .1-1.7.2-2.3.5a4.2 4.2 0 0 0-1.5 1 4.2 4.2 0 0 0-1 1.5c-.3.6-.4 1.3-.5 2.3-.1 1.2-.1 1.6-.1 4.7s0 3.5.1 4.7c.1 1 .2 1.7.5 2.3a4.2 4.2 0 0 0 1 1.5 4.2 4.2 0 0 0 1.5 1c.6.3 1.3.4 2.3.5 1.2.1 1.6.1 4.7.1s3.5 0 4.7-.1c1-.1 1.7-.2 2.3-.5a4.2 4.2 0 0 0 1.5-1 4.2 4.2 0 0 0 1-1.5c.3-.6.4-1.3.5-2.3.1-1.2.1-1.6.1-4.7s0-3.5-.1-4.7c-.1-1-.2-1.7-.5-2.3a4.2 4.2 0 0 0-1-1.5 4.2 4.2 0 0 0-1.5-1c-.6-.3-1.3-.4-2.3-.5-1.2-.1-1.6-.1-4.7-.1zm0 4.6a5.4 5.4 0 1 1 0 10.8 5.4 5.4 0 0 1 0-10.8zm0 1.8a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2zm5.6-3.2a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z"/></svg>
+      @mystical.wellness.26
+    </a>
+    <p class="mt-2">Mystical Wellness · Made to Nourish</p>
+  </footer>
 
   <script type="module">
     import { logIn, signUpCustomer, resetPassword, isAdminEmail } from './firebase-config.js';
