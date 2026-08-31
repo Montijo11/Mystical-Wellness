@@ -266,6 +266,13 @@
     let currentProfile = null;
     let allOrders = [];
     let redirectTimer = null;
+    let authResolved = false;
+
+    // Safety net: if for any reason watchAuth never fires or something hangs,
+    // never leave the user staring at a permanent spinner.
+    setTimeout(() => {
+      if (!authResolved) $('auth-loading')?.remove();
+    }, 4000);
 
     function openMobileMenu() { $('mobile-panel').classList.add('open'); $('mobile-scrim').classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
     function closeMobileMenu() { $('mobile-panel').classList.remove('open'); $('mobile-scrim').classList.add('hidden'); document.body.style.overflow = ''; }
@@ -432,33 +439,39 @@
     }
 
     // ---- Auth guard with grace period to avoid the "resolve-then-null" race ----
-    // Firebase can briefly report no user while it restores a persisted session
-    // from storage on a cold page load. Instead of redirecting to login.html the
-    // instant that happens, we wait ~700ms — if the real user arrives in that
-    // window, we cancel the redirect. This avoids the "have to log in twice" bug.
-    watchAuth(async (user) => {
+    watchAuth((user) => {
+      authResolved = true;
+
       if (user) {
         if (redirectTimer) { clearTimeout(redirectTimer); redirectTimer = null; }
 
         if (isAdminEmail(user.email)) { window.location.href = 'admin.html'; return; }
         if (!enforceSessionTimeout()) { window.location.href = 'login.html'; return; }
 
-        currentUser = user;
-        currentProfile = await getUserProfile(user.uid);
-        const firstName = (currentProfile?.name || 'friend').split(' ')[0];
+        // Remove the spinner immediately once we know the user is staying on
+        // this page — do NOT wait on profile/order Firestore reads first.
+        $('auth-loading')?.remove();
 
-        renderNav(firstName);
-        $('greeting-text').innerHTML = `${getGreeting()},<br /><span class="text-olive">${firstName}.</span>`;
-        $('settings-name').value = currentProfile?.name || '';
-        $('settings-phone').value = currentProfile?.phone || '';
-        $('settings-email').value = currentProfile?.email || '';
-        $('settings-address').value = currentProfile?.address || '';
+        (async () => {
+          try {
+            currentUser = user;
+            currentProfile = await getUserProfile(user.uid);
+            const firstName = (currentProfile?.name || 'friend').split(' ')[0];
 
-        renderRewards();
-        await loadOrders();
-        applyHashRoute();
+            renderNav(firstName);
+            $('greeting-text').innerHTML = `${getGreeting()},<br /><span class="text-olive">${firstName}.</span>`;
+            $('settings-name').value = currentProfile?.name || '';
+            $('settings-phone').value = currentProfile?.phone || '';
+            $('settings-email').value = currentProfile?.email || '';
+            $('settings-address').value = currentProfile?.address || '';
 
-        $('auth-loading').remove();
+            renderRewards();
+            await loadOrders();
+            applyHashRoute();
+          } catch (err) {
+            console.error('Failed to load account data:', err);
+          }
+        })();
       } else {
         if (redirectTimer) return;
         redirectTimer = setTimeout(() => { window.location.href = 'login.html'; }, 700);
