@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mystical Wellness — Made to Nourish</title>
-  <meta name="description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional features. Made fresh every order." />
-  <link rel="icon" href="logo.png" type="image/png" />
-  <link rel="apple-touch-icon" href="logo.png" />
+  <meta name="description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional toppings. Made fresh every order." />
+  <link rel="icon" href="logo.JPG" type="image/jpeg" />
+  <link rel="apple-touch-icon" href="logo.JPG" />
 
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Mystical Wellness" />
   <meta property="og:title" content="Mystical Wellness — Made to Nourish" />
-  <meta property="og:description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional features. Made fresh every order." />
+  <meta property="og:description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional toppings. Made fresh every order." />
   <meta property="og:image" content="https://www.mysticalwellness.org/Facebook.png" />
   <meta property="og:image:secure_url" content="https://www.mysticalwellness.org/Facebook.png" />
   <meta property="og:image:width" content="1536" />
@@ -21,7 +21,7 @@
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Mystical Wellness — Made to Nourish" />
-  <meta name="twitter:description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional features." />
+  <meta name="twitter:description" content="Nourishing chia pudding made with real protein yogurt, oat milk, coconut milk, real fruit, and optional toppings." />
   <meta name="twitter:image" content="https://www.mysticalwellness.org/Facebook.png" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -75,7 +75,7 @@
   <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
     <div class="page-wrap flex items-center justify-between py-4">
       <a href="index.html" class="flex items-center gap-2.5">
-        <img src="logo.png" alt="Mystical Wellness logo" class="h-11 w-11 rounded-full object-cover border border-line" />
+        <img src="logo.JPG" alt="Mystical Wellness logo" class="h-11 w-11 rounded-full object-cover border border-line" />
         <span class="font-display text-xl text-stone">Mystical Wellness</span>
       </a>
 
@@ -107,7 +107,7 @@
     <div>
       <div class="flex items-center justify-between pb-4 border-b border-line">
         <div class="flex items-center gap-2">
-          <img src="logo.png" alt="Mystical Wellness logo" class="h-9 w-9 rounded-full object-cover border border-line" />
+          <img src="logo.JPG" alt="Mystical Wellness logo" class="h-9 w-9 rounded-full object-cover border border-line" />
           <b class="font-display text-lg text-stone">Menu</b>
         </div>
         <button
@@ -150,7 +150,7 @@
         </h1>
         <p class="mt-5 max-w-xl leading-relaxed text-stone2">
           Nourishing chia pudding made with real protein yogurt, oat milk,
-          coconut milk, real fruit, and optional features.
+          coconut milk, real fruit, and optional toppings.
         </p>
         <a class="mt-7 inline-block rounded-full bg-olive px-5 py-3 text-sm font-bold text-ink" href="#order">
           Build an order
@@ -171,7 +171,7 @@
         </div>
 
         <p class="mt-4 text-xs text-stone2">
-          Made with real protein yogurt, oat milk, and chia seeds. Base values exclude optional features.
+          Made with real protein yogurt, oat milk, and chia seeds. Base values exclude optional toppings.
           <a class="text-olive" href="nutrition.html">Nutrition details</a> · <a class="text-olive" href="safety.html">Safety & allergen info</a>
         </p>
 
@@ -202,15 +202,15 @@
 
               <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label class="text-sm">
-                  Protein boost
+                  Vanilla Protein
                   <select id="protein" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
-                    <option value="no">No protein boost</option>
-                    <option value="yes">Yes — +$1 per Nourishment</option>
+                    <option value="no">No Vanilla Protein</option>
+                    <option value="yes">Yes — +12g protein, +$1 per Nourishment</option>
                   </select>
                 </label>
               </div>
 
-              <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <label class="text-sm">
                   Almond flakes
                   <select id="almond" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
@@ -230,6 +230,14 @@
                 <label class="text-sm">
                   Maple syrup
                   <select id="maple" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
+                    <option>Add</option>
+                    <option>No thanks</option>
+                  </select>
+                </label>
+
+                <label class="text-sm">
+                  Crushed walnuts
+                  <select id="walnut" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
                     <option>Add</option>
                     <option>No thanks</option>
                   </select>
@@ -454,6 +462,19 @@
     });
     $('zip-input').addEventListener('input', renderSummary);
 
+    function setupAccountDropdown() {
+      const trigger = $('account-trigger');
+      const dropdown = $('account-dropdown');
+      if (!trigger || !dropdown) return;
+      trigger.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('hidden'); });
+      document.addEventListener('click', (e) => {
+        if (!dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && e.target !== trigger) {
+          dropdown.classList.add('hidden');
+        }
+      });
+      dropdown.querySelectorAll('a, button').forEach((el) => el.addEventListener('click', () => dropdown.classList.add('hidden')));
+    }
+
     function renderGuestNav() {
       $('nav-account-slot').innerHTML = `<a href="login.html" class="hover:text-olive transition">Log In</a>`;
       $('mobile-account-slot').innerHTML = `<a href="login.html" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Log In</a>`;
@@ -469,19 +490,17 @@
     function renderCustomerNav(firstName) {
       $('nav-account-slot').innerHTML = `
         <div id="account-dropdown-wrap" class="relative">
-          <button id="account-trigger" class="hover:text-olive transition">Hi, ${firstName}</button>
+          <button id="account-trigger" type="button" class="hover:text-olive transition">Hi, ${firstName}</button>
           <div id="account-dropdown" class="hidden absolute right-0 top-full mt-2 w-52 rounded-xl border border-line bg-surface p-2 shadow-lg z-50">
             <a href="account.html#profile" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">My Profile</a>
             <a href="account.html#orders" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Past Orders</a>
             <a href="account.html#rewards" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Points & Rewards</a>
             <hr class="my-2 border-line" />
-            <button id="dropdown-logout" class="block w-full text-left rounded-lg p-2 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
+            <button id="dropdown-logout" type="button" class="block w-full text-left rounded-lg p-2 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
           </div>
         </div>
       `;
-      const wrap = $('account-dropdown-wrap');
-      wrap.addEventListener('mouseenter', () => $('account-dropdown').classList.remove('hidden'));
-      wrap.addEventListener('mouseleave', () => $('account-dropdown').classList.add('hidden'));
+      setupAccountDropdown();
       $('dropdown-logout').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
 
       $('mobile-account-slot').innerHTML = `
@@ -663,9 +682,13 @@
       });
       const proteinBoost = $('protein').value === 'yes';
       if (proteinBoost) subtotal += totalNourishments;
-      const addOns = ['almond', 'coconut', 'maple']
+      const addOns = ['almond', 'coconut', 'maple', 'walnut']
         .filter((key) => $(key).value === 'Add')
-        .map((key) => (key === 'maple' ? 'maple syrup' : `${key} flakes`));
+        .map((key) => {
+          if (key === 'maple') return 'maple syrup';
+          if (key === 'walnut') return 'crushed walnuts';
+          return `${key} flakes`;
+        });
       const fulfillmentMode = document.querySelector('[name="mode"]:checked').value;
       const deliveryZip = $('zip-input').value.trim();
       const isFarDelivery = fulfillmentMode === 'Delivery' && deliveryZip.length === 5 && !isZipWithinFiveMiles(deliveryZip);
@@ -681,7 +704,7 @@
       const parts = [
         'Hi! I would like to order from Mystical Wellness:',
         ...order.lines,
-        order.proteinBoost ? 'Protein boost requested' : '',
+        order.proteinBoost ? 'Vanilla Protein add-on (+12g protein)' : '',
         order.addOns.length ? `Add: ${order.addOns.join(', ')}` : '',
         `Subtotal: ${formatMoney(order.subtotal)}`,
         `Fulfillment: ${order.fulfillmentMode}`,
@@ -699,7 +722,7 @@
         $('summary').innerHTML = 'Choose a flavor to begin.';
       } else {
         let html = order.lines.map((line) => `<p>${line}</p>`).join('');
-        if (order.proteinBoost) html += '<p>Protein boost</p>';
+        if (order.proteinBoost) html += '<p>Vanilla Protein (+12g protein)</p>';
         if (order.addOns.length) html += `<p>Add: ${order.addOns.join(', ')}</p>`;
         if (order.isFarDelivery) html += '<p class="text-olive">2-Nourishment minimum applies (outside 5-mile zone)</p>';
         $('summary').innerHTML = html;
@@ -731,7 +754,7 @@
       renderSummary();
     });
 
-    ['protein', 'almond', 'coconut', 'maple'].forEach((id) => $(id).addEventListener('change', renderSummary));
+    ['protein', 'almond', 'coconut', 'maple', 'walnut'].forEach((id) => $(id).addEventListener('change', renderSummary));
     ['customer-name', 'customer-phone', 'notes'].forEach((id) => $(id).addEventListener('input', renderSummary));
     document.querySelectorAll('[name="mode"]').forEach((radio) => radio.addEventListener('change', renderSummary));
 
