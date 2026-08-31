@@ -1,621 +1,333 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>My Account — Mystical Wellness</title>
-  <link rel="icon" href="logo.JPG" type="image/jpeg" />
-  <link rel="apple-touch-icon" href="logo.JPG" />
+// ============================================================
+// Mystical Wellness — Firebase Backend Configuration
+// ============================================================
+// Only remaining step: paste your deployed Google Apps Script
+// /exec URL into BACKEND_URL below.
+// ============================================================
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { display: ['Fraunces', 'Georgia', 'serif'] },
-          colors: {
-            ink: '#151510', surface: '#201f18', surface2: '#29261e',
-            olive: '#9ca86a', stone: '#b5aa96', stone2: '#918878', line: '#554f43'
-          }
-        }
-      }
-    };
-  </script>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  signOut,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  addDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getFunctions,
+  httpsCallable
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { overflow-x: hidden; width: 100%; margin: 0; padding: 0; }
-    body { font-family: Inter, sans-serif; }
-    .card { transition: 0.2s; min-width: 0; width: 100%; }
-    .card:hover { transform: translateY(-3px); border-color: #9ca86a; }
-    .page-wrap { width: 100%; max-width: 64rem; margin: 0 auto; padding: 1.25rem; }
-    .view { display: none; }
-    .view.active { display: block; }
-    .tab-btn.active { background: #9ca86a; color: #151510; }
-    #mobile-panel { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); transform: translateX(100%); }
-    #mobile-panel.open { transform: translateX(0); }
-    .chevron { transition: transform 0.2s; }
-    .accordion-row.open .chevron { transform: rotate(180deg); }
-    input::placeholder, textarea::placeholder { color: #9ca86a; opacity: 1; }
-    #auth-loading {
-      position: fixed; inset: 0; background: #151510; z-index: 100;
-      display: flex; align-items: center; justify-content: center;
+const firebaseConfig = {
+  apiKey: "AIzaSyDXfMK8nxFQ9-wbazPYqgPmF58QFS_Y1Vs",
+  authDomain: "mystical-wellness.firebaseapp.com",
+  projectId: "mystical-wellness",
+  storageBucket: "mystical-wellness.firebasestorage.app",
+  messagingSenderId: "859227928719",
+  appId: "1:859227928719:web:88f098c46bed52e44318fa",
+  measurementId: "G-6XV6XJX2MX"
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+const functions = getFunctions(app);
+
+export const BACKEND_URL = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
+
+const ADMIN_EMAILS = [
+  "mysticalwellness26@gmail.com",
+  "mysticalwellness26admin@gmail.com"
+];
+
+export function isAdminEmail(email) {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
+export const REWARD_TIERS = [
+  { points: 50, reward: "Free topping on your next order" },
+  { points: 100, reward: "$5 off your next order" },
+  { points: 200, reward: "One free 12oz Nourishment" },
+  { points: 350, reward: "$15 off your next order" }
+];
+
+export function watchAuth(callback) {
+  return onAuthStateChanged(auth, (user) => {
+    callback(user);
+  });
+}
+
+export async function logIn(email, password, rememberMe = true) {
+  await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+  return signInWithEmailAndPassword(auth, email, password);
+}
+
+export async function signUpCustomer({ name, phone, email, password }) {
+  const credential = await createUserWithEmailAndPassword(auth, email, password);
+
+  if (name) {
+    await updateProfile(credential.user, { displayName: name });
+  }
+
+  await setDoc(doc(db, "users", credential.user.uid), {
+    name: name || "",
+    phone: phone || "",
+    email,
+    address: "",
+    points: 0,
+    activeReward: null,
+    createdAt: serverTimestamp()
+  });
+
+  return credential;
+}
+
+export async function resetPassword(email) {
+  return sendPasswordResetEmail(auth, email);
+}
+
+export async function logOut() {
+  return signOut(auth);
+}
+
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+
+export function enforceSessionTimeout() {
+  const now = Date.now();
+  const lastActive = Number(localStorage.getItem("mw_last_active") || now);
+
+  if (now - lastActive > SESSION_TIMEOUT_MS) {
+    localStorage.removeItem("mw_last_active");
+    logOut();
+    return false;
+  }
+
+  localStorage.setItem("mw_last_active", String(now));
+  return true;
+}
+
+export async function getUserProfile(uid) {
+  if (!uid) return null;
+  const snap = await getDoc(doc(db, "users", uid));
+  return snap.exists() ? snap.data() : null;
+}
+
+export async function updateUserProfile(uid, updates) {
+  if (!uid) throw new Error("Missing user ID.");
+  await updateDoc(doc(db, "users", uid), updates);
+}
+
+export async function getAllUsers() {
+  const snap = await getDocs(collection(db, "users"));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+export async function saveOrderToFirestore(orderData, uid) {
+  const payload = {
+    ...orderData,
+    uid: uid || null,
+    status: "New",
+    createdAt: serverTimestamp()
+  };
+  const docRef = await addDoc(collection(db, "orders"), payload);
+  return docRef.id;
+}
+
+export async function getOrdersForUser(uid) {
+  if (!uid) return [];
+  const ordersQuery = query(
+    collection(db, "orders"),
+    where("uid", "==", uid),
+    orderBy("createdAt", "desc")
+  );
+  const snap = await getDocs(ordersQuery);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function getAllOrders() {
+  const ordersQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(ordersQuery);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function updateOrderStatus(orderId, status) {
+  await updateDoc(doc(db, "orders", orderId), { status });
+}
+
+export async function markOrderCompletedAndAwardPoints(orderId) {
+  const orderRef = doc(db, "orders", orderId);
+  const orderSnap = await getDoc(orderRef);
+  if (!orderSnap.exists()) throw new Error("Order not found.");
+
+  const order = orderSnap.data();
+  if (order.status === "Completed") return;
+
+  await updateDoc(orderRef, { status: "Completed" });
+
+  if (order.uid && order.totalNourishments) {
+    const userRef = doc(db, "users", order.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const currentPoints = userSnap.data().points || 0;
+      const earned = order.totalNourishments * 10;
+      await updateDoc(userRef, { points: currentPoints + earned });
     }
-  </style>
-</head>
-
-<body class="min-h-screen bg-ink text-stone">
-
-  <div id="auth-loading">
-    <div class="h-8 w-8 animate-spin rounded-full border-2 border-olive border-t-transparent"></div>
-  </div>
-
-  <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
-    <div class="page-wrap flex items-center justify-between py-4">
-      <a href="index.html" class="flex items-center gap-2.5">
-        <img src="logo.JPG" alt="Mystical Wellness logo" class="h-10 w-10 rounded-full object-cover border border-line" />
-        <span class="font-display text-xl text-stone">Mystical Wellness</span>
-      </a>
-
-      <nav class="hidden items-center gap-5 text-sm text-stone2 sm:flex">
-        <a class="hover:text-olive transition" href="index.html#menu-section">Menu</a>
-        <a class="hover:text-olive transition" href="why.html">Why?</a>
-        <a class="hover:text-olive transition" href="nutrition.html">Nutrition</a>
-        <a class="hover:text-olive transition" href="safety.html">Safety</a>
-        <div id="nav-account-slot" class="relative"></div>
-        <a class="rounded-full bg-olive px-4 py-2 text-sm font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order</a>
-      </nav>
-
-      <button id="mobile-open-btn" type="button" aria-label="Open mobile menu"
-        class="grid h-10 w-10 place-items-center rounded-xl border border-line text-stone sm:hidden hover:border-olive transition">
-        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M4 7h16M4 12h16M4 17h16" />
-        </svg>
-      </button>
-    </div>
-  </header>
-
-  <div id="mobile-scrim" class="fixed inset-0 z-40 hidden bg-ink/80 backdrop-blur-sm sm:hidden"></div>
-
-  <aside id="mobile-panel" class="fixed inset-y-0 right-0 z-50 w-72 max-w-[85vw] border-l border-line bg-surface p-6 sm:hidden flex flex-col justify-between">
-    <div>
-      <div class="flex items-center justify-between pb-4 border-b border-line">
-        <div class="flex items-center gap-2">
-          <img src="logo.JPG" alt="Mystical Wellness logo" class="h-8 w-8 rounded-full object-cover border border-line" />
-          <b class="font-display text-lg text-stone">Menu</b>
-        </div>
-        <button id="mobile-close-btn" type="button" aria-label="Close mobile menu"
-          class="grid h-8 w-8 place-items-center rounded-lg border border-line text-stone hover:border-olive">
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
-      </div>
-      <div id="mobile-account-slot" class="mt-4"></div>
-      <nav class="mt-4 flex flex-col gap-2 text-base">
-        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="index.html#menu-section">Menu</a>
-        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="why.html">Why?</a>
-        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="nutrition.html">Nutrition</a>
-        <a class="mobile-nav-link rounded-xl p-3 text-stone hover:bg-surface2 transition" href="safety.html">Safety</a>
-        <a class="mobile-nav-link mt-4 rounded-full bg-olive p-3 text-center font-bold text-ink hover:bg-olive/90 transition" href="index.html#order">Order now</a>
-      </nav>
-    </div>
-    <div class="border-t border-line pt-4 text-xs text-stone2 text-center">Made to Nourish</div>
-  </aside>
-
-  <main class="page-wrap py-10">
-
-    <section id="view-home" class="view active">
-      <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Welcome back</p>
-      <h1 id="greeting-text" class="mt-3 font-display text-4xl sm:text-6xl">Good day,<br /><span class="text-olive">friend.</span></h1>
-      <p class="mt-4 max-w-xl text-stone2">Check your order history, track your rewards points, or update your account details.</p>
-      <button id="go-dashboard" class="mt-7 inline-block rounded-full bg-olive px-6 py-3 text-sm font-bold text-ink hover:bg-olive/90 transition">
-        Go to My Dashboard →
-      </button>
-
-      <div class="mt-14 border-t border-line pt-12">
-        <div class="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h2 class="font-display text-4xl sm:text-5xl">
-              Browse your<br />
-              <span class="text-olive">Nourishments.</span>
-            </h2>
-          </div>
-          <span class="text-sm text-stone2">$6 per 12oz Nourishment</span>
-        </div>
-
-        <p class="mt-4 text-xs text-stone2">
-          Made with real protein yogurt, oat milk, and chia seeds. Base values exclude optional toppings.
-          <a class="text-olive" href="nutrition.html">Nutrition details</a> · <a class="text-olive" href="safety.html">Safety & allergen info</a>
-        </p>
-
-        <div id="menu-grid" class="mt-7 hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-5"></div>
-        <div id="menu-accordion" class="mt-7 space-y-2 sm:hidden"></div>
-
-        <div class="mt-8 text-center sm:text-left">
-          <a href="index.html#order" class="inline-block rounded-full bg-olive px-6 py-3 text-sm font-bold text-ink hover:bg-olive/90 transition">
-            Build an order →
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <section id="view-dashboard" class="view">
-      <button id="back-home" class="mb-4 text-sm text-stone2 hover:text-olive transition">← Back to home</button>
-      <h2 class="font-display text-3xl">Dashboard</h2>
-
-      <div class="mt-5 flex flex-wrap gap-2">
-        <button data-tab="orders" class="tab-btn active rounded-full border border-line px-4 py-2 text-sm font-bold transition">Order History</button>
-        <button data-tab="rewards" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Rewards</button>
-        <button data-tab="settings" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Account Settings</button>
-      </div>
-
-      <div id="tab-orders" class="tab-panel mt-6">
-        <div class="flex flex-wrap gap-3">
-          <input id="filter-date" type="date" class="rounded-xl border border-line bg-surface p-2 text-sm text-stone" />
-          <input id="filter-flavor" type="text" placeholder="Filter by flavor..." class="rounded-xl border border-line bg-surface p-2 text-sm text-stone flex-1" />
-          <button id="clear-filters" class="rounded-xl border border-line px-3 py-2 text-sm text-stone2 hover:border-olive transition">Clear</button>
-        </div>
-        <div id="orders-list" class="mt-4 space-y-3">
-          <p class="text-stone2 text-sm">Loading your orders...</p>
-        </div>
-      </div>
-
-      <div id="tab-rewards" class="tab-panel mt-6 hidden">
-        <div class="rounded-2xl border border-olive/60 bg-surface2 p-5">
-          <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Your points</p>
-          <p id="points-balance" class="mt-1 font-display text-5xl">0</p>
-        </div>
-
-        <div id="active-reward-box" class="mt-4 hidden rounded-2xl border border-olive bg-olive/10 p-5">
-          <p class="text-sm font-bold text-olive">Active reward</p>
-          <p id="active-reward-text" class="mt-1 text-stone"></p>
-          <p class="mt-2 text-xs text-stone2">Show this code at pickup. It's valid until redeemed — no expiration.</p>
-        </div>
-
-        <h3 class="mt-6 font-display text-xl">Reward tiers</h3>
-        <div id="tiers-list" class="mt-3 space-y-2"></div>
-      </div>
-
-      <div id="tab-settings" class="tab-panel mt-6 hidden">
-        <form id="settings-form" class="space-y-3 max-w-md">
-          <label class="text-sm block">
-            Full name
-            <input id="settings-name" class="mt-1 block w-full rounded-xl border border-line bg-surface p-3 text-stone focus:border-olive outline-none" />
-          </label>
-          <label class="text-sm block">
-            Phone number
-            <input id="settings-phone" class="mt-1 block w-full rounded-xl border border-line bg-surface p-3 text-stone focus:border-olive outline-none" />
-          </label>
-          <label class="text-sm block">
-            Email <span class="text-stone2">(locked)</span>
-            <input id="settings-email" disabled class="mt-1 block w-full rounded-xl border border-line bg-ink/40 p-3 text-stone2" />
-          </label>
-          <label class="text-sm block">
-            Delivery address
-            <input id="settings-address" placeholder="Street, city, ZIP" class="mt-1 block w-full rounded-xl border border-line bg-surface p-3 text-stone focus:border-olive outline-none" />
-          </label>
-          <button type="submit" class="rounded-xl bg-olive px-5 py-3 text-sm font-bold text-ink hover:bg-olive/90 transition">Save Changes</button>
-        </form>
-        <p id="settings-status" class="mt-3 hidden text-xs font-medium"></p>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="border-t border-line py-8 text-center text-xs text-stone2">
-    <p>Mystical Wellness · Made to Nourish</p>
-    <button id="review-btn" class="mt-3 inline-block rounded-full bg-olive px-4 py-2 text-xs font-bold text-ink hover:bg-olive/90 transition">
-      Leave a Review
-    </button>
-  </footer>
-
-  <div id="review-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/80 p-4">
-    <div class="w-full max-w-md rounded-2xl border border-line bg-surface p-6">
-      <div class="flex items-center justify-between">
-        <h3 class="font-display text-2xl text-olive">Leave a Review</h3>
-        <button id="review-close" class="text-stone2 hover:text-olive">✕</button>
-      </div>
-      <p class="mt-2 text-xs text-stone2">Your review is sent directly to us — thank you for the feedback!</p>
-      <form id="review-form" class="mt-4 space-y-3">
-        <label class="text-sm block">
-          Your name <span class="text-olive">*</span>
-          <input id="review-name" required class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" placeholder="Jane Doe" />
-        </label>
-        <label class="text-sm block">
-          Your email <span class="text-olive">*</span>
-          <input id="review-email" type="email" required class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" placeholder="jane@email.com" />
-        </label>
-        <label class="text-sm block">
-          Rating
-          <select id="review-rating" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone">
-            <option value="5">★★★★★ (5)</option>
-            <option value="4">★★★★☆ (4)</option>
-            <option value="3">★★★☆☆ (3)</option>
-            <option value="2">★★☆☆☆ (2)</option>
-            <option value="1">★☆☆☆☆ (1)</option>
-          </select>
-        </label>
-        <label class="text-sm block">
-          Your review <span class="text-olive">*</span>
-          <textarea id="review-text" required rows="4" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none"></textarea>
-        </label>
-        <button type="submit" class="w-full rounded-xl bg-olive p-3 text-sm font-bold text-ink hover:bg-olive/90 transition">Send Review</button>
-      </form>
-      <p id="review-status" class="mt-3 hidden text-xs font-medium"></p>
-    </div>
-  </div>
-
-  <script type="module">
-    import {
-      auth, watchAuth, logOut, enforceSessionTimeout, getUserProfile, updateUserProfile,
-      getOrdersForUser, getGreeting, REWARD_TIERS, redeemReward, isAdminEmail, BACKEND_URL
-    } from './firebase-config.js';
-
-    const FLAVORS = [
-      ['apple', 'Apple Cinnamon', 118, 8, 'Core', 'Apple%20Cinnamon.jpeg', 4, 10, 4],
-      ['mango', 'Mango', 122, 8, 'Core', 'Mango.jpeg', 4, 11, 4],
-      ['pineapple', 'Pineapple', 118, 8, 'Core', 'Pina-Colada.jpeg', 4, 10, 4],
-      ['strawberry', 'Strawberry', 115, 8, 'Core', 'Strawberry.jpeg', 4, 9, 4],
-      ['blueberry', 'Blueberry', 119, 8, 'Core', null, 4, 10, 4]
-    ];
-
-    const $ = (id) => document.getElementById(id);
-    let currentUser = null;
-    let currentProfile = null;
-    let allOrders = [];
-    let redirectTimer = null;
-    let authResolved = false;
-
-    // Safety net: if for any reason watchAuth never fires or something hangs,
-    // never leave the user staring at a permanent spinner.
-    setTimeout(() => {
-      if (!authResolved) $('auth-loading')?.remove();
-    }, 4000);
-
-    function openMobileMenu() { $('mobile-panel').classList.add('open'); $('mobile-scrim').classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
-    function closeMobileMenu() { $('mobile-panel').classList.remove('open'); $('mobile-scrim').classList.add('hidden'); document.body.style.overflow = ''; }
-    $('mobile-open-btn').addEventListener('click', openMobileMenu);
-    $('mobile-close-btn').addEventListener('click', closeMobileMenu);
-    $('mobile-scrim').addEventListener('click', closeMobileMenu);
-    document.querySelectorAll('.mobile-nav-link').forEach((link) => link.addEventListener('click', closeMobileMenu));
-
-    function closeMenuOnAnyClickInside(containerId) {
-      $(containerId).querySelectorAll('a, button').forEach((el) => el.addEventListener('click', closeMobileMenu));
-    }
-
-    function setupAccountDropdown() {
-      const trigger = $('account-trigger');
-      const dropdown = $('account-dropdown');
-      if (!trigger || !dropdown) return;
-      trigger.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('hidden'); });
-      document.addEventListener('click', (e) => {
-        if (!dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && e.target !== trigger) {
-          dropdown.classList.add('hidden');
-        }
-      });
-      dropdown.querySelectorAll('a, button').forEach((el) => el.addEventListener('click', () => dropdown.classList.add('hidden')));
-    }
-
-    function openReviewModal() {
-      $('review-modal').classList.remove('hidden');
-      $('review-modal').classList.add('flex');
-    }
-    function closeReviewModal() {
-      $('review-modal').classList.add('hidden');
-      $('review-modal').classList.remove('flex');
-    }
-    $('review-btn').addEventListener('click', openReviewModal);
-    $('review-close').addEventListener('click', closeReviewModal);
-
-    $('review-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const statusEl = $('review-status');
-      statusEl.classList.remove('hidden');
-
-      if (BACKEND_URL.includes('PASTE_')) {
-        statusEl.textContent = 'Reviews are not yet connected — backend URL not configured.';
-        statusEl.className = 'mt-3 block text-xs font-medium text-red-400';
-        return;
-      }
-
-      try {
-        await fetch(BACKEND_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'sendReview',
-            reviewerName: $('review-name').value.trim(),
-            reviewerEmail: $('review-email').value.trim(),
-            rating: $('review-rating').value,
-            reviewText: $('review-text').value.trim()
-          })
-        });
-        statusEl.textContent = 'Thank you! Your review has been sent.';
-        statusEl.className = 'mt-3 block text-xs font-medium text-olive';
-        $('review-form').reset();
-        setTimeout(closeReviewModal, 1500);
-      } catch (err) {
-        statusEl.textContent = 'Could not send review. Please try again later.';
-        statusEl.className = 'mt-3 block text-xs font-medium text-red-400';
-      }
-    });
-
-    function renderNav(firstName) {
-      $('nav-account-slot').innerHTML = `
-        <div id="account-dropdown-wrap" class="relative">
-          <button id="account-trigger" type="button" class="hover:text-olive transition">Hi, ${firstName}</button>
-          <div id="account-dropdown" class="hidden absolute right-0 top-full mt-2 w-52 rounded-xl border border-line bg-surface p-2 shadow-lg z-50">
-            <a href="account.html#profile" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">My Profile</a>
-            <a href="account.html#orders" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Past Orders</a>
-            <a href="account.html#rewards" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Points & Rewards</a>
-            <hr class="my-2 border-line" />
-            <button id="dropdown-logout" type="button" class="block w-full text-left rounded-lg p-2 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
-          </div>
-        </div>
-      `;
-      setupAccountDropdown();
-      $('dropdown-logout').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
-
-      $('mobile-account-slot').innerHTML = `
-        <a href="account.html" class="block font-display text-lg text-stone mb-2">Hi, ${firstName}</a>
-        <a href="account.html#profile" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">My Profile</a>
-        <a href="account.html#orders" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Past Orders</a>
-        <a href="account.html#rewards" class="mobile-nav-link block rounded-xl p-3 text-stone hover:bg-surface2 transition">Points & Rewards</a>
-        <button id="mobile-logout" class="block w-full text-left rounded-xl p-3 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
-      `;
-      $('mobile-logout').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
-      closeMenuOnAnyClickInside('mobile-account-slot');
-    }
-
-    function renderMenu() {
-      const target = $('menu-grid');
-      if (!target) return;
-      target.innerHTML = FLAVORS.map((flavor) => {
-        const [id, name, calories, protein, badge, photo] = flavor;
-        const photoHtml = photo
-          ? `<img src="${photo}" alt="${name}" class="mb-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
-          : '';
-        return `
-          <article class="card rounded-2xl border border-line bg-surface p-4">
-            ${photoHtml}
-            <div class="flex items-start justify-between gap-2">
-              <h3 class="font-display text-xl text-stone">${name}</h3>
-              <span class="shrink-0 rounded-full bg-olive/15 px-2 py-1 text-[10px] font-bold uppercase text-olive">${badge}</span>
-            </div>
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-stone2">
-              <span>${calories} cal · ${protein}g protein base</span>
-              <b class="text-stone">$6</b>
-            </div>
-          </article>
-        `;
-      }).join('');
-    }
-
-    function renderMenuAccordion() {
-      const target = $('menu-accordion');
-      if (!target) return;
-      target.innerHTML = FLAVORS.map((flavor, index) => {
-        const [id, name, calories, protein, badge, photo, fiber, carbs, fat] = flavor;
-        const photoHtml = photo
-          ? `<img src="${photo}" alt="${name}" class="mt-3 aspect-square w-full rounded-xl border border-line object-cover" loading="lazy" />`
-          : '';
-        return `
-          <div class="accordion-row rounded-xl border border-line bg-surface overflow-hidden">
-            <button data-accordion="${index}" class="accordion-toggle flex w-full items-center justify-between p-4 text-left">
-              <span>
-                <b class="text-sm text-stone">${name}</b>
-                <span class="ml-2 text-xs text-stone2">$6 · ${calories} cal</span>
-              </span>
-              <svg class="chevron h-4 w-4 shrink-0 text-olive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-            <div class="accordion-panel hidden border-t border-line p-4">
-              ${photoHtml}
-              <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-stone2 sm:grid-cols-5">
-                <div><b class="block text-stone">${calories}</b>Calories</div>
-                <div><b class="block text-stone">${protein}g</b>Protein</div>
-                <div><b class="block text-stone">${fiber}g</b>Fiber</div>
-                <div><b class="block text-stone">${carbs}g</b>Carbs</div>
-                <div><b class="block text-stone">${fat}g</b>Fat</div>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      target.querySelectorAll('.accordion-toggle').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          const row = btn.closest('.accordion-row');
-          const panel = row.querySelector('.accordion-panel');
-          const isOpen = row.classList.contains('open');
-          row.classList.toggle('open', !isOpen);
-          panel.classList.toggle('hidden', isOpen);
-        });
-      });
-    }
-
-    // ---- Auth guard with grace period to avoid the "resolve-then-null" race ----
-    watchAuth((user) => {
-      authResolved = true;
-
-      if (user) {
-        if (redirectTimer) { clearTimeout(redirectTimer); redirectTimer = null; }
-
-        if (isAdminEmail(user.email)) { window.location.href = 'admin.html'; return; }
-        if (!enforceSessionTimeout()) { window.location.href = 'login.html'; return; }
-
-        // Remove the spinner immediately once we know the user is staying on
-        // this page — do NOT wait on profile/order Firestore reads first.
-        $('auth-loading')?.remove();
-
-        (async () => {
-          try {
-            currentUser = user;
-            currentProfile = await getUserProfile(user.uid);
-            const firstName = (currentProfile?.name || 'friend').split(' ')[0];
-
-            renderNav(firstName);
-            $('greeting-text').innerHTML = `${getGreeting()},<br /><span class="text-olive">${firstName}.</span>`;
-            $('settings-name').value = currentProfile?.name || '';
-            $('settings-phone').value = currentProfile?.phone || '';
-            $('settings-email').value = currentProfile?.email || '';
-            $('settings-address').value = currentProfile?.address || '';
-
-            renderRewards();
-            await loadOrders();
-            applyHashRoute();
-          } catch (err) {
-            console.error('Failed to load account data:', err);
-          }
-        })();
-      } else {
-        if (redirectTimer) return;
-        redirectTimer = setTimeout(() => { window.location.href = 'login.html'; }, 700);
-      }
-    });
-
-    document.body.addEventListener('click', () => enforceSessionTimeout());
-
-    $('go-dashboard').addEventListener('click', () => switchView('dashboard'));
-    $('back-home').addEventListener('click', () => switchView('home'));
-
-    function switchView(name) {
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      $(`view-${name}`).classList.add('active');
-    }
-
-    function switchTab(tabName) {
-      document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.classList.add('text-stone2'); });
-      document.querySelector(`.tab-btn[data-tab="${tabName}"]`)?.classList.add('active');
-      document.querySelector(`.tab-btn[data-tab="${tabName}"]`)?.classList.remove('text-stone2');
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-      $(`tab-${tabName}`)?.classList.remove('hidden');
-    }
-
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-    });
-
-    function applyHashRoute() {
-      const hash = window.location.hash.replace('#', '');
-      if (!hash) return;
-      switchView('dashboard');
-      if (hash === 'profile') switchTab('settings');
-      else if (hash === 'orders') switchTab('orders');
-      else if (hash === 'rewards') switchTab('rewards');
-    }
-    window.addEventListener('hashchange', applyHashRoute);
-
-    async function loadOrders() {
-      allOrders = await getOrdersForUser(currentUser.uid);
-      renderOrders();
-    }
-
-    function renderOrders() {
-      const dateFilter = $('filter-date').value;
-      const flavorFilter = $('filter-flavor').value.trim().toLowerCase();
-
-      let filtered = allOrders;
-      if (dateFilter) {
-        filtered = filtered.filter(o => {
-          const created = o.createdAt?.toDate ? o.createdAt.toDate() : new Date();
-          return created.toISOString().slice(0, 10) === dateFilter;
-        });
-      }
-      if (flavorFilter) {
-        filtered = filtered.filter(o => (o.itemsText || '').toLowerCase().includes(flavorFilter));
-      }
-
-      if (filtered.length === 0) {
-        $('orders-list').innerHTML = '<p class="text-stone2 text-sm">No orders found.</p>';
-        return;
-      }
-
-      $('orders-list').innerHTML = filtered.map(o => {
-        const created = o.createdAt?.toDate ? o.createdAt.toDate() : new Date();
-        const statusColor = o.status === 'Completed' ? 'text-olive' : o.status === 'Cancelled' ? 'text-red-400' : 'text-stone2';
-        return `
-          <div class="rounded-xl border border-line bg-surface p-4">
-            <div class="flex justify-between text-sm">
-              <b class="text-stone">${created.toLocaleDateString()}</b>
-              <span class="${statusColor} font-semibold">${o.status}</span>
-            </div>
-            <p class="mt-1 text-sm text-stone2">${o.itemsText}</p>
-            <p class="mt-1 text-xs text-stone2">Subtotal: $${Number(o.subtotal || 0).toFixed(2)} · ${o.mode}${o.deliveryZip ? ' · ZIP ' + o.deliveryZip : ''}</p>
-            ${o.rewardCodeApplied ? `<p class="mt-1 text-xs text-olive">Reward applied: ${o.rewardCodeApplied}</p>` : ''}
-          </div>
-        `;
-      }).join('');
-    }
-
-    $('filter-date').addEventListener('change', renderOrders);
-    $('filter-flavor').addEventListener('input', renderOrders);
-    $('clear-filters').addEventListener('click', () => { $('filter-date').value = ''; $('filter-flavor').value = ''; renderOrders(); });
-
-    function renderRewards() {
-      const points = currentProfile?.points || 0;
-      $('points-balance').textContent = points;
-
-      if (currentProfile?.activeReward) {
-        $('active-reward-box').classList.remove('hidden');
-        $('active-reward-text').textContent = `${currentProfile.activeReward.reward} — Code: ${currentProfile.activeReward.code}`;
-      }
-
-      $('tiers-list').innerHTML = REWARD_TIERS.map((tier, i) => {
-        const unlocked = points >= tier.points;
-        const canRedeem = unlocked && !currentProfile?.activeReward;
-        return `
-          <div class="flex items-center justify-between rounded-xl border border-line bg-surface p-4">
-            <div>
-              <b class="text-stone">${tier.points} points</b>
-              <p class="text-sm text-stone2">${tier.reward}</p>
-            </div>
-            ${canRedeem
-              ? `<button data-tier="${i}" class="redeem-btn rounded-full bg-olive px-4 py-2 text-xs font-bold text-ink hover:bg-olive/90 transition">Redeem</button>`
-              : unlocked ? `<span class="text-xs text-stone2">Redeem your active reward first</span>` : `<span class="text-xs text-stone2">${tier.points - points} to go</span>`
-            }
-          </div>
-        `;
-      }).join('');
-
-      document.querySelectorAll('.redeem-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          try {
-            const code = await redeemReward(currentUser.uid, Number(btn.dataset.tier));
-            currentProfile = await getUserProfile(currentUser.uid);
-            renderRewards();
-            alert(`Reward redeemed! Your code is ${code}. Show this at pickup.`);
-          } catch (err) {
-            alert(err.message);
-          }
-        });
-      });
-    }
-
-    $('settings-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      try {
-        await updateUserProfile(currentUser.uid, {
-          name: $('settings-name').value.trim(),
-          phone: $('settings-phone').value.trim(),
-          address: $('settings-address').value.trim()
-        });
-        const status = $('settings-status');
-        status.textContent = 'Saved!';
-        status.className = 'mt-3 block text-xs font-medium text-olive';
-      } catch (err) {
-        const status = $('settings-status');
-        status.textContent = 'Error: ' + err.message;
-        status.className = 'mt-3 block text-xs font-medium text-red-400';
-      }
-    });
-
-    renderMenu();
-    renderMenuAccordion();
-  </script>
-</body>
-</html>
+  }
+}
+
+export async function markOrderCancelled(orderId) {
+  await updateDoc(doc(db, "orders", orderId), { status: "Cancelled" });
+}
+
+function generateRewardCode() {
+  const random = Math.floor(1000 + Math.random() * 9000);
+  return `MW-${random}`;
+}
+
+export async function redeemReward(uid, tierIndex) {
+  const tier = REWARD_TIERS[tierIndex];
+  if (!tier) throw new Error("Invalid reward tier.");
+
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) throw new Error("User profile not found.");
+
+  const profile = userSnap.data();
+  if (profile.activeReward) {
+    throw new Error("You already have an active reward. Redeem it at pickup before claiming another.");
+  }
+  if ((profile.points || 0) < tier.points) {
+    throw new Error("You do not have enough points for this reward yet.");
+  }
+
+  const code = generateRewardCode();
+  const activeReward = { code, reward: tier.reward, tierIndex, redeemedAt: new Date().toISOString() };
+
+  await updateDoc(userRef, { activeReward });
+  await setDoc(doc(db, "rewardCodes", code), {
+    uid,
+    reward: tier.reward,
+    status: "active",
+    createdAt: serverTimestamp()
+  });
+
+  return code;
+}
+
+export async function lookupRewardCode(code) {
+  if (!code) return null;
+  const cleanCode = code.trim().toUpperCase();
+  const snap = await getDoc(doc(db, "rewardCodes", cleanCode));
+  if (!snap.exists()) return null;
+
+  const data = snap.data();
+  if (data.status !== "active") return null;
+
+  return { code: cleanCode, reward: data.reward };
+}
+
+export async function markRewardCodeUsed(code) {
+  const cleanCode = code.trim().toUpperCase();
+  const codeRef = doc(db, "rewardCodes", cleanCode);
+  const codeSnap = await getDoc(codeRef);
+  if (!codeSnap.exists()) throw new Error("Reward code not found.");
+
+  const data = codeSnap.data();
+  await updateDoc(codeRef, { status: "used" });
+
+  if (data.uid) {
+    await updateDoc(doc(db, "users", data.uid), { activeReward: null });
+  }
+}
+
+export async function adjustUserPoints(uid, delta, reason, adminEmail) {
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) throw new Error("Customer not found.");
+
+  const currentPoints = userSnap.data().points || 0;
+  const newPoints = Math.max(0, currentPoints + Number(delta));
+
+  await updateDoc(userRef, { points: newPoints });
+
+  await addDoc(collection(db, "customerAudits"), {
+    uid,
+    action: "Adjusted points",
+    note: reason || "",
+    adminEmail: adminEmail || "unknown",
+    details: `Points changed by ${delta > 0 ? "+" : ""}${delta} (now ${newPoints})`,
+    createdAt: serverTimestamp()
+  });
+
+  return newPoints;
+}
+
+// ------------------------------------------------------------
+// Customer profile edits (name/phone/address/points) — always logged
+// ------------------------------------------------------------
+export async function updateCustomerProfileWithAudit(uid, updates, note, adminEmail) {
+  if (!note || !note.trim()) throw new Error("A note is required for every customer change.");
+
+  await updateDoc(doc(db, "users", uid), updates);
+
+  const changedFields = Object.keys(updates).join(", ");
+  await addDoc(collection(db, "customerAudits"), {
+    uid,
+    action: "Edited profile",
+    note,
+    adminEmail: adminEmail || "unknown",
+    details: `Updated: ${changedFields}`,
+    createdAt: serverTimestamp()
+  });
+}
+
+export async function getCustomerAudits() {
+  const auditsQuery = query(collection(db, "customerAudits"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(auditsQuery);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+// ------------------------------------------------------------
+// Cloud Function callables — account deletion and email changes
+// require the Admin SDK and cannot run from the browser alone.
+// See functions/index.js for the server-side code.
+// ------------------------------------------------------------
+export async function deleteCustomerAccount(uid, note) {
+  const callable = httpsCallable(functions, "deleteCustomerAccount");
+  const result = await callable({ uid, note });
+  return result.data;
+}
+
+export async function updateCustomerEmail(uid, newEmail, note) {
+  const callable = httpsCallable(functions, "updateCustomerEmail");
+  const result = await callable({ uid, newEmail, note });
+  return result.data;
+}
