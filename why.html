@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Why? — Mystical Wellness</title>
-  <link rel="icon" href="logo.png" type="image/png" />
-  <link rel="apple-touch-icon" href="logo.png" />
+  <link rel="icon" href="logo.JPG" type="image/jpeg" />
+  <link rel="apple-touch-icon" href="logo.JPG" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -47,7 +47,7 @@
   <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
     <div class="page-wrap flex items-center justify-between py-4">
       <a href="index.html" class="flex items-center gap-2.5">
-        <img src="logo.png" alt="Mystical Wellness logo" class="h-10 w-10 rounded-full object-cover border border-line" />
+        <img src="logo.JPG" alt="Mystical Wellness logo" class="h-10 w-10 rounded-full object-cover border border-line" />
         <span class="font-display text-xl text-stone">Mystical Wellness</span>
       </a>
 
@@ -79,7 +79,7 @@
     <div>
       <div class="flex items-center justify-between pb-4 border-b border-line">
         <div class="flex items-center gap-2">
-          <img src="logo.png" alt="Mystical Wellness logo" class="h-8 w-8 rounded-full object-cover border border-line" />
+          <img src="logo.JPG" alt="Mystical Wellness logo" class="h-8 w-8 rounded-full object-cover border border-line" />
           <b class="font-display text-lg text-stone">Menu</b>
         </div>
         <button
@@ -274,6 +274,19 @@
       $(containerId).querySelectorAll('a, button').forEach((el) => el.addEventListener('click', closeMobileMenu));
     }
 
+    function setupAccountDropdown() {
+      const trigger = $('account-trigger');
+      const dropdown = $('account-dropdown');
+      if (!trigger || !dropdown) return;
+      trigger.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('hidden'); });
+      document.addEventListener('click', (e) => {
+        if (!dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && e.target !== trigger) {
+          dropdown.classList.add('hidden');
+        }
+      });
+      dropdown.querySelectorAll('a, button').forEach((el) => el.addEventListener('click', () => dropdown.classList.add('hidden')));
+    }
+
     function openReviewModal() {
       $('review-modal').classList.remove('hidden');
       $('review-modal').classList.add('flex');
@@ -334,19 +347,17 @@
     function renderCustomerNav(firstName) {
       $('nav-account-slot').innerHTML = `
         <div id="account-dropdown-wrap" class="relative">
-          <button id="account-trigger" class="hover:text-olive transition">Hi, ${firstName}</button>
+          <button id="account-trigger" type="button" class="hover:text-olive transition">Hi, ${firstName}</button>
           <div id="account-dropdown" class="hidden absolute right-0 top-full mt-2 w-52 rounded-xl border border-line bg-surface p-2 shadow-lg z-50">
             <a href="account.html#profile" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">My Profile</a>
             <a href="account.html#orders" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Past Orders</a>
             <a href="account.html#rewards" class="block rounded-lg p-2 text-sm text-stone hover:bg-surface2 transition">Points & Rewards</a>
             <hr class="my-2 border-line" />
-            <button id="dropdown-logout" class="block w-full text-left rounded-lg p-2 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
+            <button id="dropdown-logout" type="button" class="block w-full text-left rounded-lg p-2 text-sm text-red-300 hover:bg-surface2 transition">Log Out</button>
           </div>
         </div>
       `;
-      const wrap = $('account-dropdown-wrap');
-      wrap.addEventListener('mouseenter', () => $('account-dropdown').classList.remove('hidden'));
-      wrap.addEventListener('mouseleave', () => $('account-dropdown').classList.add('hidden'));
+      setupAccountDropdown();
       $('dropdown-logout').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
 
       $('mobile-account-slot').innerHTML = `
