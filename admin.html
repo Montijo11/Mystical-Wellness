@@ -34,10 +34,18 @@
     .tab-panel.hidden { display: none; }
     table { border-collapse: collapse; width: 100%; }
     th, td { padding: 10px 12px; text-align: left; }
+    #auth-loading {
+      position: fixed; inset: 0; background: #151510; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+    }
   </style>
 </head>
 
 <body class="min-h-screen bg-ink text-stone">
+
+  <div id="auth-loading">
+    <div class="h-8 w-8 animate-spin rounded-full border-2 border-olive border-t-transparent"></div>
+  </div>
 
   <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
     <div class="page-wrap flex items-center justify-between py-4">
@@ -164,13 +172,23 @@
     let allCustomers = [];
     let ordersChart = null;
     let flavorsChart = null;
+    let redirectTimer = null;
 
     const STATUS_OPTIONS = ['New', 'Accepted', 'Preparing', 'Ready for Pickup', 'Out for Delivery', 'Completed', 'Cancelled'];
 
+    // ---- Auth guard with grace period to avoid the "resolve-then-null" race ----
     watchAuth((user) => {
-      if (!user || !isAdminEmail(user.email)) { window.location.href = 'login.html'; return; }
-      currentAdmin = user;
-      loadEverything();
+      if (user && isAdminEmail(user.email)) {
+        if (redirectTimer) { clearTimeout(redirectTimer); redirectTimer = null; }
+        currentAdmin = user;
+        loadEverything();
+        $('auth-loading')?.remove();
+      } else if (user && !isAdminEmail(user.email)) {
+        window.location.href = 'account.html';
+      } else {
+        if (redirectTimer) return;
+        redirectTimer = setTimeout(() => { window.location.href = 'login.html'; }, 700);
+      }
     });
 
     $('logout-btn').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
@@ -265,7 +283,6 @@
       return 'text-stone2';
     }
 
-    // ---------------- Invoice PDF generation ----------------
     function generateInvoicePDF(order) {
       const { jsPDF } = window.jspdf;
       const docPdf = new jsPDF({ unit: 'pt', format: 'letter' });
@@ -326,8 +343,8 @@
         y += 16;
       });
 
-      if (order.proteinBoost) { docPdf.text('Protein boost add-on', 56, y); y += 16; }
-      if (order.addOns) { docPdf.text('Add-ons: ' + order.addOns, 56, y); y += 16; }
+      if (order.proteinBoost) { docPdf.text('Vanilla Protein add-on (+12g protein)', 56, y); y += 16; }
+      if (order.addOns) { docPdf.text('Toppings: ' + order.addOns, 56, y); y += 16; }
 
       y += 10;
       docPdf.line(56, y, pageWidth - 56, y);
