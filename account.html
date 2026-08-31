@@ -38,10 +38,18 @@
     .chevron { transition: transform 0.2s; }
     .accordion-row.open .chevron { transform: rotate(180deg); }
     input::placeholder, textarea::placeholder { color: #9ca86a; opacity: 1; }
+    #auth-loading {
+      position: fixed; inset: 0; background: #151510; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+    }
   </style>
 </head>
 
 <body class="min-h-screen bg-ink text-stone">
+
+  <div id="auth-loading">
+    <div class="h-8 w-8 animate-spin rounded-full border-2 border-olive border-t-transparent"></div>
+  </div>
 
   <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
     <div class="page-wrap flex items-center justify-between py-4">
@@ -118,7 +126,7 @@
         </div>
 
         <p class="mt-4 text-xs text-stone2">
-          Made with real protein yogurt, oat milk, and chia seeds. Base values exclude optional features.
+          Made with real protein yogurt, oat milk, and chia seeds. Base values exclude optional toppings.
           <a class="text-olive" href="nutrition.html">Nutrition details</a> · <a class="text-olive" href="safety.html">Safety & allergen info</a>
         </p>
 
@@ -257,6 +265,7 @@
     let currentUser = null;
     let currentProfile = null;
     let allOrders = [];
+    let redirectTimer = null;
 
     function openMobileMenu() { $('mobile-panel').classList.add('open'); $('mobile-scrim').classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
     function closeMobileMenu() { $('mobile-panel').classList.remove('open'); $('mobile-scrim').classList.add('hidden'); document.body.style.overflow = ''; }
@@ -422,25 +431,38 @@
       });
     }
 
+    // ---- Auth guard with grace period to avoid the "resolve-then-null" race ----
+    // Firebase can briefly report no user while it restores a persisted session
+    // from storage on a cold page load. Instead of redirecting to login.html the
+    // instant that happens, we wait ~700ms — if the real user arrives in that
+    // window, we cancel the redirect. This avoids the "have to log in twice" bug.
     watchAuth(async (user) => {
-      if (!user) { window.location.href = 'login.html'; return; }
-      if (isAdminEmail(user.email)) { window.location.href = 'admin.html'; return; }
-      if (!enforceSessionTimeout()) { window.location.href = 'login.html'; return; }
+      if (user) {
+        if (redirectTimer) { clearTimeout(redirectTimer); redirectTimer = null; }
 
-      currentUser = user;
-      currentProfile = await getUserProfile(user.uid);
-      const firstName = (currentProfile?.name || 'friend').split(' ')[0];
+        if (isAdminEmail(user.email)) { window.location.href = 'admin.html'; return; }
+        if (!enforceSessionTimeout()) { window.location.href = 'login.html'; return; }
 
-      renderNav(firstName);
-      $('greeting-text').innerHTML = `${getGreeting()},<br /><span class="text-olive">${firstName}.</span>`;
-      $('settings-name').value = currentProfile?.name || '';
-      $('settings-phone').value = currentProfile?.phone || '';
-      $('settings-email').value = currentProfile?.email || '';
-      $('settings-address').value = currentProfile?.address || '';
+        currentUser = user;
+        currentProfile = await getUserProfile(user.uid);
+        const firstName = (currentProfile?.name || 'friend').split(' ')[0];
 
-      renderRewards();
-      await loadOrders();
-      applyHashRoute();
+        renderNav(firstName);
+        $('greeting-text').innerHTML = `${getGreeting()},<br /><span class="text-olive">${firstName}.</span>`;
+        $('settings-name').value = currentProfile?.name || '';
+        $('settings-phone').value = currentProfile?.phone || '';
+        $('settings-email').value = currentProfile?.email || '';
+        $('settings-address').value = currentProfile?.address || '';
+
+        renderRewards();
+        await loadOrders();
+        applyHashRoute();
+
+        $('auth-loading').remove();
+      } else {
+        if (redirectTimer) return;
+        redirectTimer = setTimeout(() => { window.location.href = 'login.html'; }, 700);
+      }
     });
 
     document.body.addEventListener('click', () => enforceSessionTimeout());
