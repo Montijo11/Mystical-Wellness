@@ -64,6 +64,8 @@
     <div class="flex flex-wrap gap-2">
       <button data-tab="overview" class="tab-btn active rounded-full border border-line px-4 py-2 text-sm font-bold transition">Overview</button>
       <button data-tab="orders" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Orders</button>
+      <button data-tab="manual-order" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Create Manual Order</button>
+
       <button data-tab="customers" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Customers</button>
       <button data-tab="codes" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Verify Reward Code</button>
       <button data-tab="points" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Adjust Points</button>
@@ -99,6 +101,44 @@
           <h3 class="font-display text-lg mb-3">Top Flavors</h3>
           <canvas id="chart-top-flavors" height="220"></canvas>
         </div>
+      </div>
+    </div>
+
+
+    <div id="tab-manual-order" class="tab-panel mt-6 hidden">
+      <div class="max-w-3xl rounded-2xl border border-olive/60 bg-surface p-5 sm:p-6">
+        <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Phone / in-person order</p>
+        <h2 class="mt-1 font-display text-3xl text-stone">Create a manual order</h2>
+        <p class="mt-2 text-sm text-stone2">Use this for a customer who cannot place an order online. It saves as a guest order, so loyalty points are not awarded by accident.</p>
+
+        <form id="manual-order-form" class="mt-6 space-y-5">
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="text-sm font-semibold text-stone">Customer name <span class="text-red-400">*</span><input id="manual-name" required autocomplete="name" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="Jane Smith"></label>
+            <label class="text-sm font-semibold text-stone">Phone number <span class="text-red-400">*</span><input id="manual-phone" required type="tel" inputmode="tel" autocomplete="tel" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="619-555-0123"></label>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-stone">Nourishments <span class="text-red-400">*</span></p>
+            <div class="mt-2 grid gap-2 sm:grid-cols-2">
+              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Apple Cinnamon <input id="manual-apple" type="number" min="0" value="0" inputmode="numeric" class="w-16 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
+              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Mango <input id="manual-mango" type="number" min="0" value="0" inputmode="numeric" class="w-16 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
+              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Pineapple <input id="manual-pineapple" type="number" min="0" value="0" inputmode="numeric" class="w-16 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
+              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Strawberry <input id="manual-strawberry" type="number" min="0" value="0" inputmode="numeric" class="w-16 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
+              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Blueberry <input id="manual-blueberry" type="number" min="0" value="0" inputmode="numeric" class="w-16 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
+            </div>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <label class="text-sm font-semibold text-stone">Vanilla Protein (+$1 each)<select id="manual-protein" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive"><option value="no">No</option><option value="yes">Yes</option></select></label>
+            <label class="text-sm font-semibold text-stone">Fulfillment<select id="manual-mode" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive"><option value="Pickup">Pickup</option><option value="Delivery">Delivery</option></select></label>
+            <label class="text-sm font-semibold text-stone">Delivery ZIP <span class="text-stone2">(if delivery)</span><input id="manual-zip" maxlength="5" inputmode="numeric" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="91977"></label>
+            <label class="text-sm font-semibold text-stone">Toppings <span class="text-stone2">(optional)</span><input id="manual-toppings" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="Example: almond flakes, maple syrup"></label>
+          </div>
+          <label class="block text-sm font-semibold text-stone">Notes / address <span class="text-stone2">(optional)</span><textarea id="manual-notes" rows="3" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="Pickup day, delivery address, allergies, payment note, or other details"></textarea></label>
+          <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
+            <div><p class="text-xs font-bold uppercase tracking-wide text-olive">Order total</p><p id="manual-total" class="font-display text-3xl text-stone">$0.00</p></div>
+            <button id="manual-submit" type="submit" class="rounded-xl bg-olive px-5 py-3 text-sm font-bold text-ink transition hover:bg-olive/90 disabled:opacity-60">Create Order</button>
+          </div>
+          <p id="manual-order-status" class="hidden rounded-xl p-3 text-sm font-medium" role="status"></p>
+        </form>
       </div>
     </div>
 
@@ -276,7 +316,7 @@
   <script type="module">
     import {
       auth, watchAuth, logOut, isAdminEmail, getAllOrders, markOrderCompletedAndAwardPoints,
-      markOrderCancelled, updateOrderStatus, markRewardCodeUsed, adjustUserPoints, getAllUsers, db,
+      markOrderCancelled, updateOrderStatus, markRewardCodeUsed, adjustUserPoints, getAllUsers, saveOrderToFirestore, db,
       updateCustomerProfileWithAudit, getCustomerAudits, createCustomerAccount, deleteCustomerAccount, updateCustomerEmail
     } from './firebase-config.js';
     import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -552,7 +592,7 @@
               <span class="${statusColorClass(currentStatus)} font-semibold">${currentStatus}</span>
             </div>
             <p class="mt-1 text-sm text-stone2">${o.itemsText} — $${Number(o.subtotal || 0).toFixed(2)} · ${o.mode}${o.deliveryZip ? ' · ZIP ' + o.deliveryZip : ''}</p>
-            <p class="mt-1 text-xs text-stone2">${created.toLocaleString()} · ${o.uid ? 'Member' : 'Guest'}</p>
+            <p class="mt-1 text-xs text-stone2">${created.toLocaleString()} · ${o.source === 'Admin-entered' ? 'Admin-entered' : (o.uid ? 'Member' : 'Guest')}</p>
             <div class="mt-3 flex flex-wrap items-center gap-2">
               <label class="text-xs text-stone2">Update status:</label>
               <select data-id="${o.id}" class="status-select rounded-lg border border-line bg-ink p-2 text-xs text-stone focus:border-olive outline-none">
@@ -595,6 +635,83 @@
         });
       });
     }
+
+    const MANUAL_FLAVORS = [
+      ['apple', 'Apple Cinnamon'], ['mango', 'Mango'], ['pineapple', 'Pineapple'],
+      ['strawberry', 'Strawberry'], ['blueberry', 'Blueberry']
+    ];
+
+    function manualOrderData() {
+      const lines = [];
+      let totalNourishments = 0;
+      MANUAL_FLAVORS.forEach(([key, label]) => {
+        const quantity = Math.max(0, Number($(`manual-${key}`).value) || 0);
+        if (quantity) { lines.push(`${quantity}× ${label}`); totalNourishments += quantity; }
+      });
+      const proteinBoost = $('manual-protein').value === 'yes';
+      const toppings = $('manual-toppings').value.trim();
+      return {
+        totalNourishments,
+        itemsText: lines.join(', '),
+        subtotal: (totalNourishments * 6) + (proteinBoost ? totalNourishments : 0),
+        proteinBoost,
+        addOns: toppings,
+        mode: $('manual-mode').value,
+        deliveryZip: $('manual-zip').value.trim(),
+        customerName: $('manual-name').value.trim(),
+        customerPhone: $('manual-phone').value.trim(),
+        notes: $('manual-notes').value.trim(),
+        source: 'Admin-entered',
+        createdByAdmin: currentAdmin?.email || 'unknown'
+      };
+    }
+
+    function updateManualTotal() {
+      $('manual-total').textContent = `$${manualOrderData().subtotal.toFixed(2)}`;
+    }
+
+    function setManualStatus(message, isError = false) {
+      const status = $('manual-order-status');
+      status.textContent = message;
+      status.className = isError
+        ? 'block rounded-xl border border-red-800 bg-red-950/30 p-3 text-sm font-medium text-red-200'
+        : 'block rounded-xl border border-olive/50 bg-olive/10 p-3 text-sm font-medium text-olive';
+    }
+
+    MANUAL_FLAVORS.forEach(([key]) => $(`manual-${key}`).addEventListener('input', updateManualTotal));
+    $('manual-protein').addEventListener('change', updateManualTotal);
+    $('manual-mode').addEventListener('change', () => {
+      $('manual-zip').disabled = $('manual-mode').value !== 'Delivery';
+      if ($('manual-zip').disabled) $('manual-zip').value = '';
+    });
+    $('manual-mode').dispatchEvent(new Event('change'));
+
+    $('manual-order-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const order = manualOrderData();
+      const digits = order.customerPhone.replace(/\D/g, '');
+      if (!order.customerName) return setManualStatus('Enter the customer name.', true);
+      if (digits.length < 10) return setManualStatus('Enter a valid phone number.', true);
+      if (!order.totalNourishments) return setManualStatus('Add at least one Nourishment.', true);
+      if (order.mode === 'Delivery' && !/^\d{5}$/.test(order.deliveryZip)) return setManualStatus('Enter a valid 5-digit delivery ZIP.', true);
+      const button = $('manual-submit');
+      button.disabled = true;
+      button.textContent = 'Creating order...';
+      try {
+        const id = await saveOrderToFirestore(order, null);
+        setManualStatus(`Order created successfully. Order ID: ${id.slice(0, 8).toUpperCase()}.`);
+        $('manual-order-form').reset();
+        $('manual-mode').dispatchEvent(new Event('change'));
+        updateManualTotal();
+        await loadEverything();
+      } catch (error) {
+        console.error('Manual order could not be saved:', error);
+        setManualStatus(`Could not create the order: ${error.message}`, true);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Create Order';
+      }
+    });
 
     $('status-filter').addEventListener('change', renderOrders);
     $('refresh-orders').addEventListener('click', loadEverything);
