@@ -1,19 +1,365 @@
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-const firebaseConfig={apiKey:"AIzaSyDXfMK8nxFQ9-wbazPYqgPmF58QFS_Y1Vs",authDomain:"mystical-wellness.firebaseapp.com",projectId:"mystical-wellness",storageBucket:"mystical-wellness.firebasestorage.app",messagingSenderId:"859227928719",appId:"1:859227928719:web:88f098c46bed52e44318fa",measurementId:"G-6XV6XJX2MX"};
-const ADMIN_EMAILS=new Set(["mysticalwellness26@gmail.com","mysticalwellness26recovery@gmail.com"]);
-const app=getApps().length?getApps()[0]:initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app); export {auth,db};
-export const watchAuth=cb=>onAuthStateChanged(auth,cb); export const logOut=()=>signOut(auth); export const isAdminEmail=email=>ADMIN_EMAILS.has(String(email||"").trim().toLowerCase());
-export async function getAllOrders(){const s=await getDocs(query(collection(db,"orders"),orderBy("createdAt","desc")));return s.docs.map(x=>({id:x.id,...x.data()}));}
-export async function getAllUsers(){const s=await getDocs(query(collection(db,"users"),orderBy("createdAt","desc")));return s.docs.map(x=>({id:x.id,...x.data()}));}
-export async function updateOrderStatus(id,status){if(!id)throw new Error("Missing order ID.");await updateDoc(doc(db,"orders",id),{status,updatedAt:serverTimestamp()});}
-export const markOrderCancelled=id=>updateOrderStatus(id,"Cancelled");
-export async function markOrderCompletedAndAwardPoints(id){if(!id)throw new Error("Missing order ID.");await runTransaction(db,async t=>{const ref=doc(db,"orders",id),snap=await t.get(ref);if(!snap.exists())throw new Error("Order not found.");const o=snap.data(),updates={status:"Completed",completedAt:serverTimestamp(),updatedAt:serverTimestamp()};if(o.uid&&!o.pointsAwarded){const uref=doc(db,"users",o.uid),us=await t.get(uref),earned=Math.max(0,Math.floor(Number(o.subtotal||0)));if(us.exists()){t.update(uref,{points:Number(us.data().points||0)+earned});updates.pointsAwarded=true;updates.pointsAwardedAmount=earned;}}t.update(ref,updates);});}
-export async function markRewardCodeUsed(code){code=String(code||"").trim().toUpperCase();if(!code)throw new Error("A reward code is required.");const ref=doc(db,"rewardCodes",code),s=await getDoc(ref);if(!s.exists())throw new Error("Reward code not found.");if(s.data().status==="used")throw new Error("This reward code was already used.");await updateDoc(ref,{status:"used",usedAt:serverTimestamp(),usedBy:auth.currentUser?.email||"unknown"});}
-export async function adjustUserPoints(uid,delta,reason,adminEmail){if(!uid)throw new Error("Missing customer ID.");if(!Number.isFinite(Number(delta)))throw new Error("Point change must be a number.");if(!reason?.trim())throw new Error("A reason is required.");await runTransaction(db,async t=>{const r=doc(db,"users",uid),s=await t.get(r);if(!s.exists())throw new Error("Customer not found.");t.update(r,{points:Math.max(0,Number(s.data().points||0)+Number(delta))});});await addDoc(collection(db,"customerAudits"),{action:"Points adjusted",uid,adminEmail:adminEmail||auth.currentUser?.email||"unknown",note:reason.trim(),details:`Point change: ${Number(delta)>0?"+":""}${Number(delta)}.`,createdAt:serverTimestamp()});}
-export async function getCustomerAudits(){const s=await getDocs(query(collection(db,"customerAudits"),orderBy("createdAt","desc")));return s.docs.map(x=>({id:x.id,...x.data()}));}
-export async function updateCustomerProfileWithAudit(uid,updates,note,adminEmail){if(!uid)throw new Error("Missing customer ID.");if(!note?.trim())throw new Error("A note is required.");const r=doc(db,"users",uid),s=await getDoc(r);if(!s.exists())throw new Error("Customer not found.");const before=s.data();await updateDoc(r,updates);await addDoc(collection(db,"customerAudits"),{action:"Customer profile updated",uid,adminEmail:adminEmail||auth.currentUser?.email||"unknown",note:note.trim(),details:`Updated ${Object.keys(updates).join(", ")} for ${before.email||uid}.`,before,after:{...before,...updates},createdAt:serverTimestamp()});}
-export async function createCustomerAccount({name,phone,email,password,note}){if(!name||!email||!password)throw new Error("Name, email, and temporary password are required.");if(password.length<6)throw new Error("The temporary password must contain at least 6 characters.");if(!note?.trim())throw new Error("A note is required.");const normalized=email.trim().toLowerCase(),secondary=getAuth(initializeApp(firebaseConfig,`customer-${Date.now()}`)),adminEmail=auth.currentUser?.email||"unknown";try{const c=await createUserWithEmailAndPassword(secondary,normalized,password);await updateProfile(c.user,{displayName:name.trim()});await setDoc(doc(db,"users",c.user.uid),{name:name.trim(),phone:phone?.trim()||"",email:normalized,address:"",points:0,activeReward:null,createdAt:serverTimestamp()});await addDoc(collection(db,"customerAudits"),{action:"Customer account created",uid:c.user.uid,adminEmail,note:note.trim(),details:`Created customer account for ${normalized}.`,createdAt:serverTimestamp()});return {uid:c.user.uid,email:normalized};}finally{await signOut(secondary).catch(()=>{});}}
-export async function updateCustomerEmail(uid,email,note){if(!uid||!email?.trim()||!note?.trim())throw new Error("Customer ID, email, and note are required.");const r=doc(db,"users",uid),s=await getDoc(r);if(!s.exists())throw new Error("Customer profile not found.");const old=s.data().email||"",next=email.trim().toLowerCase();await updateDoc(r,{email:next});await addDoc(collection(db,"customerAudits"),{action:"Customer profile email updated",uid,adminEmail:auth.currentUser?.email||"unknown",note:note.trim(),details:`Profile email changed from ${old} to ${next}. The Firebase Authentication login email must be changed separately in Firebase Console.`,createdAt:serverTimestamp()});}
-export async function deleteCustomerAccount(uid,note){if(!uid||!note?.trim())throw new Error("Customer ID and note are required.");const r=doc(db,"users",uid),s=await getDoc(r);if(!s.exists())throw new Error("Customer profile not found.");const customer=s.data();await addDoc(collection(db,"customerAudits"),{action:"Customer profile removed",uid,adminEmail:auth.currentUser?.email||"unknown",note:note.trim(),details:`Removed Firestore profile for ${customer.email||uid}. Delete the Authentication account separately in Firebase Console.`,removedProfile:customer,createdAt:serverTimestamp()});await deleteDoc(r);}
+// ============================================================
+// Mystical Wellness â€” Firebase Backend Configuration
+// ============================================================
+// Only remaining step: paste your deployed Google Apps Script
+// /exec URL into BACKEND_URL below.
+// ============================================================
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  signOut,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  addDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getFunctions,
+  httpsCallable
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDXfMK8nxFQ9-wbazPYqgPmF58QFS_Y1Vs",
+  authDomain: "mystical-wellness.firebaseapp.com",
+  projectId: "mystical-wellness",
+  storageBucket: "mystical-wellness.firebasestorage.app",
+  messagingSenderId: "859227928719",
+  appId: "1:859227928719:web:88f098c46bed52e44318fa",
+  measurementId: "G-6XV6XJX2MX"
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+const functions = getFunctions(app);
+
+export const BACKEND_URL = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
+
+const ADMIN_EMAILS = [
+  "mysticalwellness26@gmail.com",
+  "mysticalwellness26admin@gmail.com",
+  "mysticalwellness26recovery@gmail.com"
+];
+
+export function isAdminEmail(email) {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
+export const REWARD_TIERS = [
+  { points: 50, reward: "Free topping on your next order" },
+  { points: 100, reward: "$5 off your next order" },
+  { points: 200, reward: "One free 12oz Nourishment" },
+  { points: 350, reward: "$15 off your next order" }
+];
+
+export function watchAuth(callback) {
+  return onAuthStateChanged(auth, (user) => {
+    callback(user);
+  });
+}
+
+export async function logIn(email, password, rememberMe = true) {
+  await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+  return signInWithEmailAndPassword(auth, email, password);
+}
+
+export async function signUpCustomer({ name, phone, email, password }) {
+  const credential = await createUserWithEmailAndPassword(auth, email, password);
+
+  if (name) {
+    await updateProfile(credential.user, { displayName: name });
+  }
+
+  await setDoc(doc(db, "users", credential.user.uid), {
+    name: name || "",
+    phone: phone || "",
+    email,
+    address: "",
+    points: 0,
+    activeReward: null,
+    createdAt: serverTimestamp()
+  });
+
+  return credential;
+}
+
+export async function resetPassword(email) {
+  return sendPasswordResetEmail(auth, email);
+}
+
+export async function logOut() {
+  return signOut(auth);
+}
+
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+
+export function enforceSessionTimeout() {
+  const now = Date.now();
+  const lastActive = Number(localStorage.getItem("mw_last_active") || now);
+
+  if (now - lastActive > SESSION_TIMEOUT_MS) {
+    localStorage.removeItem("mw_last_active");
+    logOut();
+    return false;
+  }
+
+  localStorage.setItem("mw_last_active", String(now));
+  return true;
+}
+
+export async function getUserProfile(uid) {
+  if (!uid) return null;
+  const snap = await getDoc(doc(db, "users", uid));
+  return snap.exists() ? snap.data() : null;
+}
+
+export async function updateUserProfile(uid, updates) {
+  if (!uid) throw new Error("Missing user ID.");
+  await updateDoc(doc(db, "users", uid), updates);
+}
+
+export async function getAllUsers() {
+  const snap = await getDocs(collection(db, "users"));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+export async function saveOrderToFirestore(orderData, uid) {
+  const payload = {
+    ...orderData,
+    uid: uid || null,
+    status: "New",
+    createdAt: serverTimestamp()
+  };
+  const docRef = await addDoc(collection(db, "orders"), payload);
+  return docRef.id;
+}
+
+export async function getOrdersForUser(uid) {
+  if (!uid) return [];
+  const ordersQuery = query(
+    collection(db, "orders"),
+    where("uid", "==", uid),
+    orderBy("createdAt", "desc")
+  );
+  const snap = await getDocs(ordersQuery);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function getAllOrders() {
+  const ordersQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(ordersQuery);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function updateOrderStatus(orderId, status) {
+  await updateDoc(doc(db, "orders", orderId), { status });
+}
+
+export async function markOrderCompletedAndAwardPoints(orderId) {
+  const orderRef = doc(db, "orders", orderId);
+  const orderSnap = await getDoc(orderRef);
+  if (!orderSnap.exists()) throw new Error("Order not found.");
+
+  const order = orderSnap.data();
+  if (order.status === "Completed") return;
+
+  await updateDoc(orderRef, { status: "Completed" });
+
+  if (order.uid) {
+    const userRef = doc(db, "users", order.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const currentPoints = Number(userSnap.data().points || 0);
+      const earned = Math.max(0, Math.floor(Number(order.subtotal || 0)));
+      await updateDoc(userRef, { points: currentPoints + earned });
+    }
+  }
+}
+
+export async function markOrderCancelled(orderId) {
+  await updateDoc(doc(db, "orders", orderId), { status: "Cancelled" });
+}
+
+function generateRewardCode() {
+  const random = Math.floor(1000 + Math.random() * 9000);
+  return `MW-${random}`;
+}
+
+export async function redeemReward(uid, tierIndex) {
+  const tier = REWARD_TIERS[tierIndex];
+  if (!tier) throw new Error("Invalid reward tier.");
+
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) throw new Error("User profile not found.");
+
+  const profile = userSnap.data();
+  if (profile.activeReward) {
+    throw new Error("You already have an active reward. Redeem it at pickup before claiming another.");
+  }
+  if ((profile.points || 0) < tier.points) {
+    throw new Error("You do not have enough points for this reward yet.");
+  }
+
+  const code = generateRewardCode();
+  const activeReward = { code, reward: tier.reward, tierIndex, redeemedAt: new Date().toISOString() };
+
+  await updateDoc(userRef, { activeReward });
+  await setDoc(doc(db, "rewardCodes", code), {
+    uid,
+    reward: tier.reward,
+    status: "active",
+    createdAt: serverTimestamp()
+  });
+
+  return code;
+}
+
+export async function lookupRewardCode(code) {
+  if (!code) return null;
+  const cleanCode = code.trim().toUpperCase();
+  const snap = await getDoc(doc(db, "rewardCodes", cleanCode));
+  if (!snap.exists()) return null;
+
+  const data = snap.data();
+  if (data.status !== "active") return null;
+
+  return { code: cleanCode, reward: data.reward };
+}
+
+export async function markRewardCodeUsed(code) {
+  const cleanCode = code.trim().toUpperCase();
+  const codeRef = doc(db, "rewardCodes", cleanCode);
+  const codeSnap = await getDoc(codeRef);
+  if (!codeSnap.exists()) throw new Error("Reward code not found.");
+
+  const data = codeSnap.data();
+  await updateDoc(codeRef, { status: "used" });
+
+  if (data.uid) {
+    await updateDoc(doc(db, "users", data.uid), { activeReward: null });
+  }
+}
+
+export async function adjustUserPoints(uid, delta, reason, adminEmail) {
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) throw new Error("Customer not found.");
+
+  const currentPoints = userSnap.data().points || 0;
+  const newPoints = Math.max(0, currentPoints + Number(delta));
+
+  await updateDoc(userRef, { points: newPoints });
+
+  await addDoc(collection(db, "customerAudits"), {
+    uid,
+    action: "Adjusted points",
+    note: reason || "",
+    adminEmail: adminEmail || "unknown",
+    details: `Points changed by ${delta > 0 ? "+" : ""}${delta} (now ${newPoints})`,
+    createdAt: serverTimestamp()
+  });
+
+  return newPoints;
+}
+
+// ------------------------------------------------------------
+// Customer profile edits (name/phone/address/points) â€” always logged
+// ------------------------------------------------------------
+export async function updateCustomerProfileWithAudit(uid, updates, note, adminEmail) {
+  if (!note || !note.trim()) throw new Error("A note is required for every customer change.");
+
+  await updateDoc(doc(db, "users", uid), updates);
+
+  const changedFields = Object.keys(updates).join(", ");
+  await addDoc(collection(db, "customerAudits"), {
+    uid,
+    action: "Edited profile",
+    note,
+    adminEmail: adminEmail || "unknown",
+    details: `Updated: ${changedFields}`,
+    createdAt: serverTimestamp()
+  });
+}
+
+export async function getCustomerAudits() {
+  const auditsQuery = query(collection(db, "customerAudits"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(auditsQuery);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+// ------------------------------------------------------------
+// Cloud Function callables â€” account deletion and email changes
+// require the Admin SDK and cannot run from the browser alone.
+// See functions/index.js for the server-side code.
+// ------------------------------------------------------------
+export async function deleteCustomerAccount(uid, note) {
+  const callable = httpsCallable(functions, "deleteCustomerAccount");
+  const result = await callable({ uid, note });
+  return result.data;
+}
+
+export async function updateCustomerEmail(uid, newEmail, note) {
+  const callable = httpsCallable(functions, "updateCustomerEmail");
+  const result = await callable({ uid, newEmail, note });
+  return result.data;
+}
+
+
+
+
+// Creates a customer through a separate Firebase Auth instance so the administrator stays signed in.
+export async function createCustomerAccount({ name, phone, email, password, note }) {
+  if (!name || !email || !password) throw new Error("Name, email, and temporary password are required.");
+  if (password.length < 6) throw new Error("The temporary password must contain at least 6 characters.");
+  if (!note || !note.trim()) throw new Error("A note is required.");
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const secondaryApp = initializeApp(firebaseConfig, `customer-create-${Date.now()}`);
+  const secondaryAuth = getAuth(secondaryApp);
+  const adminEmail = auth.currentUser?.email || "unknown";
+
+  try {
+    const credential = await createUserWithEmailAndPassword(secondaryAuth, normalizedEmail, password);
+    await updateProfile(credential.user, { displayName: name.trim() });
+    await setDoc(doc(db, "users", credential.user.uid), {
+      name: name.trim(), phone: phone ? phone.trim() : "", email: normalizedEmail,
+      address: "", points: 0, activeReward: null, createdAt: serverTimestamp()
+    });
+    await addDoc(collection(db, "customerAudits"), {
+      uid: credential.user.uid, action: "Customer account created", note: note.trim(),
+      adminEmail, details: `Created customer account for ${normalizedEmail}.`, createdAt: serverTimestamp()
+    });
+    return { uid: credential.user.uid, email: normalizedEmail };
+  } finally {
+    await signOut(secondaryAuth).catch(() => {});
+  }
+}
