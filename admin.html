@@ -64,6 +64,7 @@
     <div class="flex flex-wrap gap-2">
       <button data-tab="overview" class="tab-btn active rounded-full border border-line px-4 py-2 text-sm font-bold transition">Overview</button>
       <button data-tab="orders" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Orders</button>
+      <button data-tab="manual-order" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Create Manual Order</button>
       <button data-tab="customers" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Customers</button>
       <button data-tab="codes" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Verify Reward Code</button>
       <button data-tab="points" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Adjust Points</button>
@@ -99,6 +100,54 @@
           <h3 class="font-display text-lg mb-3">Top Flavors</h3>
           <canvas id="chart-top-flavors" height="220"></canvas>
         </div>
+      </div>
+    </div>
+
+
+    <div id="tab-manual-order" class="tab-panel mt-6 hidden">
+      <div class="w-full rounded-2xl border border-olive/60 bg-surface p-5 sm:p-6">
+        <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Phone / in-person order</p>
+        <h2 class="mt-1 font-display text-3xl text-stone">Create a manual order</h2>
+        <p class="mt-2 text-sm text-stone2">Use this form for a customer who calls, texts, or needs help ordering. Manual orders are saved as guest orders so loyalty points are not awarded to the wrong account.</p>
+        <form id="manual-order-form" class="mt-6 space-y-5">
+          <div class="grid gap-3 md:grid-cols-2">
+            <label class="text-sm font-semibold text-stone">Customer name <span class="text-red-400">*</span><input id="manual-name" required autocomplete="name" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="Jane Smith"></label>
+            <label class="text-sm font-semibold text-stone">Phone number <span class="text-red-400">*</span><input id="manual-phone" required type="tel" inputmode="tel" autocomplete="tel" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="619-555-0123"></label>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-stone">Choose Nourishments <span class="text-red-400">*</span></p>
+            <div class="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Apple Cinnamon <input id="manual-apple" type="number" min="0" value="0" inputmode="numeric" class="w-14 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
+              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Mango <input id="manual-mango" type="number" min="0" value="0" inputmode="numeric" class="w-14 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
+              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Pineapple <input id="manual-pineapple" type="number" min="0" value="0" inputmode="numeric" class="w-14 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
+              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Strawberry <input id="manual-strawberry" type="number" min="0" value="0" inputmode="numeric" class="w-14 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
+              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Blueberry <input id="manual-blueberry" type="number" min="0" value="0" inputmode="numeric" class="w-14 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
+            </div>
+          </div>
+          <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <label class="text-sm font-semibold text-stone">Vanilla Protein (+$1 each)<select id="manual-protein" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive"><option value="no">No Vanilla Protein</option><option value="yes">Yes - +12g protein, +$1 each</option></select></label>
+            <label class="text-sm font-semibold text-stone">Almond flakes<select id="manual-almond" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive"><option value="No thanks">No thanks</option><option value="Add">Add almond flakes</option></select></label>
+            <label class="text-sm font-semibold text-stone">Coconut flakes<select id="manual-coconut" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive"><option value="No thanks">No thanks</option><option value="Add">Add coconut flakes</option></select></label>
+            <label class="text-sm font-semibold text-stone">Maple syrup<select id="manual-maple" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive"><option value="No thanks">No thanks</option><option value="Add">Add maple syrup</option></select></label>
+            <label class="text-sm font-semibold text-stone">Crushed walnuts<select id="manual-walnut" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive"><option value="No thanks">No thanks</option><option value="Add">Add crushed walnuts</option></select></label>
+            <label class="text-sm font-semibold text-stone">Fulfillment<select id="manual-mode" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive"><option value="Pickup">Pickup</option><option value="Delivery">Delivery</option></select></label>
+          </div>
+          <div id="manual-delivery-box" class="hidden rounded-xl border border-line bg-ink/30 p-4">
+            <p class="text-sm font-semibold text-stone">Check delivery availability</p>
+            <p class="mt-1 text-xs text-stone2">Delivery within 5 miles of Spring Valley, CA (91977) has no minimum. Delivery outside that zone requires at least 2 Nourishments.</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <input id="manual-zip" maxlength="5" inputmode="numeric" class="w-full max-w-xs rounded-lg border border-line bg-ink px-3 py-2 text-sm text-stone outline-none focus:border-olive" placeholder="Enter 5-digit ZIP">
+              <button id="manual-zip-check" type="button" class="rounded-lg border border-olive px-4 py-2 text-sm font-bold text-olive transition hover:bg-olive/10">Check ZIP</button>
+            </div>
+            <p id="manual-zip-result" class="mt-3 hidden text-sm" role="status"></p>
+          </div>
+          <label class="block text-sm font-semibold text-stone">Notes / delivery address <span class="text-stone2">(optional)</span><textarea id="manual-notes" rows="3" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="Pickup day, delivery address, allergies, payment note, or other details"></textarea></label>
+          <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
+            <div><p class="text-xs font-bold uppercase tracking-wide text-olive">Order total</p><p id="manual-total" class="font-display text-3xl text-stone">$0.00</p></div>
+            <button id="manual-submit" type="submit" class="rounded-xl bg-olive px-5 py-3 text-sm font-bold text-ink transition hover:bg-olive/90 disabled:opacity-60">Create Order</button>
+          </div>
+          <p id="manual-order-status" class="hidden rounded-xl p-3 text-sm font-medium" role="status"></p>
+        </form>
       </div>
     </div>
 
@@ -276,9 +325,9 @@
   <script type="module">
     import {
       auth, watchAuth, logOut, isAdminEmail, getAllOrders, markOrderCompletedAndAwardPoints,
-      markOrderCancelled, updateOrderStatus, markRewardCodeUsed, adjustUserPoints, getAllUsers, db,
+      markOrderCancelled, updateOrderStatus, markRewardCodeUsed, adjustUserPoints, getAllUsers, saveOrderToFirestore, db,
       updateCustomerProfileWithAudit, getCustomerAudits, createCustomerAccount, deleteCustomerAccount, updateCustomerEmail
-    } from './firebase-config.js?v=20260902c';
+    } from './firebase-config.js';
     import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
@@ -289,7 +338,6 @@
     let flavorsChart = null;
     let redirectTimer = null;
     let authResolved = false;
-    let dashboardStarted = false;
     let logoDataUrl = null;
 
     const STATUS_OPTIONS = ['New', 'Accepted', 'Preparing', 'Ready for Pickup', 'Out for Delivery', 'Completed', 'Cancelled'];
@@ -318,21 +366,9 @@
       });
     }
 
-    function showAdminAccessMessage(message, signOutFirst = false) {
-      const display = () => {
-        $('auth-loading')?.remove();
-        const main = document.querySelector('main');
-        if (!main) return;
-        main.innerHTML = `<div class="mx-auto mt-10 max-w-lg rounded-2xl border border-line bg-surface p-6 text-center"><p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Admin access</p><h1 class="mt-2 font-display text-3xl text-stone">Sign-in required</h1><p class="mt-3 text-sm leading-relaxed text-stone2">${message}</p><a href="login.html" class="mt-6 inline-block rounded-xl bg-olive px-5 py-3 text-sm font-bold text-ink transition hover:bg-olive/90">Go to Log In</a></div>`;
-      };
-      if (signOutFirst) logOut().catch(() => {}).finally(display); else display();
-    }
-
     watchAuth(async (user) => {
       authResolved = true;
       if (user && isAdminEmail(user.email)) {
-        if (dashboardStarted) return;
-        dashboardStarted = true;
         if (redirectTimer) { clearTimeout(redirectTimer); redirectTimer = null; }
         currentAdmin = user;
         try { preloadLogo(); await loadEverything(); }
@@ -341,10 +377,11 @@
           const main = document.querySelector('main');
           if (main) { const notice = document.createElement('div'); notice.className = 'mt-6 rounded-xl border border-red-800 bg-red-950/30 p-4 text-sm text-red-200'; notice.textContent = 'The dashboard opened, but its data could not be loaded. Check your Firestore rules and browser console.'; main.prepend(notice); }
         } finally { $('auth-loading')?.remove(); }
-      } else if (user) {
-        showAdminAccessMessage('This account is not authorized for the Admin Dashboard. Please sign in with an approved Mystical Wellness administrator account.', true);
+      } else if (user && !isAdminEmail(user.email)) {
+        $('auth-loading')?.remove(); window.location.href = 'login.html';
       } else {
-        showAdminAccessMessage('You are signed out. Sign in with an approved Mystical Wellness administrator account to open the dashboard.');
+        if (redirectTimer) return;
+        redirectTimer = setTimeout(() => { window.location.href = 'login.html'; }, 700);
       }
     });
 
@@ -564,7 +601,7 @@
               <span class="${statusColorClass(currentStatus)} font-semibold">${currentStatus}</span>
             </div>
             <p class="mt-1 text-sm text-stone2">${o.itemsText} — $${Number(o.subtotal || 0).toFixed(2)} · ${o.mode}${o.deliveryZip ? ' · ZIP ' + o.deliveryZip : ''}</p>
-            <p class="mt-1 text-xs text-stone2">${created.toLocaleString()} · ${o.uid ? 'Member' : 'Guest'}</p>
+            <p class="mt-1 text-xs text-stone2">${created.toLocaleString()} · ${o.source === 'Admin-entered' ? 'Admin-entered' : (o.uid ? 'Member' : 'Guest')}</p>
             <div class="mt-3 flex flex-wrap items-center gap-2">
               <label class="text-xs text-stone2">Update status:</label>
               <select data-id="${o.id}" class="status-select rounded-lg border border-line bg-ink p-2 text-xs text-stone focus:border-olive outline-none">
@@ -607,6 +644,92 @@
         });
       });
     }
+
+    const MANUAL_FLAVORS = [
+      ['apple', 'Apple Cinnamon'], ['mango', 'Mango'], ['pineapple', 'Pineapple'],
+      ['strawberry', 'Strawberry'], ['blueberry', 'Blueberry']
+    ];
+    const MANUAL_LOCAL_ZIPS = ['91977', '91978', '91976', '91941', '91945', '91902', '92114', '92139'];
+    const isManualLocalZip = (zip) => MANUAL_LOCAL_ZIPS.includes(zip);
+
+    function manualOrderData() {
+      const lines = [];
+      let totalNourishments = 0;
+      MANUAL_FLAVORS.forEach(([key, label]) => {
+        const quantity = Math.max(0, Number($(`manual-${key}`).value) || 0);
+        if (quantity) { lines.push(`${quantity}× ${label}`); totalNourishments += quantity; }
+      });
+      const proteinBoost = $('manual-protein').value === 'yes';
+      const addOns = [
+        ['manual-almond', 'almond flakes'], ['manual-coconut', 'coconut flakes'],
+        ['manual-maple', 'maple syrup'], ['manual-walnut', 'crushed walnuts']
+      ].filter(([id]) => $(id).value === 'Add').map(([, label]) => label);
+      return {
+        totalNourishments,
+        itemsText: lines.join(', '),
+        subtotal: (totalNourishments * 6) + (proteinBoost ? totalNourishments : 0),
+        proteinBoost,
+        addOns: addOns.join(', '),
+        mode: $('manual-mode').value,
+        deliveryZip: $('manual-zip').value.trim(),
+        customerName: $('manual-name').value.trim(),
+        customerPhone: $('manual-phone').value.trim(),
+        notes: $('manual-notes').value.trim(),
+        source: 'Admin-entered',
+        createdByAdmin: currentAdmin?.email || 'unknown'
+      };
+    }
+
+    function updateManualTotal() { $('manual-total').textContent = `$${manualOrderData().subtotal.toFixed(2)}`; }
+    function setManualStatus(message, isError = false) {
+      const status = $('manual-order-status');
+      status.textContent = message;
+      status.className = isError
+        ? 'block rounded-xl border border-red-800 bg-red-950/30 p-3 text-sm font-medium text-red-200'
+        : 'block rounded-xl border border-olive/50 bg-olive/10 p-3 text-sm font-medium text-olive';
+    }
+    function checkManualZip() {
+      const zip = $('manual-zip').value.trim();
+      const result = $('manual-zip-result');
+      result.classList.remove('hidden');
+      if (!/^\d{5}$/.test(zip)) { result.textContent = 'Enter a valid 5-digit ZIP code.'; result.className = 'mt-3 block text-sm text-red-200'; return null; }
+      if (isManualLocalZip(zip)) { result.textContent = `Great news! ${zip} is within the 5-mile delivery zone. No order minimum applies.`; result.className = 'mt-3 block text-sm text-olive'; return true; }
+      result.textContent = `${zip} is outside the 5-mile zone. Delivery is available with a 2-Nourishment minimum.`; result.className = 'mt-3 block text-sm text-stone2'; return false;
+    }
+
+    MANUAL_FLAVORS.forEach(([key]) => $(`manual-${key}`).addEventListener('input', updateManualTotal));
+    $('manual-protein').addEventListener('change', updateManualTotal);
+    $('manual-zip-check').addEventListener('click', checkManualZip);
+    $('manual-zip').addEventListener('input', () => $('manual-zip-result').classList.add('hidden'));
+    $('manual-mode').addEventListener('change', () => {
+      const delivery = $('manual-mode').value === 'Delivery';
+      $('manual-delivery-box').classList.toggle('hidden', !delivery);
+      if (!delivery) { $('manual-zip').value = ''; $('manual-zip-result').classList.add('hidden'); }
+    });
+
+    $('manual-order-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const order = manualOrderData();
+      const digits = order.customerPhone.replace(/\D/g, '');
+      if (!order.customerName) return setManualStatus('Enter the customer name.', true);
+      if (digits.length < 10) return setManualStatus('Enter a valid phone number.', true);
+      if (!order.totalNourishments) return setManualStatus('Add at least one Nourishment.', true);
+      if (order.mode === 'Delivery' && !/^\d{5}$/.test(order.deliveryZip)) return setManualStatus('Enter a valid 5-digit delivery ZIP.', true);
+      if (order.mode === 'Delivery' && !isManualLocalZip(order.deliveryZip) && order.totalNourishments < 2) return setManualStatus('Outside the 5-mile delivery zone, a minimum of 2 Nourishments is required.', true);
+      const button = $('manual-submit');
+      button.disabled = true; button.textContent = 'Creating order...';
+      try {
+        const id = await saveOrderToFirestore(order, null);
+        setManualStatus(`Order created successfully. Order ID: ${id.slice(0, 8).toUpperCase()}.`);
+        $('manual-order-form').reset();
+        $('manual-delivery-box').classList.add('hidden');
+        updateManualTotal();
+        await loadEverything();
+      } catch (error) {
+        console.error('Manual order could not be saved:', error);
+        setManualStatus(`Could not create the order: ${error.message}`, true);
+      } finally { button.disabled = false; button.textContent = 'Create Order'; }
+    });
 
     $('status-filter').addEventListener('change', renderOrders);
     $('refresh-orders').addEventListener('click', loadEverything);
