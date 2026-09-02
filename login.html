@@ -50,7 +50,7 @@
         <button id="show-signup" class="tab rounded-lg px-3 py-2.5 text-sm font-bold text-stone2 transition hover:text-stone" type="button">Create Account</button>
       </div>
 
-      <div id="global-status" class="mt-4 hidden rounded-xl border p-3 text-sm" role="alert"></div>
+      <div id="global-status" class="mt-4 hidden rounded-xl border p-3 text-sm" role="alert" aria-live="polite"></div>
 
       <form id="login-form" class="mt-6 space-y-4" novalidate>
         <div>
@@ -58,7 +58,10 @@
           <input id="login-email" type="email" autocomplete="email" required placeholder="you@example.com" class="mt-1.5 block w-full rounded-xl border border-line bg-ink px-3 py-3 text-stone outline-none transition placeholder:text-stone2 focus:border-olive" />
         </div>
         <div>
-          <div class="flex items-center justify-between gap-3"><label for="login-password" class="block text-sm font-semibold text-stone">Password</label><button id="forgot-password" type="button" class="text-xs font-semibold text-olive hover:text-stone">Forgot password?</button></div>
+          <div class="flex items-center justify-between gap-3">
+            <label for="login-password" class="block text-sm font-semibold text-stone">Password</label>
+            <button id="forgot-password" type="button" class="text-xs font-semibold text-olive hover:text-stone">Forgot password?</button>
+          </div>
           <input id="login-password" type="password" autocomplete="current-password" required placeholder="Your password" class="mt-1.5 block w-full rounded-xl border border-line bg-ink px-3 py-3 text-stone outline-none transition placeholder:text-stone2 focus:border-olive" />
         </div>
         <label class="flex cursor-pointer items-center gap-2 text-sm text-stone2"><input id="remember-me" type="checkbox" checked class="h-4 w-4 accent-olive" /> Remember me on this device</label>
@@ -91,7 +94,7 @@
   </main>
 
   <script type="module">
-    import { watchAuth, logIn, signUpCustomer, resetPassword, isAdminEmail } from './firebase-config.js?v=20260902b';
+    import { watchAuth, logIn, signUpCustomer, resetPassword, isAdminEmail } from './firebase-config.js?v=20260902c';
 
     const $ = (selector) => document.querySelector(selector);
     const loginForm = $('#login-form');
@@ -107,19 +110,28 @@
         : 'mt-4 block rounded-xl border border-red-800/60 bg-red-950/40 p-3 text-sm text-red-200';
     }
 
-    function clearStatus() { status.textContent = ''; status.className = 'mt-4 hidden rounded-xl border p-3 text-sm'; }
+    function clearStatus() {
+      status.textContent = '';
+      status.className = 'mt-4 hidden rounded-xl border p-3 text-sm';
+    }
 
     function showLogin() {
-      loginForm.classList.remove('hidden'); signupForm.classList.add('hidden');
-      loginTab.classList.add('active'); loginTab.classList.remove('text-stone2');
-      signupTab.classList.remove('active'); signupTab.classList.add('text-stone2');
+      loginForm.classList.remove('hidden');
+      signupForm.classList.add('hidden');
+      loginTab.classList.add('active');
+      loginTab.classList.remove('text-stone2');
+      signupTab.classList.remove('active');
+      signupTab.classList.add('text-stone2');
       clearStatus();
     }
 
     function showSignup() {
-      signupForm.classList.remove('hidden'); loginForm.classList.add('hidden');
-      signupTab.classList.add('active'); signupTab.classList.remove('text-stone2');
-      loginTab.classList.remove('active'); loginTab.classList.add('text-stone2');
+      signupForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+      signupTab.classList.add('active');
+      signupTab.classList.remove('text-stone2');
+      loginTab.classList.remove('active');
+      loginTab.classList.add('text-stone2');
       clearStatus();
     }
 
@@ -128,13 +140,40 @@
       button.textContent = waiting ? waitingText : defaultText;
     }
 
+    function friendlyAuthError(error, fallback) {
+      const code = error?.code || '';
+      if (code === 'auth/email-already-in-use') return 'An account already exists with that email. Try logging in or use Forgot password.';
+      if (code === 'auth/invalid-email') return 'Enter a valid email address.';
+      if (code === 'auth/weak-password') return 'Use a password with at least 6 characters.';
+      if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'The email or password is incorrect.';
+      if (code === 'auth/too-many-requests') return 'Too many attempts. Please wait a few minutes and try again.';
+      if (code === 'auth/network-request-failed') return 'Network connection problem. Check your internet connection and try again.';
+      if (code === 'auth/admin-restricted-operation') return 'New customer accounts are currently restricted in Firebase. Please contact Mystical Wellness for help creating your account.';
+      return error?.message || fallback;
+    }
+
     loginTab.addEventListener('click', showLogin);
     signupTab.addEventListener('click', showSignup);
 
-    watchAuth((user) => {
-      if (!user) return;
-      window.location.replace(isAdminEmail(user.email) ? 'admin.html' : 'account.html');
-    });
+    let authStateReceived = false;
+    const authTimeout = setTimeout(() => {
+      if (authStateReceived) return;
+      setStatus('The account service is taking longer than expected. You can still try logging in or creating an account. If it does not work, refresh the page and check your internet connection.');
+    }, 7000);
+
+    try {
+      watchAuth((user) => {
+        authStateReceived = true;
+        clearTimeout(authTimeout);
+        if (!user) return;
+        window.location.replace(isAdminEmail(user.email) ? 'admin.html' : 'account.html');
+      });
+    } catch (error) {
+      console.error('Firebase authentication could not start:', error);
+      authStateReceived = true;
+      clearTimeout(authTimeout);
+      setStatus('We could not start the account service. Refresh the page and try again.');
+    }
 
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -142,14 +181,17 @@
       const email = $('#login-email').value.trim();
       const password = $('#login-password').value;
       const button = $('#login-submit');
-      if (!email || !password) { setStatus('Enter both your email address and password.'); return; }
-      setButton(button, true, 'Signing in…', 'Log In');
+      if (!email || !password) {
+        setStatus('Enter both your email address and password.');
+        return;
+      }
+      setButton(button, true, 'Signing in...', 'Log In');
       try {
         const credential = await logIn(email, password, $('#remember-me').checked);
         window.location.replace(isAdminEmail(credential.user.email) ? 'admin.html' : 'account.html');
       } catch (error) {
         console.error(error);
-        setStatus(error.message || 'Unable to sign in. Please try again.');
+        setStatus(friendlyAuthError(error, 'Unable to sign in. Please try again.'));
         setButton(button, false, '', 'Log In');
       }
     });
@@ -162,15 +204,21 @@
       const email = $('#signup-email').value.trim();
       const password = $('#signup-password').value;
       const button = $('#signup-submit');
-      if (!name || !phone || !email || !password) { setStatus('Complete every field to create your account.'); return; }
-      if (password.length < 6) { setStatus('Your password must contain at least 6 characters.'); return; }
-      setButton(button, true, 'Creating account…', 'Create Account');
+      if (!name || !phone || !email || !password) {
+        setStatus('Complete every field to create your account.');
+        return;
+      }
+      if (password.length < 6) {
+        setStatus('Your password must contain at least 6 characters.');
+        return;
+      }
+      setButton(button, true, 'Creating account...', 'Create Account');
       try {
         const credential = await signUpCustomer({ name, phone, email, password });
         window.location.replace(isAdminEmail(credential.user.email) ? 'admin.html' : 'account.html');
       } catch (error) {
         console.error(error);
-        setStatus(error.message || 'Unable to create your account. Please try again.');
+        setStatus(friendlyAuthError(error, 'Unable to create your account. Please try again.'));
         setButton(button, false, '', 'Create Account');
       }
     });
@@ -178,17 +226,23 @@
     $('#forgot-password').addEventListener('click', async () => {
       clearStatus();
       const email = $('#login-email').value.trim();
-      if (!email) { setStatus('Enter your email address above first, then select Forgot password.'); $('#login-email').focus(); return; }
+      if (!email) {
+        setStatus('Enter your email address above first, then select Forgot password.');
+        $('#login-email').focus();
+        return;
+      }
       const button = $('#forgot-password');
       button.disabled = true;
+      button.textContent = 'Sending...';
       try {
         await resetPassword(email);
         setStatus('Password-reset instructions were sent. Check your inbox and spam folder.', 'success');
       } catch (error) {
         console.error(error);
-        setStatus(error.message || 'Unable to send the password-reset email.');
+        setStatus(friendlyAuthError(error, 'Unable to send the password-reset email.'));
       } finally {
         button.disabled = false;
+        button.textContent = 'Forgot password?';
       }
     });
   </script>
