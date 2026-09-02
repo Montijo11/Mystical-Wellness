@@ -3,973 +3,194 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Dashboard — Mystical Wellness</title>
+  <title>Account — Mystical Wellness</title>
+  <meta name="description" content="Sign in or create your Mystical Wellness customer account." />
   <link rel="icon" href="logo.JPG" type="image/jpeg" />
   <link rel="apple-touch-icon" href="logo.JPG" />
-
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: { display: ['Fraunces', 'Georgia', 'serif'] },
-          colors: {
-            ink: '#151510', surface: '#201f18', surface2: '#29261e',
-            olive: '#9ca86a', stone: '#b5aa96', stone2: '#918878', line: '#554f43'
-          }
+          colors: { ink: '#151510', surface: '#201f18', surface2: '#29261e', olive: '#9ca86a', stone: '#b5aa96', stone2: '#918878', line: '#554f43' }
         }
       }
     };
   </script>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { overflow-x: hidden; width: 100%; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
     body { font-family: Inter, sans-serif; }
-    .page-wrap { width: 100%; max-width: 80rem; margin: 0 auto; padding: 1.25rem; }
-    .tab-btn.active { background: #9ca86a; color: #151510; }
-    .tab-panel.hidden { display: none; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { padding: 10px 12px; text-align: left; }
-    #auth-loading {
-      position: fixed; inset: 0; background: #151510; z-index: 100;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90;
-      display: flex; align-items: center; justify-content: center; padding: 1rem;
-    }
+    .grain { background: radial-gradient(circle at 10% 3%, #9ca86a20, transparent 30rem), radial-gradient(circle at 94% 16%, #86634220, transparent 24rem); }
+    .tab.active { background: #9ca86a; color: #151510; border-color: #9ca86a; }
   </style>
 </head>
-
 <body class="min-h-screen bg-ink text-stone">
+  <div class="grain fixed inset-0 -z-10"></div>
 
-  <div id="auth-loading">
-    <div class="h-8 w-8 animate-spin rounded-full border-2 border-olive border-t-transparent"></div>
-  </div>
-
-  <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
-    <div class="page-wrap flex items-center justify-between py-4">
-      <span class="font-display text-xl text-stone">Mystical Wellness — Admin</span>
-      <button id="logout-btn" class="rounded-full border border-line px-4 py-2 text-sm text-stone2 hover:border-olive hover:text-olive transition">Log Out</button>
+  <header class="border-b border-line bg-ink/95 backdrop-blur">
+    <div class="mx-auto flex w-full max-w-5xl items-center justify-between px-5 py-4">
+      <a href="index.html" class="flex items-center gap-2.5">
+        <img src="logo.JPG" alt="Mystical Wellness logo" class="h-11 w-11 rounded-full border border-line object-cover" />
+        <span class="font-display text-xl text-stone">Mystical Wellness</span>
+      </a>
+      <a href="index.html" class="rounded-full border border-line px-4 py-2 text-sm font-semibold text-stone2 transition hover:border-olive hover:text-olive">Return to website</a>
     </div>
   </header>
 
-  <main class="page-wrap py-10">
+  <main class="mx-auto flex w-full max-w-5xl justify-center px-5 py-12 sm:py-16">
+    <section class="w-full max-w-md rounded-3xl border border-line bg-surface p-6 shadow-2xl shadow-black/20 sm:p-8">
+      <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Mystical Wellness</p>
+      <h1 class="mt-2 font-display text-4xl text-stone">Your account</h1>
+      <p class="mt-3 text-sm leading-relaxed text-stone2">Sign in to see past orders and rewards, or create an account for a simpler next order.</p>
 
-    <div class="flex flex-wrap gap-2">
-      <button data-tab="overview" class="tab-btn active rounded-full border border-line px-4 py-2 text-sm font-bold transition">Overview</button>
-      <button data-tab="orders" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Orders</button>
-      <button data-tab="manual-order" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Create Manual Order</button>
-
-      <button data-tab="customers" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Customers</button>
-      <button data-tab="codes" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Verify Reward Code</button>
-      <button data-tab="points" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Adjust Points</button>
-      <button data-tab="audits" class="tab-btn rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition">Audits/Invoices</button>
-    </div>
-
-    <div id="tab-overview" class="tab-panel mt-6">
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div class="rounded-2xl border border-line bg-surface p-5">
-          <p class="text-xs uppercase tracking-wide text-olive">Total Orders</p>
-          <p id="stat-total-orders" class="mt-1 font-display text-3xl">0</p>
-        </div>
-        <div class="rounded-2xl border border-line bg-surface p-5">
-          <p class="text-xs uppercase tracking-wide text-olive">Revenue (Completed)</p>
-          <p id="stat-revenue" class="mt-1 font-display text-3xl">$0</p>
-        </div>
-        <div class="rounded-2xl border border-line bg-surface p-5">
-          <p class="text-xs uppercase tracking-wide text-olive">Total Customers</p>
-          <p id="stat-customers" class="mt-1 font-display text-3xl">0</p>
-        </div>
-        <div class="rounded-2xl border border-line bg-surface p-5">
-          <p class="text-xs uppercase tracking-wide text-olive">Pending Orders</p>
-          <p id="stat-pending" class="mt-1 font-display text-3xl">0</p>
-        </div>
+      <div class="mt-7 grid grid-cols-2 gap-2 rounded-xl bg-ink/50 p-1">
+        <button id="show-login" class="tab active rounded-lg px-3 py-2.5 text-sm font-bold transition" type="button">Log In</button>
+        <button id="show-signup" class="tab rounded-lg px-3 py-2.5 text-sm font-bold text-stone2 transition hover:text-stone" type="button">Create Account</button>
       </div>
 
-      <div class="mt-6 grid gap-4 lg:grid-cols-2">
-        <div class="rounded-2xl border border-line bg-surface p-5">
-          <h3 class="font-display text-lg mb-3">Orders — Last 7 Days</h3>
-          <canvas id="chart-orders-week" height="220"></canvas>
-        </div>
-        <div class="rounded-2xl border border-line bg-surface p-5">
-          <h3 class="font-display text-lg mb-3">Top Flavors</h3>
-          <canvas id="chart-top-flavors" height="220"></canvas>
-        </div>
-      </div>
-    </div>
+      <div id="global-status" class="mt-4 hidden rounded-xl border p-3 text-sm" role="alert"></div>
 
-
-    <div id="tab-manual-order" class="tab-panel mt-6 hidden">
-      <div class="max-w-3xl rounded-2xl border border-olive/60 bg-surface p-5 sm:p-6">
-        <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">Phone / in-person order</p>
-        <h2 class="mt-1 font-display text-3xl text-stone">Create a manual order</h2>
-        <p class="mt-2 text-sm text-stone2">Use this for a customer who cannot place an order online. It saves as a guest order, so loyalty points are not awarded by accident.</p>
-
-        <form id="manual-order-form" class="mt-6 space-y-5">
-          <div class="grid gap-3 sm:grid-cols-2">
-            <label class="text-sm font-semibold text-stone">Customer name <span class="text-red-400">*</span><input id="manual-name" required autocomplete="name" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="Jane Smith"></label>
-            <label class="text-sm font-semibold text-stone">Phone number <span class="text-red-400">*</span><input id="manual-phone" required type="tel" inputmode="tel" autocomplete="tel" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="619-555-0123"></label>
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-stone">Nourishments <span class="text-red-400">*</span></p>
-            <div class="mt-2 grid gap-2 sm:grid-cols-2">
-              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Apple Cinnamon <input id="manual-apple" type="number" min="0" value="0" inputmode="numeric" class="w-16 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
-              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Mango <input id="manual-mango" type="number" min="0" value="0" inputmode="numeric" class="w-16 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
-              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Pineapple <input id="manual-pineapple" type="number" min="0" value="0" inputmode="numeric" class="w-16 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
-              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Strawberry <input id="manual-strawberry" type="number" min="0" value="0" inputmode="numeric" class="w-16 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
-              <label class="flex items-center justify-between gap-3 rounded-xl border border-line bg-ink/30 p-3 text-sm">Blueberry <input id="manual-blueberry" type="number" min="0" value="0" inputmode="numeric" class="w-16 rounded-lg border border-line bg-ink p-2 text-center text-stone outline-none focus:border-olive"></label>
-            </div>
-          </div>
-          <div class="grid gap-3 sm:grid-cols-2">
-            <label class="text-sm font-semibold text-stone">Vanilla Protein (+$1 each)<select id="manual-protein" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive"><option value="no">No</option><option value="yes">Yes</option></select></label>
-            <label class="text-sm font-semibold text-stone">Fulfillment<select id="manual-mode" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive"><option value="Pickup">Pickup</option><option value="Delivery">Delivery</option></select></label>
-            <label class="text-sm font-semibold text-stone">Delivery ZIP <span class="text-stone2">(if delivery)</span><input id="manual-zip" maxlength="5" inputmode="numeric" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="91977"></label>
-            <label class="text-sm font-semibold text-stone">Toppings <span class="text-stone2">(optional)</span><input id="manual-toppings" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="Example: almond flakes, maple syrup"></label>
-          </div>
-          <label class="block text-sm font-semibold text-stone">Notes / address <span class="text-stone2">(optional)</span><textarea id="manual-notes" rows="3" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="Pickup day, delivery address, allergies, payment note, or other details"></textarea></label>
-          <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
-            <div><p class="text-xs font-bold uppercase tracking-wide text-olive">Order total</p><p id="manual-total" class="font-display text-3xl text-stone">$0.00</p></div>
-            <button id="manual-submit" type="submit" class="rounded-xl bg-olive px-5 py-3 text-sm font-bold text-ink transition hover:bg-olive/90 disabled:opacity-60">Create Order</button>
-          </div>
-          <p id="manual-order-status" class="hidden rounded-xl p-3 text-sm font-medium" role="status"></p>
-        </form>
-      </div>
-    </div>
-
-    <div id="tab-orders" class="tab-panel mt-6 hidden">
-      <div class="flex flex-wrap gap-3">
-        <select id="status-filter" class="rounded-xl border border-line bg-surface p-2 text-sm text-stone">
-          <option value="">All statuses</option>
-          <option value="New">New</option>
-          <option value="Accepted">Accepted</option>
-          <option value="Preparing">Preparing</option>
-          <option value="Ready for Pickup">Ready for Pickup</option>
-          <option value="Out for Delivery">Out for Delivery</option>
-          <option value="Completed">Completed</option>
-          <option value="Cancelled">Cancelled</option>
-        </select>
-        <button id="refresh-orders" class="rounded-xl border border-line px-3 py-2 text-sm text-stone2 hover:border-olive transition">Refresh</button>
-      </div>
-      <div id="orders-table" class="mt-4 space-y-3"></div>
-    </div>
-
-    <div id="tab-customers" class="tab-panel mt-6 hidden">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <input id="customer-search" placeholder="Search by name, email, or phone..." class="w-full max-w-md rounded-xl border border-line bg-surface p-3 text-sm text-stone focus:border-olive outline-none" />
-        <button id="add-customer-btn" class="rounded-xl bg-olive px-5 py-3 text-sm font-bold text-ink hover:bg-olive/90 transition whitespace-nowrap">+ Add Customer</button>
-      </div>
-      <div class="mt-4 overflow-x-auto rounded-2xl border border-line bg-surface">
-        <table class="text-sm">
-          <thead class="border-b border-line text-xs uppercase text-olive">
-            <tr>
-              <th>Name</th><th>Email</th><th>Phone</th><th>Points</th><th>Active Reward</th><th>Address</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="customers-tbody" class="divide-y divide-line text-stone2"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="tab-codes" class="tab-panel mt-6 hidden">
-      <div class="max-w-md rounded-2xl border border-line bg-surface p-5">
-        <label class="text-sm block">
-          Enter reward code shown by customer
-          <input id="code-input" placeholder="MW-1234" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <button id="verify-code-btn" class="mt-3 rounded-xl bg-olive px-5 py-3 text-sm font-bold text-ink hover:bg-olive/90 transition">Check Code</button>
-        <div id="code-result" class="mt-4 hidden rounded-xl border border-line p-4 text-sm"></div>
-      </div>
-    </div>
-
-    <div id="tab-points" class="tab-panel mt-6 hidden">
-      <div class="max-w-md rounded-2xl border border-line bg-surface p-5">
-        <label class="text-sm block">
-          Customer email
-          <input id="points-email" placeholder="customer@email.com" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <label class="mt-3 text-sm block">
-          Point change (use negative to subtract, e.g. -10)
-          <input id="points-delta" type="number" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <label class="mt-3 text-sm block">
-          Reason <span class="text-red-400">*</span> (required, kept as audit trail)
-          <textarea id="points-reason" required class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" rows="2"></textarea>
-        </label>
-        <button id="adjust-points-btn" class="mt-3 rounded-xl bg-olive px-5 py-3 text-sm font-bold text-ink hover:bg-olive/90 transition">Apply Adjustment</button>
-        <p id="points-result" class="mt-3 hidden text-xs font-medium"></p>
-      </div>
-    </div>
-
-    <div id="tab-audits" class="tab-panel mt-6 hidden">
-      <div class="grid gap-6 lg:grid-cols-2">
+      <form id="login-form" class="mt-6 space-y-4" novalidate>
         <div>
-          <h3 class="font-display text-2xl">Customer Audit Log</h3>
-          <p class="mt-1 text-xs text-stone2">Every add, edit, removal, and points adjustment — with the required note.</p>
-          <div id="audit-log-list" class="mt-4 space-y-3 max-h-[32rem] overflow-y-auto pr-1"></div>
+          <label for="login-email" class="block text-sm font-semibold text-stone">Email address</label>
+          <input id="login-email" type="email" autocomplete="email" required placeholder="you@example.com" class="mt-1.5 block w-full rounded-xl border border-line bg-ink px-3 py-3 text-stone outline-none transition placeholder:text-stone2 focus:border-olive" />
         </div>
         <div>
-          <h3 class="font-display text-2xl">Invoices</h3>
-          <p class="mt-1 text-xs text-stone2">Re-download the invoice for any completed order.</p>
-          <input id="invoice-search" placeholder="Search by customer name..." class="mt-3 w-full rounded-xl border border-line bg-surface p-3 text-sm text-stone focus:border-olive outline-none" />
-          <div id="invoice-list" class="mt-4 space-y-3 max-h-[32rem] overflow-y-auto pr-1"></div>
+          <div class="flex items-center justify-between gap-3"><label for="login-password" class="block text-sm font-semibold text-stone">Password</label><button id="forgot-password" type="button" class="text-xs font-semibold text-olive hover:text-stone">Forgot password?</button></div>
+          <input id="login-password" type="password" autocomplete="current-password" required placeholder="Your password" class="mt-1.5 block w-full rounded-xl border border-line bg-ink px-3 py-3 text-stone outline-none transition placeholder:text-stone2 focus:border-olive" />
         </div>
-      </div>
-    </div>
+        <label class="flex cursor-pointer items-center gap-2 text-sm text-stone2"><input id="remember-me" type="checkbox" checked class="h-4 w-4 accent-olive" /> Remember me on this device</label>
+        <button id="login-submit" type="submit" class="w-full rounded-xl bg-olive px-4 py-3 font-bold text-ink transition hover:bg-olive/90 disabled:cursor-not-allowed disabled:opacity-60">Log In</button>
+      </form>
 
+      <form id="signup-form" class="mt-6 hidden space-y-4" novalidate>
+        <div>
+          <label for="signup-name" class="block text-sm font-semibold text-stone">Full name</label>
+          <input id="signup-name" type="text" autocomplete="name" required placeholder="Jane Smith" class="mt-1.5 block w-full rounded-xl border border-line bg-ink px-3 py-3 text-stone outline-none transition placeholder:text-stone2 focus:border-olive" />
+        </div>
+        <div>
+          <label for="signup-phone" class="block text-sm font-semibold text-stone">Phone number</label>
+          <input id="signup-phone" type="tel" autocomplete="tel" required placeholder="619 555-0123" class="mt-1.5 block w-full rounded-xl border border-line bg-ink px-3 py-3 text-stone outline-none transition placeholder:text-stone2 focus:border-olive" />
+        </div>
+        <div>
+          <label for="signup-email" class="block text-sm font-semibold text-stone">Email address</label>
+          <input id="signup-email" type="email" autocomplete="email" required placeholder="you@example.com" class="mt-1.5 block w-full rounded-xl border border-line bg-ink px-3 py-3 text-stone outline-none transition placeholder:text-stone2 focus:border-olive" />
+        </div>
+        <div>
+          <label for="signup-password" class="block text-sm font-semibold text-stone">Create a password</label>
+          <input id="signup-password" type="password" autocomplete="new-password" required minlength="6" placeholder="At least 6 characters" class="mt-1.5 block w-full rounded-xl border border-line bg-ink px-3 py-3 text-stone outline-none transition placeholder:text-stone2 focus:border-olive" />
+          <p class="mt-1.5 text-xs text-stone2">Use at least 6 characters.</p>
+        </div>
+        <button id="signup-submit" type="submit" class="w-full rounded-xl bg-olive px-4 py-3 font-bold text-ink transition hover:bg-olive/90 disabled:cursor-not-allowed disabled:opacity-60">Create Account</button>
+      </form>
+
+      <div class="mt-7 border-t border-line pt-5 text-center text-xs leading-relaxed text-stone2">Customer accounts can view past orders and earn points. Authorized administrators are automatically sent to the admin dashboard after sign-in.</div>
+    </section>
   </main>
 
-  <footer class="border-t border-line py-6 text-center text-xs text-stone2">
-    <a href="https://instagram.com/mystical.wellness.26" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-olive hover:text-olive/80 transition">
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.9.07 1.2.06 2.2.27 3 .58a6 6 0 0 1 2.2 1.4 6 6 0 0 1 1.4 2.2c.3.8.5 1.8.6 3 .1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 2.2-.6 3a6 6 0 0 1-1.4 2.2 6 6 0 0 1-2.2 1.4c-.8.3-1.8.5-3 .6-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-2.2-.3-3-.6a6 6 0 0 1-2.2-1.4 6 6 0 0 1-1.4-2.2c-.3-.8-.5-1.8-.6-3C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-2.2.6-3a6 6 0 0 1 1.4-2.2A6 6 0 0 1 6.5.5c.8-.3 1.8-.5 3-.6C10.8 2.2 11.2 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.1-1 .1-1.7.2-2.3.5a4.2 4.2 0 0 0-1.5 1 4.2 4.2 0 0 0-1 1.5c-.3.6-.4 1.3-.5 2.3-.1 1.2-.1 1.6-.1 4.7s0 3.5.1 4.7c.1 1 .2 1.7.5 2.3a4.2 4.2 0 0 0 1 1.5 4.2 4.2 0 0 0 1.5 1c.6.3 1.3.4 2.3.5 1.2.1 1.6.1 4.7.1s3.5 0 4.7-.1c1-.1 1.7-.2 2.3-.5a4.2 4.2 0 0 0 1.5-1 4.2 4.2 0 0 0 1-1.5c.3-.6.4-1.3.5-2.3.1-1.2.1-1.6.1-4.7s0-3.5-.1-4.7c-.1-1-.2-1.7-.5-2.3a4.2 4.2 0 0 0-1-1.5 4.2 4.2 0 0 0-1.5-1c-.6-.3-1.3-.4-2.3-.5-1.2-.1-1.6-.1-4.7-.1zm0 4.6a5.4 5.4 0 1 1 0 10.8 5.4 5.4 0 0 1 0-10.8zm0 1.8a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2zm5.6-3.2a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z"/></svg>
-      @mystical.wellness.26
-    </a>
-    <p class="mt-2">Mystical Wellness · Made to Nourish — Admin Dashboard</p>
-  </footer>
-
-  <!-- ADD CUSTOMER MODAL -->
-  <div id="add-customer-modal" class="modal-overlay hidden">
-    <div class="w-full max-w-md rounded-2xl border border-line bg-surface p-6">
-      <div class="flex items-center justify-between">
-        <h3 class="font-display text-2xl text-olive">Add Customer</h3>
-        <button id="close-add-modal" class="text-stone2 hover:text-olive">✕</button>
-      </div>
-      <div class="mt-4 space-y-3">
-        <label class="text-sm block">Full name
-          <input id="new-cust-name" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <label class="text-sm block">Phone
-          <input id="new-cust-phone" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <label class="text-sm block">Email
-          <input id="new-cust-email" type="email" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <label class="text-sm block">Temporary password (6+ characters)
-          <input id="new-cust-password" type="text" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <label class="text-sm block">Note <span class="text-red-400">*</span> (required, audit trail)
-          <textarea id="new-cust-note" required rows="2" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none"></textarea>
-        </label>
-        <button id="submit-add-customer" class="w-full rounded-xl bg-olive p-3 text-sm font-bold text-ink hover:bg-olive/90 transition">Create Account</button>
-        <p id="add-customer-status" class="hidden text-xs font-medium"></p>
-      </div>
-    </div>
-  </div>
-
-  <!-- EDIT CUSTOMER MODAL -->
-  <div id="edit-customer-modal" class="modal-overlay hidden">
-    <div class="w-full max-w-md rounded-2xl border border-line bg-surface p-6">
-      <div class="flex items-center justify-between">
-        <h3 class="font-display text-2xl text-olive">Edit Customer</h3>
-        <button id="close-edit-modal" class="text-stone2 hover:text-olive">✕</button>
-      </div>
-      <div class="mt-4 space-y-3">
-        <input type="hidden" id="edit-cust-uid" />
-        <label class="text-sm block">Full name
-          <input id="edit-cust-name" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <label class="text-sm block">Phone
-          <input id="edit-cust-phone" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <label class="text-sm block">Email <span class="text-stone2">(changes login credentials)</span>
-          <input id="edit-cust-email" type="email" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <label class="text-sm block">Address
-          <input id="edit-cust-address" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <label class="text-sm block">Points
-          <input id="edit-cust-points" type="number" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none" />
-        </label>
-        <label class="text-sm block">Note <span class="text-red-400">*</span> (required, audit trail)
-          <textarea id="edit-cust-note" required rows="2" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none"></textarea>
-        </label>
-        <button id="submit-edit-customer" class="w-full rounded-xl bg-olive p-3 text-sm font-bold text-ink hover:bg-olive/90 transition">Save Changes</button>
-        <p id="edit-customer-status" class="hidden text-xs font-medium"></p>
-      </div>
-    </div>
-  </div>
-
-  <!-- DELETE CUSTOMER MODAL -->
-  <div id="delete-customer-modal" class="modal-overlay hidden">
-    <div class="w-full max-w-md rounded-2xl border border-red-800 bg-surface p-6">
-      <div class="flex items-center justify-between">
-        <h3 class="font-display text-2xl text-red-400">Remove Customer</h3>
-        <button id="close-delete-modal" class="text-stone2 hover:text-olive">✕</button>
-      </div>
-      <p class="mt-2 text-sm text-stone2">This permanently deletes <b id="delete-cust-name" class="text-stone"></b>'s login credentials and profile. This cannot be undone.</p>
-      <div class="mt-4 space-y-3">
-        <input type="hidden" id="delete-cust-uid" />
-        <label class="text-sm block">Note <span class="text-red-400">*</span> (required, audit trail)
-          <textarea id="delete-cust-note" required rows="2" class="mt-1 block w-full rounded-xl border border-line bg-ink p-3 text-stone focus:border-olive outline-none"></textarea>
-        </label>
-        <button id="submit-delete-customer" class="w-full rounded-xl bg-red-700 p-3 text-sm font-bold text-white hover:bg-red-600 transition">Permanently Delete</button>
-        <p id="delete-customer-status" class="hidden text-xs font-medium"></p>
-      </div>
-    </div>
-  </div>
-
   <script type="module">
-    import {
-      auth, watchAuth, logOut, isAdminEmail, getAllOrders, markOrderCompletedAndAwardPoints,
-      markOrderCancelled, updateOrderStatus, markRewardCodeUsed, adjustUserPoints, getAllUsers, saveOrderToFirestore, db,
-      updateCustomerProfileWithAudit, getCustomerAudits, createCustomerAccount, deleteCustomerAccount, updateCustomerEmail
-    } from './firebase-config.js';
-    import { collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { watchAuth, logIn, signUpCustomer, resetPassword, isAdminEmail } from './firebase-config.js?v=20260902b';
 
-    const $ = (id) => document.getElementById(id);
-    let currentAdmin = null;
-    let allOrders = [];
-    let allCustomers = [];
-    let ordersChart = null;
-    let flavorsChart = null;
-    let redirectTimer = null;
-    let authResolved = false;
-    let logoDataUrl = null;
+    const $ = (selector) => document.querySelector(selector);
+    const loginForm = $('#login-form');
+    const signupForm = $('#signup-form');
+    const loginTab = $('#show-login');
+    const signupTab = $('#show-signup');
+    const status = $('#global-status');
 
-    const STATUS_OPTIONS = ['New', 'Accepted', 'Preparing', 'Ready for Pickup', 'Out for Delivery', 'Completed', 'Cancelled'];
-
-    setTimeout(() => { if (!authResolved) $('auth-loading')?.remove(); }, 4000);
-
-    function preloadLogo() {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-          try {
-            logoDataUrl = canvas.toDataURL('image/jpeg');
-          } catch (e) {
-            logoDataUrl = null;
-          }
-          resolve();
-        };
-        img.onerror = () => resolve();
-        img.src = 'logo.JPG';
-      });
-    }
-
-    watchAuth(async (user) => {
-      authResolved = true;
-      if (user && isAdminEmail(user.email)) {
-        if (redirectTimer) { clearTimeout(redirectTimer); redirectTimer = null; }
-        currentAdmin = user;
-        try { preloadLogo(); await loadEverything(); }
-        catch (err) {
-          console.error('Dashboard data could not be loaded:', err);
-          const main = document.querySelector('main');
-          if (main) { const notice = document.createElement('div'); notice.className = 'mt-6 rounded-xl border border-red-800 bg-red-950/30 p-4 text-sm text-red-200'; notice.textContent = 'The dashboard opened, but its data could not be loaded. Check your Firestore rules and browser console.'; main.prepend(notice); }
-        } finally { $('auth-loading')?.remove(); }
-      } else if (user && !isAdminEmail(user.email)) {
-        $('auth-loading')?.remove(); window.location.href = 'login.html';
-      } else {
-        if (redirectTimer) return;
-        redirectTimer = setTimeout(() => { window.location.href = 'login.html'; }, 700);
-      }
-    });
-
-    $('logout-btn').addEventListener('click', async () => { await logOut(); window.location.href = 'index.html'; });
-
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.classList.add('text-stone2'); });
-        btn.classList.add('active'); btn.classList.remove('text-stone2');
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-        $(`tab-${btn.dataset.tab}`).classList.remove('hidden');
-        if (btn.dataset.tab === 'audits') loadAudits();
-      });
-    });
-
-    async function loadEverything() {
-      [allOrders, allCustomers] = await Promise.all([getAllOrders(), getAllUsers()]);
-      renderOverview();
-      renderOrders();
-      renderCustomers();
-    }
-
-    function renderOverview() {
-      const completed = allOrders.filter(o => o.status === 'Completed');
-      const revenue = completed.reduce((sum, o) => sum + Number(o.subtotal || 0), 0);
-      const pending = allOrders.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled').length;
-
-      $('stat-total-orders').textContent = allOrders.length;
-      $('stat-revenue').textContent = '$' + revenue.toFixed(2);
-      $('stat-customers').textContent = allCustomers.length;
-      $('stat-pending').textContent = pending;
-
-      const days = [];
-      const counts = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        days.push(label);
-        const dayCount = allOrders.filter(o => {
-          const created = o.createdAt?.toDate ? o.createdAt.toDate() : null;
-          return created && created.toDateString() === d.toDateString();
-        }).length;
-        counts.push(dayCount);
-      }
-
-      if (ordersChart) ordersChart.destroy();
-      ordersChart = new Chart($('chart-orders-week'), {
-        type: 'bar',
-        data: { labels: days, datasets: [{ label: 'Orders', data: counts, backgroundColor: '#9ca86a' }] },
-        options: {
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: '#918878' }, grid: { color: '#554f43' } },
-            y: { ticks: { color: '#918878' }, grid: { color: '#554f43' }, beginAtZero: true }
-          }
-        }
-      });
-
-      const flavorCounts = {};
-      allOrders.forEach(o => {
-        (o.itemsText || '').split(',').forEach(part => {
-          const match = part.trim().match(/(\d+)×\s*(.+)/);
-          if (match) {
-            const qty = Number(match[1]);
-            const flavor = match[2].trim();
-            flavorCounts[flavor] = (flavorCounts[flavor] || 0) + qty;
-          }
-        });
-      });
-      const sortedFlavors = Object.entries(flavorCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
-
-      if (flavorsChart) flavorsChart.destroy();
-      flavorsChart = new Chart($('chart-top-flavors'), {
-        type: 'bar',
-        data: {
-          labels: sortedFlavors.map(f => f[0]),
-          datasets: [{ label: 'Units sold', data: sortedFlavors.map(f => f[1]), backgroundColor: '#b5aa96' }]
-        },
-        options: {
-          indexAxis: 'y',
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: '#918878' }, grid: { color: '#554f43' }, beginAtZero: true },
-            y: { ticks: { color: '#918878' }, grid: { color: '#554f43' } }
-          }
-        }
-      });
-    }
-
-    function statusColorClass(status) {
-      if (status === 'Completed') return 'text-olive';
-      if (status === 'Cancelled') return 'text-red-400';
-      return 'text-stone2';
-    }
-
-    function generateInvoicePDF(order) {
-      const docPdf = new window.jspdf.jsPDF({ unit: 'pt', format: 'letter' });
-      const pageWidth = docPdf.internal.pageSize.getWidth();
-      const OLIVE = [156, 168, 106];
-      const INK = [21, 21, 16];
-      const GRAY = [120, 120, 120];
-
-      if (logoDataUrl) {
-        try { docPdf.addImage(logoDataUrl, 'JPEG', 56, 40, 48, 48); } catch (e) {}
-      }
-
-      const textX = logoDataUrl ? 116 : 56;
-      docPdf.setTextColor(...INK);
-      docPdf.setFont('helvetica', 'bold');
-      docPdf.setFontSize(20);
-      docPdf.text('Mystical Wellness', textX, 62);
-      docPdf.setFont('helvetica', 'normal');
-      docPdf.setFontSize(9);
-      docPdf.setTextColor(...GRAY);
-      docPdf.text('Spring Valley, CA 91977', textX, 78);
-      docPdf.text('mysticalwellness26@gmail.com', textX, 90);
-
-      docPdf.setTextColor(...OLIVE);
-      docPdf.setFont('helvetica', 'bold');
-      docPdf.setFontSize(22);
-      docPdf.text('INVOICE', pageWidth - 56, 58, { align: 'right' });
-      docPdf.setTextColor(...INK);
-      docPdf.setFont('helvetica', 'normal');
-      docPdf.setFontSize(9);
-      const created = order.createdAt?.toDate ? order.createdAt.toDate() : new Date();
-      docPdf.text('Invoice #' + order.id.slice(0, 8).toUpperCase(), pageWidth - 56, 76, { align: 'right' });
-      docPdf.text('Date: ' + created.toLocaleDateString(), pageWidth - 56, 90, { align: 'right' });
-
-      docPdf.setDrawColor(...OLIVE);
-      docPdf.setLineWidth(1.5);
-      docPdf.line(56, 108, pageWidth - 56, 108);
-
-      let y = 132;
-      docPdf.setFont('helvetica', 'bold');
-      docPdf.setFontSize(10);
-      docPdf.setTextColor(...OLIVE);
-      docPdf.text('BILL TO', 56, y);
-      docPdf.text('ORDER DETAILS', pageWidth - 200, y);
-      y += 16;
-      docPdf.setTextColor(...INK);
-      docPdf.setFont('helvetica', 'normal');
-      docPdf.setFontSize(10);
-      docPdf.text(order.customerName || 'Guest', 56, y);
-      docPdf.text('Fulfillment: ' + (order.mode || ''), pageWidth - 200, y);
-      y += 14;
-      docPdf.text(order.customerPhone || '', 56, y);
-      if (order.deliveryZip) docPdf.text('Delivery ZIP: ' + order.deliveryZip, pageWidth - 200, y);
-      y += 14;
-      docPdf.text('Status: Completed', pageWidth - 200, y);
-
-      y += 28;
-
-      const lines = (order.itemsText || '').split(',').map(s => s.trim()).filter(Boolean);
-      const rows = lines.map(line => {
-        const match = line.match(/(\d+)×\s*(.+)/);
-        return match ? [match[2], match[1], '$6.00'] : [line, '1', ''];
-      });
-      if (order.proteinBoost) rows.push(['Vanilla Protein add-on (+12g protein)', '', '$1.00 ea']);
-      if (order.addOns) rows.push(['Toppings: ' + order.addOns, '', '']);
-
-      docPdf.autoTable({
-        startY: y,
-        head: [['Item', 'Qty', 'Price']],
-        body: rows,
-        margin: { left: 56, right: 56 },
-        theme: 'grid',
-        headStyles: { fillColor: OLIVE, textColor: INK, fontStyle: 'bold', fontSize: 10 },
-        bodyStyles: { textColor: INK, fontSize: 10 },
-        styles: { cellPadding: 6 }
-      });
-
-      let afterTableY = docPdf.lastAutoTable.finalY + 24;
-      docPdf.setFont('helvetica', 'bold');
-      docPdf.setFontSize(13);
-      docPdf.setTextColor(...INK);
-      docPdf.text('Total Paid:', pageWidth - 200, afterTableY);
-      docPdf.setTextColor(...OLIVE);
-      docPdf.text('$' + Number(order.subtotal || 0).toFixed(2), pageWidth - 56, afterTableY, { align: 'right' });
-
-      afterTableY += 36;
-      docPdf.setDrawColor(220, 220, 220);
-      docPdf.setLineWidth(0.5);
-      docPdf.line(56, afterTableY, pageWidth - 56, afterTableY);
-      afterTableY += 16;
-
-      docPdf.setFont('helvetica', 'italic');
-      docPdf.setFontSize(8.5);
-      docPdf.setTextColor(...GRAY);
-      docPdf.text('This invoice was generated automatically upon order completion and serves as a record for', 56, afterTableY);
-      docPdf.text('personal bookkeeping and tax purposes. Please retain for your records. Thank you for your order!', 56, afterTableY + 11);
-
-      const fileName = `Invoice_${order.customerName ? order.customerName.replace(/\s+/g, '_') : 'Guest'}_${created.toISOString().slice(0, 10)}.pdf`;
-      docPdf.save(fileName);
-    }
-
-    function renderOrders() {
-      const filter = $('status-filter').value;
-      const filtered = filter ? allOrders.filter(o => o.status === filter) : allOrders;
-
-      if (filtered.length === 0) {
-        $('orders-table').innerHTML = '<p class="text-stone2 text-sm">No orders found.</p>';
-        return;
-      }
-
-      $('orders-table').innerHTML = filtered.map(o => {
-        const created = o.createdAt?.toDate ? o.createdAt.toDate() : new Date();
-        const currentStatus = o.status || 'New';
-        const optionsHtml = STATUS_OPTIONS.map(s =>
-          `<option value="${s}" ${s === currentStatus ? 'selected' : ''}>${s}</option>`
-        ).join('');
-
-        return `
-          <div class="rounded-xl border border-line bg-surface p-4">
-            <div class="flex flex-wrap justify-between gap-2 text-sm">
-              <b class="text-stone">${o.customerName || 'Guest'} · ${o.customerPhone || ''}</b>
-              <span class="${statusColorClass(currentStatus)} font-semibold">${currentStatus}</span>
-            </div>
-            <p class="mt-1 text-sm text-stone2">${o.itemsText} — $${Number(o.subtotal || 0).toFixed(2)} · ${o.mode}${o.deliveryZip ? ' · ZIP ' + o.deliveryZip : ''}</p>
-            <p class="mt-1 text-xs text-stone2">${created.toLocaleString()} · ${o.source === 'Admin-entered' ? 'Admin-entered' : (o.uid ? 'Member' : 'Guest')}</p>
-            <div class="mt-3 flex flex-wrap items-center gap-2">
-              <label class="text-xs text-stone2">Update status:</label>
-              <select data-id="${o.id}" class="status-select rounded-lg border border-line bg-ink p-2 text-xs text-stone focus:border-olive outline-none">
-                ${optionsHtml}
-              </select>
-              ${currentStatus === 'Completed' ? `<button data-id="${o.id}" class="invoice-btn rounded-lg border border-olive px-3 py-2 text-xs font-bold text-olive hover:bg-olive/10 transition">Download Invoice</button>` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      document.querySelectorAll('.status-select').forEach(select => {
-        select.addEventListener('change', async () => {
-          const orderId = select.dataset.id;
-          const newStatus = select.value;
-
-          select.disabled = true;
-          try {
-            if (newStatus === 'Completed') {
-              await markOrderCompletedAndAwardPoints(orderId);
-              const updatedOrder = allOrders.find(o => o.id === orderId);
-              if (updatedOrder) generateInvoicePDF({ ...updatedOrder, status: 'Completed' });
-            } else if (newStatus === 'Cancelled') {
-              await markOrderCancelled(orderId);
-            } else {
-              await updateOrderStatus(orderId, newStatus);
-            }
-            await loadEverything();
-          } catch (err) {
-            alert('Could not update order: ' + err.message);
-            select.disabled = false;
-          }
-        });
-      });
-
-      document.querySelectorAll('.invoice-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const order = allOrders.find(o => o.id === btn.dataset.id);
-          if (order) generateInvoicePDF(order);
-        });
-      });
-    }
-
-    const MANUAL_FLAVORS = [
-      ['apple', 'Apple Cinnamon'], ['mango', 'Mango'], ['pineapple', 'Pineapple'],
-      ['strawberry', 'Strawberry'], ['blueberry', 'Blueberry']
-    ];
-
-    function manualOrderData() {
-      const lines = [];
-      let totalNourishments = 0;
-      MANUAL_FLAVORS.forEach(([key, label]) => {
-        const quantity = Math.max(0, Number($(`manual-${key}`).value) || 0);
-        if (quantity) { lines.push(`${quantity}× ${label}`); totalNourishments += quantity; }
-      });
-      const proteinBoost = $('manual-protein').value === 'yes';
-      const toppings = $('manual-toppings').value.trim();
-      return {
-        totalNourishments,
-        itemsText: lines.join(', '),
-        subtotal: (totalNourishments * 6) + (proteinBoost ? totalNourishments : 0),
-        proteinBoost,
-        addOns: toppings,
-        mode: $('manual-mode').value,
-        deliveryZip: $('manual-zip').value.trim(),
-        customerName: $('manual-name').value.trim(),
-        customerPhone: $('manual-phone').value.trim(),
-        notes: $('manual-notes').value.trim(),
-        source: 'Admin-entered',
-        createdByAdmin: currentAdmin?.email || 'unknown'
-      };
-    }
-
-    function updateManualTotal() {
-      $('manual-total').textContent = `$${manualOrderData().subtotal.toFixed(2)}`;
-    }
-
-    function setManualStatus(message, isError = false) {
-      const status = $('manual-order-status');
+    function setStatus(message, type = 'error') {
       status.textContent = message;
-      status.className = isError
-        ? 'block rounded-xl border border-red-800 bg-red-950/30 p-3 text-sm font-medium text-red-200'
-        : 'block rounded-xl border border-olive/50 bg-olive/10 p-3 text-sm font-medium text-olive';
+      status.className = type === 'success'
+        ? 'mt-4 block rounded-xl border border-olive/50 bg-olive/10 p-3 text-sm text-olive'
+        : 'mt-4 block rounded-xl border border-red-800/60 bg-red-950/40 p-3 text-sm text-red-200';
     }
 
-    MANUAL_FLAVORS.forEach(([key]) => $(`manual-${key}`).addEventListener('input', updateManualTotal));
-    $('manual-protein').addEventListener('change', updateManualTotal);
-    $('manual-mode').addEventListener('change', () => {
-      $('manual-zip').disabled = $('manual-mode').value !== 'Delivery';
-      if ($('manual-zip').disabled) $('manual-zip').value = '';
-    });
-    $('manual-mode').dispatchEvent(new Event('change'));
+    function clearStatus() { status.textContent = ''; status.className = 'mt-4 hidden rounded-xl border p-3 text-sm'; }
 
-    $('manual-order-form').addEventListener('submit', async (event) => {
+    function showLogin() {
+      loginForm.classList.remove('hidden'); signupForm.classList.add('hidden');
+      loginTab.classList.add('active'); loginTab.classList.remove('text-stone2');
+      signupTab.classList.remove('active'); signupTab.classList.add('text-stone2');
+      clearStatus();
+    }
+
+    function showSignup() {
+      signupForm.classList.remove('hidden'); loginForm.classList.add('hidden');
+      signupTab.classList.add('active'); signupTab.classList.remove('text-stone2');
+      loginTab.classList.remove('active'); loginTab.classList.add('text-stone2');
+      clearStatus();
+    }
+
+    function setButton(button, waiting, waitingText, defaultText) {
+      button.disabled = waiting;
+      button.textContent = waiting ? waitingText : defaultText;
+    }
+
+    loginTab.addEventListener('click', showLogin);
+    signupTab.addEventListener('click', showSignup);
+
+    watchAuth((user) => {
+      if (!user) return;
+      window.location.replace(isAdminEmail(user.email) ? 'admin.html' : 'account.html');
+    });
+
+    loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const order = manualOrderData();
-      const digits = order.customerPhone.replace(/\D/g, '');
-      if (!order.customerName) return setManualStatus('Enter the customer name.', true);
-      if (digits.length < 10) return setManualStatus('Enter a valid phone number.', true);
-      if (!order.totalNourishments) return setManualStatus('Add at least one Nourishment.', true);
-      if (order.mode === 'Delivery' && !/^\d{5}$/.test(order.deliveryZip)) return setManualStatus('Enter a valid 5-digit delivery ZIP.', true);
-      const button = $('manual-submit');
-      button.disabled = true;
-      button.textContent = 'Creating order...';
+      clearStatus();
+      const email = $('#login-email').value.trim();
+      const password = $('#login-password').value;
+      const button = $('#login-submit');
+      if (!email || !password) { setStatus('Enter both your email address and password.'); return; }
+      setButton(button, true, 'Signing in…', 'Log In');
       try {
-        const id = await saveOrderToFirestore(order, null);
-        setManualStatus(`Order created successfully. Order ID: ${id.slice(0, 8).toUpperCase()}.`);
-        $('manual-order-form').reset();
-        $('manual-mode').dispatchEvent(new Event('change'));
-        updateManualTotal();
-        await loadEverything();
+        const credential = await logIn(email, password, $('#remember-me').checked);
+        window.location.replace(isAdminEmail(credential.user.email) ? 'admin.html' : 'account.html');
       } catch (error) {
-        console.error('Manual order could not be saved:', error);
-        setManualStatus(`Could not create the order: ${error.message}`, true);
+        console.error(error);
+        setStatus(error.message || 'Unable to sign in. Please try again.');
+        setButton(button, false, '', 'Log In');
+      }
+    });
+
+    signupForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearStatus();
+      const name = $('#signup-name').value.trim();
+      const phone = $('#signup-phone').value.trim();
+      const email = $('#signup-email').value.trim();
+      const password = $('#signup-password').value;
+      const button = $('#signup-submit');
+      if (!name || !phone || !email || !password) { setStatus('Complete every field to create your account.'); return; }
+      if (password.length < 6) { setStatus('Your password must contain at least 6 characters.'); return; }
+      setButton(button, true, 'Creating account…', 'Create Account');
+      try {
+        const credential = await signUpCustomer({ name, phone, email, password });
+        window.location.replace(isAdminEmail(credential.user.email) ? 'admin.html' : 'account.html');
+      } catch (error) {
+        console.error(error);
+        setStatus(error.message || 'Unable to create your account. Please try again.');
+        setButton(button, false, '', 'Create Account');
+      }
+    });
+
+    $('#forgot-password').addEventListener('click', async () => {
+      clearStatus();
+      const email = $('#login-email').value.trim();
+      if (!email) { setStatus('Enter your email address above first, then select Forgot password.'); $('#login-email').focus(); return; }
+      const button = $('#forgot-password');
+      button.disabled = true;
+      try {
+        await resetPassword(email);
+        setStatus('Password-reset instructions were sent. Check your inbox and spam folder.', 'success');
+      } catch (error) {
+        console.error(error);
+        setStatus(error.message || 'Unable to send the password-reset email.');
       } finally {
         button.disabled = false;
-        button.textContent = 'Create Order';
       }
     });
-
-    $('status-filter').addEventListener('change', renderOrders);
-    $('refresh-orders').addEventListener('click', loadEverything);
-
-    function renderCustomers() {
-      const term = $('customer-search').value.trim().toLowerCase();
-      const filtered = allCustomers.filter(c =>
-        !term ||
-        (c.name || '').toLowerCase().includes(term) ||
-        (c.email || '').toLowerCase().includes(term) ||
-        (c.phone || '').toLowerCase().includes(term)
-      );
-
-      $('customers-tbody').innerHTML = filtered.map(c => `
-        <tr>
-          <td class="text-stone font-medium">${c.name || ''}</td>
-          <td>${c.email || ''}</td>
-          <td>${c.phone || ''}</td>
-          <td>${c.points ?? 0}</td>
-          <td>${c.activeReward ? c.activeReward.reward + ' (' + c.activeReward.code + ')' : '—'}</td>
-          <td>${c.address || '—'}</td>
-          <td class="whitespace-nowrap">
-            <button data-uid="${c.id}" class="edit-cust-btn rounded-lg border border-line px-3 py-1.5 text-xs font-bold text-stone hover:border-olive hover:text-olive transition">Edit</button>
-            <button data-uid="${c.id}" class="delete-cust-btn ml-1 rounded-lg border border-red-800 px-3 py-1.5 text-xs font-bold text-red-300 hover:bg-red-950/40 transition">Remove</button>
-          </td>
-        </tr>
-      `).join('');
-
-      document.querySelectorAll('.edit-cust-btn').forEach(btn => {
-        btn.addEventListener('click', () => openEditModal(btn.dataset.uid));
-      });
-      document.querySelectorAll('.delete-cust-btn').forEach(btn => {
-        btn.addEventListener('click', () => openDeleteModal(btn.dataset.uid));
-      });
-    }
-
-    $('customer-search').addEventListener('input', renderCustomers);
-
-    $('add-customer-btn').addEventListener('click', () => {
-      $('new-cust-name').value = ''; $('new-cust-phone').value = ''; $('new-cust-email').value = '';
-      $('new-cust-password').value = ''; $('new-cust-note').value = '';
-      $('add-customer-status').classList.add('hidden');
-      $('add-customer-modal').classList.remove('hidden');
-    });
-    $('close-add-modal').addEventListener('click', () => $('add-customer-modal').classList.add('hidden'));
-
-    $('submit-add-customer').addEventListener('click', async () => {
-      const statusEl = $('add-customer-status');
-      statusEl.classList.remove('hidden');
-      try {
-        await createCustomerAccount({
-          name: $('new-cust-name').value.trim(),
-          phone: $('new-cust-phone').value.trim(),
-          email: $('new-cust-email').value.trim(),
-          password: $('new-cust-password').value,
-          note: $('new-cust-note').value.trim()
-        });
-        statusEl.textContent = 'Customer created successfully.';
-        statusEl.className = 'text-xs font-medium text-olive';
-        await loadEverything();
-        setTimeout(() => $('add-customer-modal').classList.add('hidden'), 900);
-      } catch (err) {
-        statusEl.textContent = 'Error: ' + err.message;
-        statusEl.className = 'text-xs font-medium text-red-400';
-      }
-    });
-
-    function openEditModal(uid) {
-      const c = allCustomers.find(x => x.id === uid);
-      if (!c) return;
-      $('edit-cust-uid').value = uid;
-      $('edit-cust-name').value = c.name || '';
-      $('edit-cust-phone').value = c.phone || '';
-      $('edit-cust-email').value = c.email || '';
-      $('edit-cust-address').value = c.address || '';
-      $('edit-cust-points').value = c.points ?? 0;
-      $('edit-cust-note').value = '';
-      $('edit-customer-status').classList.add('hidden');
-      $('edit-customer-modal').classList.remove('hidden');
-    }
-    $('close-edit-modal').addEventListener('click', () => $('edit-customer-modal').classList.add('hidden'));
-
-    $('submit-edit-customer').addEventListener('click', async () => {
-      const statusEl = $('edit-customer-status');
-      statusEl.classList.remove('hidden');
-      const uid = $('edit-cust-uid').value;
-      const note = $('edit-cust-note').value.trim();
-
-      if (!note) {
-        statusEl.textContent = 'A note is required for every customer change.';
-        statusEl.className = 'text-xs font-medium text-red-400';
-        return;
-      }
-
-      try {
-        const original = allCustomers.find(x => x.id === uid);
-        const newEmail = $('edit-cust-email').value.trim();
-
-        if (original && newEmail && newEmail !== original.email) {
-          await updateCustomerEmail(uid, newEmail, note);
-        }
-
-        await updateCustomerProfileWithAudit(uid, {
-          name: $('edit-cust-name').value.trim(),
-          phone: $('edit-cust-phone').value.trim(),
-          address: $('edit-cust-address').value.trim(),
-          points: Number($('edit-cust-points').value) || 0
-        }, note, currentAdmin.email);
-
-        statusEl.textContent = 'Customer updated successfully.';
-        statusEl.className = 'text-xs font-medium text-olive';
-        await loadEverything();
-        setTimeout(() => $('edit-customer-modal').classList.add('hidden'), 900);
-      } catch (err) {
-        statusEl.textContent = 'Error: ' + err.message;
-        statusEl.className = 'text-xs font-medium text-red-400';
-      }
-    });
-
-    function openDeleteModal(uid) {
-      const c = allCustomers.find(x => x.id === uid);
-      if (!c) return;
-      $('delete-cust-uid').value = uid;
-      $('delete-cust-name').textContent = c.name || c.email || 'this customer';
-      $('delete-cust-note').value = '';
-      $('delete-customer-status').classList.add('hidden');
-      $('delete-customer-modal').classList.remove('hidden');
-    }
-    $('close-delete-modal').addEventListener('click', () => $('delete-customer-modal').classList.add('hidden'));
-
-    $('submit-delete-customer').addEventListener('click', async () => {
-      const statusEl = $('delete-customer-status');
-      statusEl.classList.remove('hidden');
-      const uid = $('delete-cust-uid').value;
-      const note = $('delete-cust-note').value.trim();
-
-      if (!note) {
-        statusEl.textContent = 'A note is required to delete a customer.';
-        statusEl.className = 'text-xs font-medium text-red-400';
-        return;
-      }
-
-      try {
-        await deleteCustomerAccount(uid, note);
-        statusEl.textContent = 'Customer permanently deleted.';
-        statusEl.className = 'text-xs font-medium text-olive';
-        await loadEverything();
-        setTimeout(() => $('delete-customer-modal').classList.add('hidden'), 900);
-      } catch (err) {
-        statusEl.textContent = 'Error: ' + err.message;
-        statusEl.className = 'text-xs font-medium text-red-400';
-      }
-    });
-
-    $('verify-code-btn').addEventListener('click', async () => {
-      const code = $('code-input').value.trim().toUpperCase();
-      const snap = await getDoc(doc(db, 'rewardCodes', code));
-      const resultBox = $('code-result');
-      resultBox.classList.remove('hidden');
-
-      if (!snap.exists()) {
-        resultBox.innerHTML = '<span class="text-red-400">Code not found.</span>';
-        return;
-      }
-      const data = snap.data();
-      if (data.status === 'used') {
-        resultBox.innerHTML = `<span class="text-red-400">This code was already used.</span>`;
-        return;
-      }
-      resultBox.innerHTML = `
-        <p class="text-olive font-semibold">Valid — ${data.reward}</p>
-        <button id="mark-used-btn" class="mt-2 rounded-full bg-olive px-4 py-2 text-xs font-bold text-ink hover:bg-olive/90 transition">Mark as Used</button>
-      `;
-      $('mark-used-btn').addEventListener('click', async () => {
-        await markRewardCodeUsed(code);
-        resultBox.innerHTML = '<span class="text-olive">Marked as used.</span>';
-      });
-    });
-
-    $('adjust-points-btn').addEventListener('click', async () => {
-      const resultEl = $('points-result');
-      resultEl.classList.remove('hidden');
-      try {
-        const email = $('points-email').value.trim();
-        const delta = Number($('points-delta').value);
-        const reason = $('points-reason').value.trim();
-
-        if (!reason) throw new Error('A reason is required.');
-
-        const q = query(collection(db, 'users'), where('email', '==', email));
-        const snap = await getDocs(q);
-        if (snap.empty) throw new Error('No customer found with that email.');
-
-        const uid = snap.docs[0].id;
-        await adjustUserPoints(uid, delta, reason, currentAdmin.email);
-
-        resultEl.textContent = 'Points adjusted successfully.';
-        resultEl.className = 'mt-3 block text-xs font-medium text-olive';
-        $('points-email').value = ''; $('points-delta').value = ''; $('points-reason').value = '';
-        await loadEverything();
-      } catch (err) {
-        resultEl.textContent = 'Error: ' + err.message;
-        resultEl.className = 'mt-3 block text-xs font-medium text-red-400';
-      }
-    });
-
-    async function loadAudits() {
-      const audits = await getCustomerAudits();
-      $('audit-log-list').innerHTML = audits.length === 0
-        ? '<p class="text-stone2 text-sm">No audit entries yet.</p>'
-        : audits.map(a => {
-            const created = a.createdAt?.toDate ? a.createdAt.toDate() : new Date();
-            return `
-              <div class="rounded-xl border border-line bg-surface p-4">
-                <div class="flex justify-between text-sm">
-                  <b class="text-stone">${a.action}</b>
-                  <span class="text-xs text-stone2">${created.toLocaleString()}</span>
-                </div>
-                <p class="mt-1 text-sm text-stone2">${a.details || ''}</p>
-                <p class="mt-1 text-xs text-olive">Note: ${a.note}</p>
-                <p class="mt-1 text-xs text-stone2">By: ${a.adminEmail}</p>
-              </div>
-            `;
-          }).join('');
-
-      renderInvoiceList();
-    }
-
-    function renderInvoiceList() {
-      const term = $('invoice-search').value.trim().toLowerCase();
-      const completedOrders = allOrders.filter(o => o.status === 'Completed' &&
-        (!term || (o.customerName || '').toLowerCase().includes(term)));
-
-      $('invoice-list').innerHTML = completedOrders.length === 0
-        ? '<p class="text-stone2 text-sm">No completed orders found.</p>'
-        : completedOrders.map(o => {
-            const created = o.createdAt?.toDate ? o.createdAt.toDate() : new Date();
-            return `
-              <div class="rounded-xl border border-line bg-surface p-4">
-                <div class="flex flex-wrap justify-between gap-2 text-sm">
-                  <b class="text-stone">${o.customerName || 'Guest'}</b>
-                  <span class="text-xs text-stone2">${created.toLocaleDateString()}</span>
-                </div>
-                <p class="mt-1 text-sm text-stone2">${o.itemsText} — $${Number(o.subtotal || 0).toFixed(2)}</p>
-                <button data-id="${o.id}" class="reinvoice-btn mt-2 rounded-lg border border-olive px-3 py-2 text-xs font-bold text-olive hover:bg-olive/10 transition">Download Invoice</button>
-              </div>
-            `;
-          }).join('');
-
-      document.querySelectorAll('.reinvoice-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const order = allOrders.find(o => o.id === btn.dataset.id);
-          if (order) generateInvoicePDF(order);
-        });
-      });
-    }
-
-    $('invoice-search').addEventListener('input', renderInvoiceList);
   </script>
 </body>
 </html>
