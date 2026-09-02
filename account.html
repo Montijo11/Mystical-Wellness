@@ -1,333 +1,157 @@
-// ============================================================
-// Mystical Wellness — Firebase Backend Configuration
-// ============================================================
-// Only remaining step: paste your deployed Google Apps Script
-// /exec URL into BACKEND_URL below.
-// ============================================================
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Account — Mystical Wellness</title>
+  <meta name="description" content="Manage your Mystical Wellness profile, past orders, and rewards." />
+  <link rel="icon" href="logo.JPG" type="image/jpeg" />
+  <link rel="apple-touch-icon" href="logo.JPG" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { display: ['Fraunces', 'Georgia', 'serif'] },
+          colors: { ink: '#151510', surface: '#201f18', surface2: '#29261e', olive: '#9ca86a', stone: '#b5aa96', stone2: '#918878', line: '#554f43' }
+        }
+      }
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: Inter, sans-serif; }
+    .grain { background: radial-gradient(circle at 10% 3%, #9ca86a20, transparent 30rem), radial-gradient(circle at 94% 16%, #86634220, transparent 24rem); }
+    .tab.active { background: #9ca86a; border-color: #9ca86a; color: #151510; }
+  </style>
+</head>
+<body class="min-h-screen bg-ink text-stone">
+  <div class="grain fixed inset-0 -z-10"></div>
+  <div id="auth-loading" class="fixed inset-0 z-50 flex items-center justify-center bg-ink"><div class="h-9 w-9 animate-spin rounded-full border-2 border-olive border-t-transparent"></div></div>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  setPersistence,
-  browserLocalPersistence,
-  browserSessionPersistence,
-  signOut,
-  updateProfile
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  addDoc,
-  collection,
-  query,
-  where,
-  orderBy,
-  getDocs,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-  getFunctions,
-  httpsCallable
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+  <header class="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur">
+    <div class="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-4">
+      <a href="index.html" class="flex items-center gap-2.5"><img src="logo.JPG" alt="Mystical Wellness logo" class="h-11 w-11 rounded-full border border-line object-cover" /><span class="font-display text-xl text-stone">Mystical Wellness</span></a>
+      <div class="flex items-center gap-2 sm:gap-3"><a href="index.html" class="rounded-full border border-line px-3 py-2 text-xs font-semibold text-stone2 transition hover:border-olive hover:text-olive sm:px-4 sm:text-sm">Order</a><button id="logout-btn" class="rounded-full bg-olive px-3 py-2 text-xs font-bold text-ink transition hover:bg-olive/90 sm:px-4 sm:text-sm">Log Out</button></div>
+    </div>
+  </header>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDXfMK8nxFQ9-wbazPYqgPmF58QFS_Y1Vs",
-  authDomain: "mystical-wellness.firebaseapp.com",
-  projectId: "mystical-wellness",
-  storageBucket: "mystical-wellness.firebasestorage.app",
-  messagingSenderId: "859227928719",
-  appId: "1:859227928719:web:88f098c46bed52e44318fa",
-  measurementId: "G-6XV6XJX2MX"
-};
+  <main class="mx-auto w-full max-w-6xl px-5 py-10">
+    <p class="text-xs font-bold uppercase tracking-[.2em] text-olive">My account</p>
+    <h1 id="greeting" class="mt-2 font-display text-4xl text-stone sm:text-5xl">Welcome</h1>
+    <p id="account-email" class="mt-2 text-sm text-stone2"></p>
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-const functions = getFunctions(app);
+    <div id="status" class="mt-5 hidden rounded-xl border p-3 text-sm" role="alert"></div>
 
-export const BACKEND_URL = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
+    <div class="mt-8 flex flex-wrap gap-2">
+      <button class="tab active rounded-full border border-line px-4 py-2 text-sm font-bold transition" data-tab="profile">My Profile</button>
+      <button class="tab rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition hover:text-stone" data-tab="orders">Past Orders</button>
+      <button class="tab rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition hover:text-stone" data-tab="rewards">Points &amp; Rewards</button>
+    </div>
 
-const ADMIN_EMAILS = [
-  "mysticalwellness26@gmail.com",
-  "mysticalwellness26admin@gmail.com"
-];
+    <section id="panel-profile" class="panel mt-6 max-w-2xl rounded-2xl border border-line bg-surface p-5 sm:p-6">
+      <h2 class="font-display text-2xl text-stone">Profile</h2>
+      <p class="mt-1 text-sm text-stone2">Keep your details current so we can confirm your orders.</p>
+      <form id="profile-form" class="mt-6 grid gap-4 sm:grid-cols-2">
+        <label class="text-sm font-semibold text-stone">Full name<input id="profile-name" required autocomplete="name" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" /></label>
+        <label class="text-sm font-semibold text-stone">Phone number<input id="profile-phone" required autocomplete="tel" type="tel" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" /></label>
+        <label class="text-sm font-semibold text-stone sm:col-span-2">Email address<input id="profile-email" disabled type="email" class="mt-1.5 block w-full cursor-not-allowed rounded-xl border border-line bg-ink/60 p-3 text-stone2 outline-none" /></label>
+        <label class="text-sm font-semibold text-stone sm:col-span-2">Default delivery address <span class="font-normal text-stone2">optional</span><textarea id="profile-address" rows="3" autocomplete="street-address" class="mt-1.5 block w-full rounded-xl border border-line bg-ink p-3 text-stone outline-none focus:border-olive" placeholder="Street address, city, ZIP"></textarea></label>
+        <div class="sm:col-span-2"><button id="save-profile" type="submit" class="rounded-xl bg-olive px-5 py-3 text-sm font-bold text-ink transition hover:bg-olive/90 disabled:opacity-60">Save Profile</button></div>
+      </form>
+    </section>
 
-export function isAdminEmail(email) {
-  if (!email) return false;
-  return ADMIN_EMAILS.includes(email.toLowerCase());
-}
+    <section id="panel-orders" class="panel mt-6 hidden">
+      <div class="rounded-2xl border border-line bg-surface p-5 sm:p-6"><h2 class="font-display text-2xl text-stone">Past orders</h2><p class="mt-1 text-sm text-stone2">Your signed-in orders appear here.</p><div id="orders-list" class="mt-5 space-y-3"><p class="text-sm text-stone2">Loading your orders…</p></div></div>
+    </section>
 
-export const REWARD_TIERS = [
-  { points: 50, reward: "Free topping on your next order" },
-  { points: 100, reward: "$5 off your next order" },
-  { points: 200, reward: "One free 12oz Nourishment" },
-  { points: 350, reward: "$15 off your next order" }
-];
+    <section id="panel-rewards" class="panel mt-6 hidden">
+      <div class="rounded-2xl border border-line bg-surface p-5 sm:p-6"><div class="flex flex-wrap items-start justify-between gap-4"><div><h2 class="font-display text-2xl text-stone">Points &amp; Rewards</h2><p class="mt-1 text-sm text-stone2">Earn points when completed orders are marked complete.</p></div><div class="rounded-2xl border border-olive/50 bg-olive/10 px-5 py-3 text-center"><p class="text-xs font-bold uppercase tracking-wide text-olive">Available points</p><p id="points-total" class="font-display text-4xl text-stone">0</p></div></div><div id="active-reward" class="mt-5 hidden rounded-xl border border-olive/50 bg-olive/10 p-4 text-sm text-olive"></div><div id="rewards-list" class="mt-6 grid gap-3 sm:grid-cols-2"></div></div>
+    </section>
+  </main>
 
-export function watchAuth(callback) {
-  return onAuthStateChanged(auth, (user) => {
-    callback(user);
-  });
-}
+  <script type="module">
+    import { watchAuth, logOut, isAdminEmail, getUserProfile, updateUserProfile, getOrdersForUser, redeemReward, REWARD_TIERS, getGreeting } from './firebase-config.js?v=20260902';
 
-export async function logIn(email, password, rememberMe = true) {
-  await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
-  return signInWithEmailAndPassword(auth, email, password);
-}
+    const $ = (selector) => document.querySelector(selector);
+    let currentUser = null;
+    let currentProfile = null;
 
-export async function signUpCustomer({ name, phone, email, password }) {
-  const credential = await createUserWithEmailAndPassword(auth, email, password);
-
-  if (name) {
-    await updateProfile(credential.user, { displayName: name });
-  }
-
-  await setDoc(doc(db, "users", credential.user.uid), {
-    name: name || "",
-    phone: phone || "",
-    email,
-    address: "",
-    points: 0,
-    activeReward: null,
-    createdAt: serverTimestamp()
-  });
-
-  return credential;
-}
-
-export async function resetPassword(email) {
-  return sendPasswordResetEmail(auth, email);
-}
-
-export async function logOut() {
-  return signOut(auth);
-}
-
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
-
-export function enforceSessionTimeout() {
-  const now = Date.now();
-  const lastActive = Number(localStorage.getItem("mw_last_active") || now);
-
-  if (now - lastActive > SESSION_TIMEOUT_MS) {
-    localStorage.removeItem("mw_last_active");
-    logOut();
-    return false;
-  }
-
-  localStorage.setItem("mw_last_active", String(now));
-  return true;
-}
-
-export async function getUserProfile(uid) {
-  if (!uid) return null;
-  const snap = await getDoc(doc(db, "users", uid));
-  return snap.exists() ? snap.data() : null;
-}
-
-export async function updateUserProfile(uid, updates) {
-  if (!uid) throw new Error("Missing user ID.");
-  await updateDoc(doc(db, "users", uid), updates);
-}
-
-export async function getAllUsers() {
-  const snap = await getDocs(collection(db, "users"));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-}
-
-export function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-}
-
-export async function saveOrderToFirestore(orderData, uid) {
-  const payload = {
-    ...orderData,
-    uid: uid || null,
-    status: "New",
-    createdAt: serverTimestamp()
-  };
-  const docRef = await addDoc(collection(db, "orders"), payload);
-  return docRef.id;
-}
-
-export async function getOrdersForUser(uid) {
-  if (!uid) return [];
-  const ordersQuery = query(
-    collection(db, "orders"),
-    where("uid", "==", uid),
-    orderBy("createdAt", "desc")
-  );
-  const snap = await getDocs(ordersQuery);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-}
-
-export async function getAllOrders() {
-  const ordersQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-  const snap = await getDocs(ordersQuery);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-}
-
-export async function updateOrderStatus(orderId, status) {
-  await updateDoc(doc(db, "orders", orderId), { status });
-}
-
-export async function markOrderCompletedAndAwardPoints(orderId) {
-  const orderRef = doc(db, "orders", orderId);
-  const orderSnap = await getDoc(orderRef);
-  if (!orderSnap.exists()) throw new Error("Order not found.");
-
-  const order = orderSnap.data();
-  if (order.status === "Completed") return;
-
-  await updateDoc(orderRef, { status: "Completed" });
-
-  if (order.uid && order.totalNourishments) {
-    const userRef = doc(db, "users", order.uid);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      const currentPoints = userSnap.data().points || 0;
-      const earned = order.totalNourishments * 10;
-      await updateDoc(userRef, { points: currentPoints + earned });
+    function showStatus(message, success = false) {
+      const box = $('#status');
+      box.textContent = message;
+      box.className = success ? 'mt-5 block rounded-xl border border-olive/50 bg-olive/10 p-3 text-sm text-olive' : 'mt-5 block rounded-xl border border-red-800/60 bg-red-950/40 p-3 text-sm text-red-200';
     }
-  }
-}
 
-export async function markOrderCancelled(orderId) {
-  await updateDoc(doc(db, "orders", orderId), { status: "Cancelled" });
-}
+    function formatMoney(value) { return `$${Number(value || 0).toFixed(2)}`; }
 
-function generateRewardCode() {
-  const random = Math.floor(1000 + Math.random() * 9000);
-  return `MW-${random}`;
-}
+    function formatDate(timestamp) {
+      const date = timestamp?.toDate ? timestamp.toDate() : timestamp ? new Date(timestamp) : null;
+      return date && !Number.isNaN(date.getTime()) ? date.toLocaleString() : 'Order date unavailable';
+    }
 
-export async function redeemReward(uid, tierIndex) {
-  const tier = REWARD_TIERS[tierIndex];
-  if (!tier) throw new Error("Invalid reward tier.");
+    function renderOrders(orders) {
+      const container = $('#orders-list');
+      if (!orders.length) { container.innerHTML = '<p class="text-sm text-stone2">No signed-in orders yet. <a class="text-olive" href="index.html#order">Place your first order</a>.</p>'; return; }
+      container.innerHTML = orders.map((order) => `<article class="rounded-xl border border-line bg-ink/30 p-4"><div class="flex flex-wrap items-start justify-between gap-3"><div><p class="font-semibold text-stone">${order.itemsText || 'Order'}</p><p class="mt-1 text-xs text-stone2">${formatDate(order.createdAt)} · ${order.mode || 'Pickup'}</p></div><span class="rounded-full border border-line px-3 py-1 text-xs font-bold ${order.status === 'Completed' ? 'text-olive' : 'text-stone2'}">${order.status || 'New'}</span></div><div class="mt-3 border-t border-line pt-3 text-sm text-stone2"><span>${order.totalNourishments || 0} Nourishment(s)</span><span class="float-right font-semibold text-stone">${formatMoney(order.subtotal)}</span></div></article>`).join('');
+    }
 
-  const userRef = doc(db, "users", uid);
-  const userSnap = await getDoc(userRef);
-  if (!userSnap.exists()) throw new Error("User profile not found.");
+    function renderRewards(profile) {
+      const points = Number(profile?.points || 0);
+      $('#points-total').textContent = points;
+      const activeBox = $('#active-reward');
+      if (profile?.activeReward?.code) { activeBox.textContent = `Active reward: ${profile.activeReward.reward}. Show code ${profile.activeReward.code} at pickup.`; activeBox.classList.remove('hidden'); } else { activeBox.classList.add('hidden'); }
+      $('#rewards-list').innerHTML = REWARD_TIERS.map((tier, index) => { const locked = points < tier.points || profile?.activeReward; return `<article class="rounded-xl border border-line bg-ink/30 p-4"><p class="text-xs font-bold uppercase tracking-wide text-olive">${tier.points} points</p><h3 class="mt-1 font-semibold text-stone">${tier.reward}</h3><button data-tier="${index}" ${locked ? 'disabled' : ''} class="redeem-btn mt-4 rounded-lg border border-olive px-3 py-2 text-xs font-bold text-olive transition hover:bg-olive hover:text-ink disabled:cursor-not-allowed disabled:opacity-40">${profile?.activeReward ? 'Use active reward first' : points < tier.points ? `Need ${tier.points - points} more points` : 'Redeem reward'}</button></article>`; }).join('');
+      document.querySelectorAll('.redeem-btn').forEach((button) => button.addEventListener('click', async () => {
+        const tierIndex = Number(button.dataset.tier); button.disabled = true;
+        try { const code = await redeemReward(currentUser.uid, tierIndex); currentProfile = await getUserProfile(currentUser.uid); renderRewards(currentProfile); showStatus(`Reward claimed. Your code is ${code}. Show it at pickup.`, true); }
+        catch (error) { console.error(error); showStatus(error.message || 'Could not redeem this reward.'); button.disabled = false; }
+      }));
+    }
 
-  const profile = userSnap.data();
-  if (profile.activeReward) {
-    throw new Error("You already have an active reward. Redeem it at pickup before claiming another.");
-  }
-  if ((profile.points || 0) < tier.points) {
-    throw new Error("You do not have enough points for this reward yet.");
-  }
+    async function loadAccount(user) {
+      currentUser = user;
+      currentProfile = await getUserProfile(user.uid) || {};
+      $('#greeting').textContent = `${getGreeting()}, ${(currentProfile.name || user.displayName || 'there').split(' ')[0]}.`;
+      $('#account-email').textContent = user.email || '';
+      $('#profile-name').value = currentProfile.name || user.displayName || '';
+      $('#profile-phone').value = currentProfile.phone || '';
+      $('#profile-email').value = user.email || currentProfile.email || '';
+      $('#profile-address').value = currentProfile.address || '';
+      renderRewards(currentProfile);
+      renderOrders(await getOrdersForUser(user.uid));
+      $('#auth-loading').remove();
+    }
 
-  const code = generateRewardCode();
-  const activeReward = { code, reward: tier.reward, tierIndex, redeemedAt: new Date().toISOString() };
+    document.querySelectorAll('.tab').forEach((button) => button.addEventListener('click', () => {
+      const tab = button.dataset.tab;
+      document.querySelectorAll('.tab').forEach((item) => { item.classList.toggle('active', item === button); item.classList.toggle('text-stone2', item !== button); });
+      document.querySelectorAll('.panel').forEach((panel) => panel.classList.toggle('hidden', panel.id !== `panel-${tab}`));
+      if (tab === 'orders' && currentUser) getOrdersForUser(currentUser.uid).then(renderOrders).catch((error) => showStatus(error.message || 'Could not load orders.'));
+    }));
 
-  await updateDoc(userRef, { activeReward });
-  await setDoc(doc(db, "rewardCodes", code), {
-    uid,
-    reward: tier.reward,
-    status: "active",
-    createdAt: serverTimestamp()
-  });
+    $('#profile-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!currentUser) return;
+      const button = $('#save-profile'); button.disabled = true; button.textContent = 'Saving…';
+      try {
+        const updates = { name: $('#profile-name').value.trim(), phone: $('#profile-phone').value.trim(), address: $('#profile-address').value.trim() };
+        await updateUserProfile(currentUser.uid, updates);
+        currentProfile = { ...currentProfile, ...updates };
+        $('#greeting').textContent = `${getGreeting()}, ${(updates.name || 'there').split(' ')[0]}.`;
+        showStatus('Your profile was saved.', true);
+      } catch (error) { console.error(error); showStatus(error.message || 'Could not save your profile.'); }
+      finally { button.disabled = false; button.textContent = 'Save Profile'; }
+    });
 
-  return code;
-}
+    $('#logout-btn').addEventListener('click', async () => { await logOut(); window.location.replace('index.html'); });
 
-export async function lookupRewardCode(code) {
-  if (!code) return null;
-  const cleanCode = code.trim().toUpperCase();
-  const snap = await getDoc(doc(db, "rewardCodes", cleanCode));
-  if (!snap.exists()) return null;
-
-  const data = snap.data();
-  if (data.status !== "active") return null;
-
-  return { code: cleanCode, reward: data.reward };
-}
-
-export async function markRewardCodeUsed(code) {
-  const cleanCode = code.trim().toUpperCase();
-  const codeRef = doc(db, "rewardCodes", cleanCode);
-  const codeSnap = await getDoc(codeRef);
-  if (!codeSnap.exists()) throw new Error("Reward code not found.");
-
-  const data = codeSnap.data();
-  await updateDoc(codeRef, { status: "used" });
-
-  if (data.uid) {
-    await updateDoc(doc(db, "users", data.uid), { activeReward: null });
-  }
-}
-
-export async function adjustUserPoints(uid, delta, reason, adminEmail) {
-  const userRef = doc(db, "users", uid);
-  const userSnap = await getDoc(userRef);
-  if (!userSnap.exists()) throw new Error("Customer not found.");
-
-  const currentPoints = userSnap.data().points || 0;
-  const newPoints = Math.max(0, currentPoints + Number(delta));
-
-  await updateDoc(userRef, { points: newPoints });
-
-  await addDoc(collection(db, "customerAudits"), {
-    uid,
-    action: "Adjusted points",
-    note: reason || "",
-    adminEmail: adminEmail || "unknown",
-    details: `Points changed by ${delta > 0 ? "+" : ""}${delta} (now ${newPoints})`,
-    createdAt: serverTimestamp()
-  });
-
-  return newPoints;
-}
-
-// ------------------------------------------------------------
-// Customer profile edits (name/phone/address/points) — always logged
-// ------------------------------------------------------------
-export async function updateCustomerProfileWithAudit(uid, updates, note, adminEmail) {
-  if (!note || !note.trim()) throw new Error("A note is required for every customer change.");
-
-  await updateDoc(doc(db, "users", uid), updates);
-
-  const changedFields = Object.keys(updates).join(", ");
-  await addDoc(collection(db, "customerAudits"), {
-    uid,
-    action: "Edited profile",
-    note,
-    adminEmail: adminEmail || "unknown",
-    details: `Updated: ${changedFields}`,
-    createdAt: serverTimestamp()
-  });
-}
-
-export async function getCustomerAudits() {
-  const auditsQuery = query(collection(db, "customerAudits"), orderBy("createdAt", "desc"));
-  const snap = await getDocs(auditsQuery);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-}
-
-// ------------------------------------------------------------
-// Cloud Function callables — account deletion and email changes
-// require the Admin SDK and cannot run from the browser alone.
-// See functions/index.js for the server-side code.
-// ------------------------------------------------------------
-export async function deleteCustomerAccount(uid, note) {
-  const callable = httpsCallable(functions, "deleteCustomerAccount");
-  const result = await callable({ uid, note });
-  return result.data;
-}
-
-export async function updateCustomerEmail(uid, newEmail, note) {
-  const callable = httpsCallable(functions, "updateCustomerEmail");
-  const result = await callable({ uid, newEmail, note });
-  return result.data;
-}
+    watchAuth(async (user) => {
+      if (!user) { window.location.replace('login.html'); return; }
+      if (isAdminEmail(user.email)) { window.location.replace('admin.html'); return; }
+      try { await loadAccount(user); } catch (error) { console.error(error); $('#auth-loading').remove(); showStatus(error.message || 'Could not load your account.'); }
+    });
+  </script>
+</body>
+</html>
