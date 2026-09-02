@@ -317,16 +317,19 @@
       });
     }
 
-    watchAuth((user) => {
+    watchAuth(async (user) => {
       authResolved = true;
       if (user && isAdminEmail(user.email)) {
         if (redirectTimer) { clearTimeout(redirectTimer); redirectTimer = null; }
         currentAdmin = user;
-        $('auth-loading')?.remove();
-        preloadLogo();
-        loadEverything();
+        try { preloadLogo(); await loadEverything(); }
+        catch (err) {
+          console.error('Dashboard data could not be loaded:', err);
+          const main = document.querySelector('main');
+          if (main) { const notice = document.createElement('div'); notice.className = 'mt-6 rounded-xl border border-red-800 bg-red-950/30 p-4 text-sm text-red-200'; notice.textContent = 'The dashboard opened, but its data could not be loaded. Check your Firestore rules and browser console.'; main.prepend(notice); }
+        } finally { $('auth-loading')?.remove(); }
       } else if (user && !isAdminEmail(user.email)) {
-        window.location.href = 'account.html';
+        $('auth-loading')?.remove(); window.location.href = 'login.html';
       } else {
         if (redirectTimer) return;
         redirectTimer = setTimeout(() => { window.location.href = 'login.html'; }, 700);
