@@ -91,7 +91,7 @@
   </main>
 
   <script type="module">
-    import { watchAuth, logIn, signUpCustomer, resetPassword, isAdminEmail } from './firebase-config.js?v=20260902';
+    import { watchAuth, logIn, signUpCustomer, resetPassword, isAdminEmail } from './firebase-config.js?v=20260902b';
 
     const $ = (selector) => document.querySelector(selector);
     const loginForm = $('#login-form');
@@ -166,7 +166,7 @@
       if (password.length < 6) { setStatus('Your password must contain at least 6 characters.'); return; }
       setButton(button, true, 'Creating account…', 'Create Account');
       try {
-        const credential = await signUpCustomer(name, phone, email, password);
+        const credential = await signUpCustomer({ name, phone, email, password });
         window.location.replace(isAdminEmail(credential.user.email) ? 'admin.html' : 'account.html');
       } catch (error) {
         console.error(error);
