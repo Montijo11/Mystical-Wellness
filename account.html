@@ -23,7 +23,33 @@
     * { box-sizing: border-box; }
     body { font-family: Inter, sans-serif; }
     .grain { background: radial-gradient(circle at 10% 3%, #9ca86a20, transparent 30rem), radial-gradient(circle at 94% 16%, #86634220, transparent 24rem); }
-    .tab.active { background: #9ca86a; border-color: #9ca86a; color: #151510; }
+    /* Account tabs: one clear selected state and readable text on every browser. */
+    .tab {
+      background: transparent !important;
+      border-color: #554f43 !important;
+      color: #b5aa96 !important;
+      opacity: 1 !important;
+      -webkit-text-fill-color: #b5aa96;
+      text-shadow: none !important;
+    }
+    .tab:hover, .tab:focus-visible {
+      border-color: #9ca86a !important;
+      color: #d7cfbf !important;
+      -webkit-text-fill-color: #d7cfbf;
+      outline: none;
+    }
+    .tab.active, .tab[aria-selected="true"] {
+      background: #9ca86a !important;
+      border-color: #9ca86a !important;
+      color: #151510 !important;
+      -webkit-text-fill-color: #151510 !important;
+      opacity: 1 !important;
+      text-shadow: none !important;
+    }
+    .tab.active::selection, .tab::selection {
+      background: transparent;
+      color: inherit;
+    }
   </style>
 </head>
 <body class="min-h-screen bg-ink text-stone">
@@ -45,9 +71,9 @@
     <div id="status" class="mt-5 hidden rounded-xl border p-3 text-sm" role="alert"></div>
 
     <div class="mt-8 flex flex-wrap gap-2">
-      <button class="tab active rounded-full border border-line px-4 py-2 text-sm font-bold transition" data-tab="profile">My Profile</button>
-      <button class="tab rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition hover:text-stone" data-tab="orders">Past Orders</button>
-      <button class="tab rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition hover:text-stone" data-tab="rewards">Points &amp; Rewards</button>
+      <button class="tab active rounded-full border border-line px-4 py-2 text-sm font-bold transition" data-tab="profile" aria-selected="true">My Profile</button>
+      <button class="tab rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition hover:text-stone" data-tab="orders" aria-selected="false">Past Orders</button>
+      <button class="tab rounded-full border border-line px-4 py-2 text-sm font-bold text-stone2 transition hover:text-stone" data-tab="rewards" aria-selected="false">Points &amp; Rewards</button>
     </div>
 
     <section id="panel-profile" class="panel mt-6 max-w-2xl rounded-2xl border border-line bg-surface p-5 sm:p-6">
@@ -126,7 +152,7 @@
 
     document.querySelectorAll('.tab').forEach((button) => button.addEventListener('click', () => {
       const tab = button.dataset.tab;
-      document.querySelectorAll('.tab').forEach((item) => { item.classList.toggle('active', item === button); item.classList.toggle('text-stone2', item !== button); });
+      document.querySelectorAll('.tab').forEach((item) => { item.classList.toggle('active', item === button); item.classList.toggle('text-stone2', item !== button); item.setAttribute('aria-selected', String(item === button)); });
       document.querySelectorAll('.panel').forEach((panel) => panel.classList.toggle('hidden', panel.id !== `panel-${tab}`));
       if (tab === 'orders' && currentUser) getOrdersForUser(currentUser.uid).then(renderOrders).catch((error) => showStatus(error.message || 'Could not load orders.'));
     }));
