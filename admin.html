@@ -43,8 +43,67 @@
     function preloadLogo(){return new Promise(resolve=>{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;c.getContext('2d').drawImage(img,0,0);try{logoDataUrl=c.toDataURL('image/jpeg')}catch(e){logoDataUrl=null}resolve()};img.onerror=()=>resolve();img.src='logo.JPG'})}
     watchAuth(async user=>{authResolved=true;if(user&&isAdminEmail(user.email)){if(redirectTimer){clearTimeout(redirectTimer);redirectTimer=null}currentAdmin=user;try{preloadLogo();await loadEverything()}catch(err){console.error('Dashboard data could not be loaded:',err);const main=document.querySelector('main');if(main){const n=document.createElement('div');n.className='mt-6 rounded-xl border border-red-800 bg-red-950/30 p-4 text-sm text-red-200';n.textContent='The dashboard opened, but its data could not be loaded. Check your Firestore rules and browser console.';main.prepend(n)}}finally{$('auth-loading')?.remove()}}else if(user&&!isAdminEmail(user.email)){$('auth-loading')?.remove();window.location.href='login.html'}else{if(redirectTimer)return;redirectTimer=setTimeout(()=>window.location.href='login.html',700)}});
     $('logout-btn').addEventListener('click',async()=>{await logOut();window.location.href='index.html'});
-    document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.classList.add('text-stone2')});btn.classList.add('active');btn.classList.remove('text-stone2');document.querySelectorAll('.tab-panel').forEach(p=>p.classList.add('hidden'));$(`tab-${btn.dataset.tab}`).classList.remove('hidden');if(btn.dataset.tab==='customers')refreshCustomers();if(btn.dataset.tab==='orders')getAllOrders().then(o=>{allOrders=o;renderOrders();renderOverview()}).catch(console.error);if(btn.dataset.tab==='audits')loadAudits()}));
-    async function refreshCustomers(){try{allCustomers=await getAllUsers();renderCustomers();renderOverview()}catch(error){console.error('Customer refresh failed:',error);$('customers-tbody').innerHTML=`<tr><td colspan="7" class="p-4 text-red-300">Could not load customers: ${error.message}</td></tr>`;alert('Could not refresh customers: '+error.message)}}
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('active');
+      b.classList.add('text-stone2');
+    });
+
+    btn.classList.add('active');
+    btn.classList.remove('text-stone2');
+
+    document.querySelectorAll('.tab-panel').forEach(p => {
+      p.classList.add('hidden');
+    });
+
+    $(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+
+    if (btn.dataset.tab === 'customers') {
+      const table = $('customers-tbody');
+
+      table.innerHTML = `
+        <tr>
+          <td colspan="7" class="p-4 text-stone2">
+            Loading customers from Firestore...
+          </td>
+        </tr>
+      `;
+
+      try {
+        allCustomers = await getAllUsers();
+
+        renderCustomers();
+        renderOverview();
+      } catch (error) {
+        console.error('Customer refresh failed:', error);
+
+        table.innerHTML = `
+          <tr>
+            <td colspan="7" class="p-4 text-red-300">
+              Could not load customers from Firestore:
+              ${error.message}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    if (btn.dataset.tab === 'orders') {
+      try {
+        allOrders = await getAllOrders();
+        renderOrders();
+        renderOverview();
+      } catch (error) {
+        console.error('Order refresh failed:', error);
+      }
+    }
+
+    if (btn.dataset.tab === 'audits') {
+      loadAudits();
+    }
+  });
+});
     async function loadEverything(){[allOrders,allCustomers]=await Promise.all([getAllOrders(),getAllUsers()]);renderOverview();renderOrders();renderCustomers()}
     function renderOverview(){const completed=allOrders.filter(o=>o.status==='Completed'),revenue=completed.reduce((sum,o)=>sum+Number(o.subtotal||0),0),pending=allOrders.filter(o=>o.status!=='Completed'&&o.status!=='Cancelled').length;$('stat-total-orders').textContent=allOrders.length;$('stat-revenue').textContent='$'+revenue.toFixed(2);$('stat-customers').textContent=allCustomers.length;$('stat-pending').textContent=pending;const days=[],counts=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toLocaleDateString('en-US',{month:'short',day:'numeric'}));counts.push(allOrders.filter(o=>{const c=o.createdAt?.toDate?o.createdAt.toDate():null;return c&&c.toDateString()===d.toDateString()}).length)}if(ordersChart)ordersChart.destroy();ordersChart=new Chart($('chart-orders-week'),{type:'bar',data:{labels:days,datasets:[{label:'Orders',data:counts,backgroundColor:'#9ca86a'}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#918878'},grid:{color:'#554f43'}},y:{ticks:{color:'#918878'},grid:{color:'#554f43'},beginAtZero:true}}}});const fc={};allOrders.forEach(o=>(o.itemsText||'').split(',').forEach(part=>{const m=part.trim().match(/(\d+)[×x]\s*(.+)/);if(m)fc[m[2].trim()]=(fc[m[2].trim()]||0)+Number(m[1])}));const sf=Object.entries(fc).sort((a,b)=>b[1]-a[1]).slice(0,6);if(flavorsChart)flavorsChart.destroy();flavorsChart=new Chart($('chart-top-flavors'),{type:'bar',data:{labels:sf.map(f=>f[0]),datasets:[{label:'Units sold',data:sf.map(f=>f[1]),backgroundColor:'#b5aa96'}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#918878'},grid:{color:'#554f43'},beginAtZero:true},y:{ticks:{color:'#918878'},grid:{color:'#554f43'}}}}})}
     function statusColorClass(s){return s==='Completed'?'text-olive':s==='Cancelled'?'text-red-400':'text-stone2'}
