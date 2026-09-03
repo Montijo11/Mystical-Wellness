@@ -1,8 +1,5 @@
 // ============================================================
-// Mystical Wellness â€” Firebase Backend Configuration
-// ============================================================
-// Only remaining step: paste your deployed Google Apps Script
-// /exec URL into BACKEND_URL below.
+// Mystical Wellness — Firebase Backend Configuration
 // ============================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -62,8 +59,7 @@ const ADMIN_EMAILS = [
 ];
 
 export function isAdminEmail(email) {
-  if (!email) return false;
-  return ADMIN_EMAILS.includes(email.toLowerCase());
+  return Boolean(email) && ADMIN_EMAILS.includes(email.toLowerCase());
 }
 
 export const REWARD_TIERS = [
@@ -73,28 +69,40 @@ export const REWARD_TIERS = [
   { points: 350, reward: "$15 off your next order" }
 ];
 
+export const DEFAULT_TOPPINGS = [
+  "Almond flakes",
+  "Coconut flakes",
+  "Maple syrup",
+  "Crushed walnuts",
+  "Banana"
+];
+
+const TOPPINGS_SETTINGS_REF = doc(db, "settings", "manualOrder");
+
 export function watchAuth(callback) {
-  return onAuthStateChanged(auth, (user) => {
-    callback(user);
-  });
+  return onAuthStateChanged(auth, callback);
 }
 
 export async function logIn(email, password, rememberMe = true) {
-  await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+  await setPersistence(
+    auth,
+    rememberMe ? browserLocalPersistence : browserSessionPersistence
+  );
   return signInWithEmailAndPassword(auth, email, password);
 }
 
 export async function signUpCustomer({ name, phone, email, password }) {
-  const credential = await createUserWithEmailAndPassword(auth, email, password);
+  const normalizedEmail = email.trim().toLowerCase();
+  const credential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
 
   if (name) {
-    await updateProfile(credential.user, { displayName: name });
+    await updateProfile(credential.user, { displayName: name.trim() });
   }
 
   await setDoc(doc(db, "users", credential.user.uid), {
-    name: name || "",
-    phone: phone || "",
-    email,
+    name: name ? name.trim() : "",
+    phone: phone ? phone.trim() : "",
+    email: normalizedEmail,
     address: "",
     points: 0,
     activeReward: null,
@@ -141,7 +149,61 @@ export async function updateUserProfile(uid, updates) {
 
 export async function getAllUsers() {
   const snap = await getDocs(collection(db, "users"));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return snap.docs
+    .map((entry) => ({ id: entry.id, ...entry.data() }))
+    .sort((a, b) => {
+      const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return bTime - aTime;
+    });
+}
+
+export async function getManualToppings() {
+  const snap = await getDoc(TOPPINGS_SETTINGS_REF);
+
+  if (!snap.exists()) {
+    return [...DEFAULT_TOPPINGS];
+  }
+
+  const toppings = snap.data()?.toppings;
+  if (!Array.isArray(toppings) || toppings.length === 0) {
+    return [...DEFAULT_TOPPINGS];
+  }
+
+  return toppings
+    .map((topping) => String(topping || "").trim())
+    .filter(Boolean);
+}
+
+export async function saveManualToppings(toppings) {
+  if (!Array.isArray(toppings)) {
+    throw new Error("Toppings must be a list.");
+  }
+
+  const cleanToppings = toppings
+    .map((topping) => String(topping || "").trim())
+    .filter(Boolean);
+
+  if (cleanToppings.length === 0) {
+    throw new Error("Keep at least one topping.");
+  }
+
+  const uniqueNames = new Set(cleanToppings.map((topping) => topping.toLowerCase()));
+  if (uniqueNames.size !== cleanToppings.length) {
+    throw new Error("Each topping must have a unique name.");
+  }
+
+  await setDoc(
+    TOPPINGS_SETTINGS_REF,
+    {
+      toppings: cleanToppings,
+      updatedAt: serverTimestamp(),
+      updatedBy: auth.currentUser?.email || "unknown"
+    },
+    { merge: true }
+  );
+
+  return cleanToppings;
 }
 
 export function getGreeting() {
@@ -158,25 +220,28 @@ export async function saveOrderToFirestore(orderData, uid) {
     status: "New",
     createdAt: serverTimestamp()
   };
+
   const docRef = await addDoc(collection(db, "orders"), payload);
   return docRef.id;
 }
 
 export async function getOrdersForUser(uid) {
   if (!uid) return [];
+
   const ordersQuery = query(
     collection(db, "orders"),
     where("uid", "==", uid),
     orderBy("createdAt", "desc")
   );
+
   const snap = await getDocs(ordersQuery);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return snap.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
 }
 
 export async function getAllOrders() {
   const ordersQuery = query(collection(db, "orders"), orderBy("createdAt", "desc"));
   const snap = await getDocs(ordersQuery);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return snap.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
 }
 
 export async function updateOrderStatus(orderId, status) {
@@ -186,6 +251,7 @@ export async function updateOrderStatus(orderId, status) {
 export async function markOrderCompletedAndAwardPoints(orderId) {
   const orderRef = doc(db, "orders", orderId);
   const orderSnap = await getDoc(orderRef);
+
   if (!orderSnap.exists()) throw new Error("Order not found.");
 
   const order = orderSnap.data();
@@ -193,15 +259,16 @@ export async function markOrderCompletedAndAwardPoints(orderId) {
 
   await updateDoc(orderRef, { status: "Completed" });
 
-  if (order.uid) {
-    const userRef = doc(db, "users", order.uid);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      const currentPoints = Number(userSnap.data().points || 0);
-      const earned = Math.max(0, Math.floor(Number(order.subtotal || 0)));
-      await updateDoc(userRef, { points: currentPoints + earned });
-    }
-  }
+  if (!order.uid) return;
+
+  const userRef = doc(db, "users", order.uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) return;
+
+  const currentPoints = Number(userSnap.data().points || 0);
+  const earned = Math.max(0, Math.floor(Number(order.subtotal || 0)));
+  await updateDoc(userRef, { points: currentPoints + earned });
 }
 
 export async function markOrderCancelled(orderId) {
@@ -209,8 +276,7 @@ export async function markOrderCancelled(orderId) {
 }
 
 function generateRewardCode() {
-  const random = Math.floor(1000 + Math.random() * 9000);
-  return `MW-${random}`;
+  return `MW-${Math.floor(1000 + Math.random() * 9000)}`;
 }
 
 export async function redeemReward(uid, tierIndex) {
@@ -225,12 +291,18 @@ export async function redeemReward(uid, tierIndex) {
   if (profile.activeReward) {
     throw new Error("You already have an active reward. Redeem it at pickup before claiming another.");
   }
-  if ((profile.points || 0) < tier.points) {
+
+  if (Number(profile.points || 0) < tier.points) {
     throw new Error("You do not have enough points for this reward yet.");
   }
 
   const code = generateRewardCode();
-  const activeReward = { code, reward: tier.reward, tierIndex, redeemedAt: new Date().toISOString() };
+  const activeReward = {
+    code,
+    reward: tier.reward,
+    tierIndex,
+    redeemedAt: new Date().toISOString()
+  };
 
   await updateDoc(userRef, { activeReward });
   await setDoc(doc(db, "rewardCodes", code), {
@@ -245,8 +317,10 @@ export async function redeemReward(uid, tierIndex) {
 
 export async function lookupRewardCode(code) {
   if (!code) return null;
+
   const cleanCode = code.trim().toUpperCase();
   const snap = await getDoc(doc(db, "rewardCodes", cleanCode));
+
   if (!snap.exists()) return null;
 
   const data = snap.data();
@@ -259,6 +333,7 @@ export async function markRewardCodeUsed(code) {
   const cleanCode = code.trim().toUpperCase();
   const codeRef = doc(db, "rewardCodes", cleanCode);
   const codeSnap = await getDoc(codeRef);
+
   if (!codeSnap.exists()) throw new Error("Reward code not found.");
 
   const data = codeSnap.data();
@@ -272,40 +347,38 @@ export async function markRewardCodeUsed(code) {
 export async function adjustUserPoints(uid, delta, reason, adminEmail) {
   const userRef = doc(db, "users", uid);
   const userSnap = await getDoc(userRef);
+
   if (!userSnap.exists()) throw new Error("Customer not found.");
 
-  const currentPoints = userSnap.data().points || 0;
-  const newPoints = Math.max(0, currentPoints + Number(delta));
+  const currentPoints = Number(userSnap.data().points || 0);
+  const newPoints = Math.max(0, currentPoints + Number(delta || 0));
 
   await updateDoc(userRef, { points: newPoints });
-
   await addDoc(collection(db, "customerAudits"), {
     uid,
     action: "Adjusted points",
     note: reason || "",
     adminEmail: adminEmail || "unknown",
-    details: `Points changed by ${delta > 0 ? "+" : ""}${delta} (now ${newPoints})`,
+    details: `Points changed by ${Number(delta) > 0 ? "+" : ""}${delta} (now ${newPoints})`,
     createdAt: serverTimestamp()
   });
 
   return newPoints;
 }
 
-// ------------------------------------------------------------
-// Customer profile edits (name/phone/address/points) â€” always logged
-// ------------------------------------------------------------
 export async function updateCustomerProfileWithAudit(uid, updates, note, adminEmail) {
-  if (!note || !note.trim()) throw new Error("A note is required for every customer change.");
+  if (!note || !note.trim()) {
+    throw new Error("A note is required for every customer change.");
+  }
 
   await updateDoc(doc(db, "users", uid), updates);
 
-  const changedFields = Object.keys(updates).join(", ");
   await addDoc(collection(db, "customerAudits"), {
     uid,
     action: "Edited profile",
-    note,
+    note: note.trim(),
     adminEmail: adminEmail || "unknown",
-    details: `Updated: ${changedFields}`,
+    details: `Updated: ${Object.keys(updates).join(", ")}`,
     createdAt: serverTimestamp()
   });
 }
@@ -313,14 +386,9 @@ export async function updateCustomerProfileWithAudit(uid, updates, note, adminEm
 export async function getCustomerAudits() {
   const auditsQuery = query(collection(db, "customerAudits"), orderBy("createdAt", "desc"));
   const snap = await getDocs(auditsQuery);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  return snap.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
 }
 
-// ------------------------------------------------------------
-// Cloud Function callables â€” account deletion and email changes
-// require the Admin SDK and cannot run from the browser alone.
-// See functions/index.js for the server-side code.
-// ------------------------------------------------------------
 export async function deleteCustomerAccount(uid, note) {
   const callable = httpsCallable(functions, "deleteCustomerAccount");
   const result = await callable({ uid, note });
@@ -333,14 +401,18 @@ export async function updateCustomerEmail(uid, newEmail, note) {
   return result.data;
 }
 
-
-
-
-// Creates a customer through a separate Firebase Auth instance so the administrator stays signed in.
 export async function createCustomerAccount({ name, phone, email, password, note }) {
-  if (!name || !email || !password) throw new Error("Name, email, and temporary password are required.");
-  if (password.length < 6) throw new Error("The temporary password must contain at least 6 characters.");
-  if (!note || !note.trim()) throw new Error("A note is required.");
+  if (!name || !email || !password) {
+    throw new Error("Name, email, and temporary password are required.");
+  }
+
+  if (password.length < 6) {
+    throw new Error("The temporary password must contain at least 6 characters.");
+  }
+
+  if (!note || !note.trim()) {
+    throw new Error("A note is required.");
+  }
 
   const normalizedEmail = email.trim().toLowerCase();
   const secondaryApp = initializeApp(firebaseConfig, `customer-create-${Date.now()}`);
@@ -348,16 +420,33 @@ export async function createCustomerAccount({ name, phone, email, password, note
   const adminEmail = auth.currentUser?.email || "unknown";
 
   try {
-    const credential = await createUserWithEmailAndPassword(secondaryAuth, normalizedEmail, password);
+    const credential = await createUserWithEmailAndPassword(
+      secondaryAuth,
+      normalizedEmail,
+      password
+    );
+
     await updateProfile(credential.user, { displayName: name.trim() });
+
     await setDoc(doc(db, "users", credential.user.uid), {
-      name: name.trim(), phone: phone ? phone.trim() : "", email: normalizedEmail,
-      address: "", points: 0, activeReward: null, createdAt: serverTimestamp()
+      name: name.trim(),
+      phone: phone ? phone.trim() : "",
+      email: normalizedEmail,
+      address: "",
+      points: 0,
+      activeReward: null,
+      createdAt: serverTimestamp()
     });
+
     await addDoc(collection(db, "customerAudits"), {
-      uid: credential.user.uid, action: "Customer account created", note: note.trim(),
-      adminEmail, details: `Created customer account for ${normalizedEmail}.`, createdAt: serverTimestamp()
+      uid: credential.user.uid,
+      action: "Customer account created",
+      note: note.trim(),
+      adminEmail,
+      details: `Created customer account for ${normalizedEmail}.`,
+      createdAt: serverTimestamp()
     });
+
     return { uid: credential.user.uid, email: normalizedEmail };
   } finally {
     await signOut(secondaryAuth).catch(() => {});
